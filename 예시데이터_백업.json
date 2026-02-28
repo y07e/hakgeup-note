@@ -1,0 +1,73 @@
+{
+  "classInfo": {
+    "schoolName": "양산여자중학교",
+    "teacherName": "윤선생",
+    "className": "1학년 9반",
+    "logo": ""
+  },
+  "students": [
+    { "id": "s6", "number": 1, "name": "강예은" },
+    { "id": "s20", "number": 2, "name": "권다현" },
+    { "id": "s1", "number": 3, "name": "김서연" },
+    { "id": "s13", "number": 4, "name": "류하영" },
+    { "id": "s16", "number": 5, "name": "문나연" },
+    { "id": "s3", "number": 6, "name": "박지유" },
+    { "id": "s15", "number": 7, "name": "배유진" },
+    { "id": "s12", "number": 8, "name": "송지안" },
+    { "id": "s18", "number": 9, "name": "신은비" },
+    { "id": "s19", "number": 10, "name": "양시은" },
+    { "id": "s11", "number": 11, "name": "오예린" },
+    { "id": "s8", "number": 12, "name": "윤채원" },
+    { "id": "s2", "number": 13, "name": "이하은" },
+    { "id": "s9", "number": 14, "name": "임소희" },
+    { "id": "s14", "number": 15, "name": "장서윤" },
+    { "id": "s5", "number": 16, "name": "정수빈" },
+    { "id": "s7", "number": 17, "name": "조윤아" },
+    { "id": "s4", "number": 18, "name": "최민서" },
+    { "id": "s10", "number": 19, "name": "한다인" },
+    { "id": "s17", "number": 20, "name": "허수아" }
+  ],
+  "memos": [
+    { "id": "m1", "studentId": "s3", "date": "2026-03-01", "categories": ["병결"], "memo": "감기 몸살로 병원 방문", "createdAt": "2026-03-01T00:00:00.000Z" },
+    { "id": "m2", "studentId": "s7", "date": "2026-03-01", "categories": ["지각"], "memo": "버스 지연으로 10분 지각", "createdAt": "2026-03-01T00:00:00.000Z" },
+    { "id": "m3", "studentId": "s12", "date": "2026-03-01", "categories": ["학부모상담"], "memo": "어머니 전화 상담 - 수학 보충학습 관련", "createdAt": "2026-03-01T00:00:00.000Z" },
+    { "id": "m4", "studentId": "s15", "date": "2026-03-01", "categories": ["생활지도"], "memo": "복도 뛰지 않기 지도", "createdAt": "2026-03-01T00:00:00.000Z" },
+    { "id": "m5", "studentId": "s1", "date": "2026-03-01", "categories": ["가정연락"], "memo": "체육복 미지참 건 학부모 안내", "createdAt": "2026-03-01T00:00:00.000Z" }
+  ],
+  "points": [
+    { "id": "p1", "studentId": "s2", "date": "2026-03-01", "type": "reward", "points": 2, "reasons": ["봉사"], "additionalReason": "", "createdAt": "2026-03-01T00:00:00.000Z" },
+    { "id": "p2", "studentId": "s5", "date": "2026-03-01", "type": "reward", "points": 1, "reasons": ["발표"], "additionalReason": "수학 수업 적극 발표", "createdAt": "2026-03-01T00:00:00.000Z" },
+    { "id": "p3", "studentId": "s10", "date": "2026-03-01", "type": "reward", "points": 3, "reasons": ["선행", "도움"], "additionalReason": "", "createdAt": "2026-03-01T00:00:00.000Z" },
+    { "id": "p4", "studentId": "s8", "date": "2026-03-01", "type": "penalty", "points": 1, "reasons": ["수업태도"], "additionalReason": "수업 중 잡담", "createdAt": "2026-03-01T00:00:00.000Z" },
+    { "id": "p5", "studentId": "s14", "date": "2026-03-01", "type": "reward", "points": 1, "reasons": ["청소"], "additionalReason": "자발적 쓰레기 줍기", "createdAt": "2026-03-01T00:00:00.000Z" }
+  ],
+  "seating": {
+    "rows": 5,
+    "cols": 5,
+    "layout": {
+      "0-0": "s1", "0-1": "s2", "0-2": "s3", "0-3": "s4", "0-4": "s5",
+      "1-0": "s6", "1-1": "s7", "1-2": "s8", "1-3": "s9", "1-4": "s10",
+      "2-0": "s11", "2-1": "s12", "2-2": "s13", "2-3": "s14", "2-4": "s15",
+      "3-0": "s16", "3-1": "s17", "3-2": "s18", "3-3": "s19", "3-4": "s20"
+    }
+  },
+  "cleaning": {
+    "zones": [
+      { "id": "z1", "name": "교실 바닥" },
+      { "id": "z2", "name": "교실 창문/사물함" },
+      { "id": "z3", "name": "복도" },
+      { "id": "z4", "name": "화장실" },
+      { "id": "z5", "name": "계단" },
+      { "id": "z6", "name": "특별구역" }
+    ],
+    "assignments": {
+      "z1": ["s1", "s2", "s3", "s4"],
+      "z2": ["s5", "s6", "s7"],
+      "z3": ["s8", "s9", "s10"],
+      "z4": ["s11", "s12", "s13"],
+      "z5": ["s14", "s15", "s16", "s17"],
+      "z6": ["s18", "s19", "s20"]
+    },
+    "notes": "매주 월요일 구역 교체\n특별구역: 과학실 앞 복도 포함"
+  }
+}

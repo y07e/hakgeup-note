@@ -3,6 +3,7 @@ dist
 .DS_Store
 *.local
 *.json
+!예시데이터_백업.json
 *.textClipping
 *.jpeg
 *.png
