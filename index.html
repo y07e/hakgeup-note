@@ -8,6 +8,7 @@
   <title>학급노트</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📋</text></svg>" />
   <style>
+@font-face{font-family:'A2GBold';src:url('a2z-bold.ttf') format('truetype');font-weight:bold;font-style:normal}
 /* ===== Reset ===== */
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -42,13 +43,15 @@ html,body{height:100%;background:#e2e8f0;
 .header-left{display:flex;align-items:center;gap:10px}
 .header-logo{width:38px;height:38px;border-radius:50%;object-fit:cover;border:2px solid rgba(255,255,255,.4);flex-shrink:0}
 .header-title{font-size:18px;font-weight:700;letter-spacing:-.3px}
-.header-sub{font-size:11px;opacity:.85;margin-top:1px}
+.header-sub{font-size:13px;font-weight:600;opacity:.95;margin-top:2px}
 .header-actions{display:flex;align-items:center;gap:8px}
 .header-date{font-size:13px;background:rgba(255,255,255,.2);padding:4px 10px;border-radius:20px}
 .header-date input[type="date"]{background:none;border:none;color:#fff;font-size:13px;font-family:inherit;cursor:pointer;width:115px}
 .header-date input::-webkit-calendar-picker-indicator{filter:invert(1);cursor:pointer}
 .icon-btn{width:36px;height:36px;border-radius:50%;border:none;background:rgba(255,255,255,.2);color:#fff;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .15s}
 .icon-btn:active{transform:scale(.95)}
+.setting-btn{width:auto;height:auto;border-radius:8px;flex-direction:column;gap:1px;padding:4px 8px;font-size:16px}
+.setting-label{font-size:9px;font-weight:800;letter-spacing:-.2px;opacity:1}
 
 /* Tab Bar */
 .tabbar{height:var(--tab-h);background:var(--card);display:flex;border-top:1px solid var(--border);flex-shrink:0;z-index:10}
@@ -166,7 +169,7 @@ html,body{height:100%;background:#e2e8f0;
 .seating-podium{text-align:center;padding:6px;margin:4px 16px 8px;background:var(--primary);color:#fff;border-radius:var(--radius-sm);font-size:13px;font-weight:700;letter-spacing:1px}
 .seating-grid{display:grid;gap:5px;padding:0 16px 12px}
 .seat{display:flex;flex-direction:column;align-items:center;justify-content:center;height:50px;border:2px solid var(--border);border-radius:var(--radius-sm);background:var(--card);cursor:pointer;transition:all .15s;font-size:12px;font-weight:600;color:var(--text-sec);position:relative}
-.seat:active{transform:scale(.95)}
+.seat:active:not(:has(.seat-action-popup)){transform:scale(.95)}
 .seat.occupied{border-color:var(--primary);background:var(--primary-light);color:var(--primary-dark)}
 .seat.moving{border-color:var(--warning);background:var(--warning-light);animation:pulse 1s infinite}
 .seat.move-target{border-color:var(--success);border-style:dashed}
@@ -174,6 +177,7 @@ html,body{height:100%;background:#e2e8f0;
 .seat .seat-name{font-size:13px;font-weight:700;line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%;padding:0 2px}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.6}}
 .seat-action-popup{position:absolute;bottom:calc(100% + 4px);left:50%;transform:translateX(-50%);background:var(--text);color:#fff;border-radius:8px;padding:4px;display:flex;gap:2px;z-index:20;white-space:nowrap;box-shadow:0 4px 12px rgba(0,0,0,.3)}
+.seat-action-popup.popup-below{bottom:auto;top:calc(100% + 4px)}
 .seat-action-popup button{padding:6px 10px;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;background:transparent;color:#fff}
 .seat-action-popup button:active{background:rgba(255,255,255,.2)}
 .seating-unassigned{padding:8px 16px}
@@ -208,6 +212,55 @@ html,body{height:100%;background:#e2e8f0;
 .cleaning-add-zone button{padding:10px 14px;border:none;border-radius:var(--radius-sm);background:var(--primary);color:#fff;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap}
 .cleaning-del-btn{background:none;border:none;color:var(--text-light);font-size:14px;cursor:pointer;padding:2px 4px}
 .cleaning-del-btn:hover{color:var(--danger)}
+.cleaning-notes-section{padding:0 16px 12px}
+.cleaning-notes-input{width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:13px;font-family:inherit;background:var(--card);resize:vertical;min-height:60px;line-height:1.6;box-sizing:border-box}
+.cleaning-notes-input:focus{outline:none;border-color:var(--primary)}
+
+/* Dashboard */
+.dash-range{padding:10px 16px 4px}
+.dash-range-presets{display:flex;gap:6px;margin-bottom:8px}
+.dash-range-btn{padding:5px 12px;border-radius:20px;border:1.5px solid var(--border);background:var(--card);font-size:11px;font-weight:600;color:var(--text-sec);cursor:pointer;font-family:inherit;transition:all .15s}
+.dash-range-btn.active{background:var(--primary);color:#fff;border-color:var(--primary)}
+.dash-range-dates{display:flex;align-items:center;gap:6px}
+.dash-date-input{flex:1;padding:7px 8px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:12px;font-family:inherit;background:var(--card);color:var(--text);outline:none}
+.dash-date-input:focus{border-color:var(--primary)}
+.dash-range-sep{font-size:12px;color:var(--text-light);font-weight:600}
+.dash-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:8px 16px}
+.dash-card{background:var(--card);border-radius:var(--radius);padding:10px;text-align:center;box-shadow:var(--shadow)}
+.dash-card-value{font-size:22px;font-weight:800;margin-bottom:2px}
+.dash-card-label{font-size:10px;color:var(--text-sec)}
+.dash-section{padding:8px 16px}
+.dash-section-title{font-size:12px;font-weight:700;color:var(--text-sec);margin-bottom:6px}
+.dash-bar-row{display:flex;align-items:center;gap:6px;margin-bottom:5px;font-size:11px}
+.dash-bar-label{width:70px;text-align:right;flex-shrink:0;color:var(--text);font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dash-bar-track{flex:1;height:16px;background:var(--border-light);border-radius:4px;overflow:hidden;position:relative}
+.dash-bar-fill{height:100%;border-radius:4px;min-width:2px;transition:width .3s}
+.dash-bar-count{width:28px;font-weight:600;color:var(--text-sec);font-size:10px}
+.dash-divider{height:1px;background:var(--border);margin:8px 16px}
+
+/* Quick Attendance */
+.qa-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:6px;padding:8px 16px}
+.qa-item{display:flex;align-items:center;gap:6px;padding:8px;background:var(--card);border-radius:var(--radius-sm);box-shadow:var(--shadow);border:1.5px solid transparent}
+.qa-item.qa-absent{border-color:var(--danger);background:var(--danger-light)}
+.qa-info{flex:1;min-width:0}
+.qa-num{font-size:10px;color:var(--text-light)}
+.qa-name{font-size:12px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.qa-select{width:55px;padding:4px 2px;font-size:10px;font-family:inherit;border:1px solid var(--border);border-radius:4px;background:var(--card)}
+.qa-select.qa-sel-absent{border-color:var(--danger);color:var(--danger);font-weight:700}
+.qa-actions{padding:12px 16px;display:flex;gap:8px}
+
+/* Lock Screen */
+.lock-screen{position:fixed;top:0;left:0;right:0;bottom:0;background:linear-gradient(135deg,#0e7490,#0891b2);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:999}
+.lock-icon{font-size:48px;margin-bottom:16px}
+.lock-title{color:#fff;font-size:18px;font-weight:700;margin-bottom:24px}
+.lock-dots{display:flex;gap:12px;margin-bottom:24px}
+.lock-dot{width:14px;height:14px;border-radius:50%;border:2px solid rgba(255,255,255,.5);background:transparent;transition:all .2s}
+.lock-dot.filled{background:#fff;border-color:#fff}
+.lock-numpad{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;width:220px}
+.lock-num{width:64px;height:64px;border-radius:50%;border:2px solid rgba(255,255,255,.4);background:transparent;color:#fff;font-size:22px;font-weight:600;display:flex;align-items:center;justify-content:center;cursor:pointer;font-family:inherit;transition:all .15s;margin:0 auto}
+.lock-num:active{background:rgba(255,255,255,.2);transform:scale(.95)}
+.lock-num.lock-del{font-size:14px;border-color:transparent}
+.lock-error{color:#fca5a5;font-size:13px;margin-top:12px;min-height:20px}
 
 /* Modal */
 .modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);z-index:100;display:flex;align-items:flex-end;justify-content:center}
@@ -252,18 +305,37 @@ html,body{height:100%;background:#e2e8f0;
 @media(max-width:360px){.student-grid{grid-template-columns:repeat(4,1fr)}.student-cell{height:52px}.student-cell .s-name{font-size:13px}}
 
 /* ===== Print ===== */
+.seating-print-area{display:none}
 @media print{
-  body{background:#fff!important}
-  .app{box-shadow:none;max-width:100%;height:auto}
-  .top-title-bar,.header,.tabbar,.footer-bar,.toast,.modal-overlay{display:none!important}
-  .main-content{overflow:visible;padding:0}
-  .cleaning-header,.cleaning-assign-grid,.cleaning-add-zone,.cleaning-btn-sm{display:none!important}
-  .print-area{display:block!important;padding:20px}
-  .print-area h2{text-align:center;font-size:20px;margin-bottom:4px}
-  .print-area .print-sub{text-align:center;font-size:13px;color:#666;margin-bottom:16px}
-  .print-area table{width:100%;border-collapse:collapse;font-size:14px}
-  .print-area th,.print-area td{border:1px solid #333;padding:8px 10px;text-align:left}
-  .print-area th{background:#e0e0e0;font-weight:700;width:120px}
+  *{-webkit-print-color-adjust:exact;print-color-adjust:exact;box-sizing:border-box;margin:0;padding:0}
+  html,body{background:#fff!important;overflow:visible!important;width:100%!important;height:auto!important}
+  #root{display:block!important;overflow:visible!important}
+  .app{display:block!important;box-shadow:none!important;overflow:visible!important;margin:0!important;padding:0!important;max-width:none!important;width:100%!important}
+  .top-title-bar,.header,.tabbar,.footer-bar,.toast,.modal-overlay,.sub-tabs,.seating-controls,.seating-podium,.seating-grid,.seating-unassigned,.seating-chip-row,.cleaning-header,.cleaning-assign-grid,.cleaning-add-zone,.cleaning-btn-sm,.cleaning-zone-card,.cleaning-notes-section,.section-title,.hint,.save-btn,.student-grid,.cat-group,.memo-section,.memo-box{display:none!important}
+  .main-content{display:block!important;overflow:visible!important;padding:0!important;margin:0!important;width:100%!important;height:auto!important}
+  /* 청소 인쇄 (A4 세로) */
+  .print-area{display:block!important;padding:2mm 0;page-break-inside:avoid}
+  .print-area h2{text-align:center;font-size:24pt;font-weight:900;margin-bottom:1mm;letter-spacing:2px;border-bottom:2.5px solid #000;padding-bottom:3mm;font-family:'A2GBold',sans-serif;-webkit-text-stroke:0.3px #000}
+  .print-area .print-sub{text-align:center;font-size:14pt;color:#444;margin-bottom:5mm}
+  .print-clean-table{width:100%;border-collapse:collapse;font-size:13pt;border:2px solid #333}
+  .print-clean-table thead th{background:#4a7c59;color:#fff;font-weight:700;font-size:14pt;padding:10px 12px;text-align:center;border:1.5px solid #333}
+  .print-clean-table thead th:first-child{width:24%}
+  .print-clean-table tbody td{border:1.5px solid #999;padding:10px 12px;vertical-align:middle}
+  .print-zone-name{background:#e8f5e9;font-weight:700;font-size:13pt;text-align:center;color:#2e5c3a}
+  .print-zone-members{font-size:13pt;line-height:1.7;color:#222}
+  .print-notes-box{margin-top:5mm;border:2px solid #c9a84c;border-radius:4px;overflow:hidden}
+  .print-notes-title{background:#f9e88f;padding:8px 12px;font-weight:700;font-size:13pt;color:#6b5300;text-align:center;border-bottom:1.5px solid #c9a84c}
+  .print-notes-content{background:#fdf8e1;padding:12px 16px;font-size:12pt;line-height:1.8;color:#5a4500}
+  .print-deco{display:flex;justify-content:center;gap:12px;margin-top:6mm;font-size:22pt;opacity:.7}
+  /* 자리배치 인쇄 (A4 가로) */
+  .seating-print-area{display:flex!important;flex-direction:column;align-items:center;justify-content:center;width:100%;height:190mm;overflow:hidden;page-break-inside:avoid;break-inside:avoid}
+  .seating-print-area h2{text-align:center;font-size:22pt;font-weight:700;margin:0 0 1mm 0;text-decoration:underline;line-height:1.2}
+  .seating-print-area .print-sub{text-align:center;font-size:15pt;color:#333;margin:0 0 3mm 0}
+  .seating-print-area table{width:90%;border-collapse:collapse;table-layout:fixed;margin:0 auto}
+  .seating-print-area td{border:2px solid #222;text-align:center;vertical-align:middle;padding:2mm 1mm;height:20mm}
+  .seating-print-cell .sp-num{font-size:16pt;color:#444;margin-bottom:1mm;display:block}
+  .seating-print-cell .sp-name{font-size:18pt;font-family:'A2GBold',sans-serif;font-weight:bold;color:#000;display:block;-webkit-text-stroke:0.5px #000}
+  .seating-print-podium{text-align:center!important;font-size:16pt;font-weight:900;letter-spacing:6mm;border:2px solid #000;background:#eee;color:#000;height:14mm!important;-webkit-text-stroke:0.5px #000}
 }
 .print-area{display:none}
   </style>
@@ -304,7 +376,7 @@ const todayStr = () => { const d = new Date(); return d.getFullYear() + '-' + St
 const fmtDate = s => { const p = s.split('-'); return Number(p[1]) + '월 ' + Number(p[2]) + '일'; };
 
 // ===== Store =====
-const KEYS = { classInfo:'hn_ci', students:'hn_st', memos:'hn_me', points:'hn_pt', seating:'hn_se', cleaning:'hn_cl' };
+const KEYS = { classInfo:'hn_ci', students:'hn_st', memos:'hn_me', points:'hn_pt', seating:'hn_se', cleaning:'hn_cl', pin:'hn_pin' };
 const load = (k, fb) => { try { const r = localStorage.getItem(k); return r ? JSON.parse(r) : fb; } catch(e) { return fb; } };
 const save = (k, v) => localStorage.setItem(k, JSON.stringify(v));
 
@@ -313,7 +385,7 @@ const loadSt = () => load(KEYS.students, []);
 const loadMe = () => load(KEYS.memos, []);
 const loadPt = () => load(KEYS.points, []);
 const loadSe = () => load(KEYS.seating, { rows:6, cols:5, layout:{} });
-const loadCl = () => load(KEYS.cleaning, { zones: DEFAULT_ZONES, assignments:{} });
+const loadCl = () => load(KEYS.cleaning, { zones: DEFAULT_ZONES, assignments:{}, notes:'' });
 
 // ===== StudentGrid =====
 function StudentGrid({ students, selectedId, onSelect, memos, today }) {
@@ -372,17 +444,57 @@ function InputTab({ students, memos, points, date, onSaveMemo, onSavePoint, onTo
       <div className="empty-text">학생 명단을 먼저 등록해주세요.<br/>오른쪽 상단 ⚙ 버튼을 눌러<br/>설정에서 학생을 추가할 수 있습니다.</div>
     </div>`;
 
+  // 빠른 출결 상태
+  const [qaStatus, setQaStatus] = useState({});
+  var qaOpts = ['출석','병결','인정결석','무단결석','지각','조퇴','결과'];
+  var setQa = function(sid,val){ setQaStatus(function(p){ var n=Object.assign({},p); n[sid]=val; return n; }); };
+  var saveQa = function() {
+    var saved = 0;
+    students.forEach(function(s){
+      var st = qaStatus[s.id] || '출석';
+      if (st !== '출석') {
+        onSaveMemo({ id: uid(), studentId: s.id, date: date, categories: [st], memo: '', createdAt: new Date().toISOString() });
+        saved++;
+      }
+    });
+    if (saved===0) { onToast('전원 출석입니다!'); }
+    else { onToast(saved + '명 출결 기록 저장 완료'); }
+    setQaStatus({});
+  };
+
   return html`
     <div>
     <div className="sub-tabs">
       <button className=${'sub-tab' + (mode==='memo'?' active':'')} onClick=${function(){setMode('memo');}}>메모 기록</button>
       <button className=${'sub-tab' + (mode==='points'?' active':'')} onClick=${function(){setMode('points');}}>상벌점</button>
+      <button className=${'sub-tab' + (mode==='quick'?' active':'')} onClick=${function(){setMode('quick');}}>빠른 출결</button>
     </div>
 
+    ${mode === 'quick' ? html`
+      <div style=${{padding:'8px 16px 0'}}>
+        <div className="section-title">전체 학생 출결 체크 <span style=${{color:'var(--text-light)',fontSize:11,fontWeight:400}}>( 기본: 출석 )</span></div>
+      </div>
+      <div className="qa-grid">
+        ${students.map(function(s){
+          var st = qaStatus[s.id] || '출석';
+          var isAbsent = st !== '출석';
+          return html`<div key=${s.id} className=${'qa-item' + (isAbsent?' qa-absent':'')}>
+            <div className="qa-info"><div className="qa-num">${s.number}</div><div className="qa-name">${s.name}</div></div>
+            <select className=${'qa-select' + (isAbsent?' qa-sel-absent':'')} value=${st} onChange=${function(e){setQa(s.id,e.target.value);}}>
+              ${qaOpts.map(function(o){return html`<option key=${o} value=${o}>${o}</option>`;})}
+            </select>
+          </div>`;
+        })}
+      </div>
+      <div className="qa-actions">
+        <button className="btn-primary" style=${{flex:1}} onClick=${saveQa}>출결 일괄 저장</button>
+        <button className="btn-secondary" onClick=${function(){setQaStatus({});}}>초기화</button>
+      </div>
+    ` : html`<div>
     <div style=${{padding:'8px 16px 0'}}>
       <div className="section-title">학생 선택 ${selName ? html` <span style=${{color:'var(--primary)'}}>— ${selName}</span>` : null}</div>
     </div>
-    <${StudentGrid} students=${students} selectedId=${selSt} onSelect=${setSelSt} memos=${memos} today=${todayStr()} />
+    <${StudentGrid} students=${students} selectedId=${selSt} onSelect=${function(id){ setSelSt(selSt===id?null:id); }} memos=${memos} today=${todayStr()} />
 
     ${mode === 'memo' ? html`
       <div style=${{padding:'0 16px 16px'}}>
@@ -426,11 +538,12 @@ function InputTab({ students, memos, points, date, onSaveMemo, onSavePoint, onTo
         <button className="btn-primary" style=${{marginTop:12}} onClick=${savePoint}>저장하기</button>
       </div>
     `}
+  </div>`}
   </div>`;
 }
 
 // ===== SeatingTab =====
-function SeatingTab({ students, seating, onUpdate, onToast }) {
+function SeatingTab({ students, seating, classInfo, onUpdate, onToast }) {
   const [popup, setPopup] = useState(null);
   const [moveFrom, setMoveFrom] = useState(null);
 
@@ -444,7 +557,23 @@ function SeatingTab({ students, seating, onUpdate, onToast }) {
   var assignedIds = new Set(Object.values(layout));
   var unassigned = students.filter(function(s){ return !assignedIds.has(s.id); });
 
-  var setRC = function(r, c) { onUpdate({ rows: r, cols: c, layout: layout }); setPopup(null); setMoveFrom(null); };
+  var setRC = function(r, c) {
+    var newLayout = {};
+    var overflow = [];
+    Object.keys(layout).forEach(function(key){
+      var parts = key.split('-');
+      var kr = Number(parts[0]); var kc = Number(parts[1]);
+      if (kr < r && kc < c) { newLayout[key] = layout[key]; }
+      else { overflow.push(layout[key]); }
+    });
+    overflow.forEach(function(sid){
+      for(var ri=0;ri<r;ri++){for(var ci=0;ci<c;ci++){
+        var k=ri+'-'+ci;
+        if(!newLayout[k]){newLayout[k]=sid;sid=null;break;}
+      }if(!sid)break;}
+    });
+    onUpdate({ rows: r, cols: c, layout: newLayout }); setPopup(null); setMoveFrom(null);
+  };
 
   var handleSeatClick = function(key) {
     if (moveFrom) {
@@ -494,6 +623,7 @@ function SeatingTab({ students, seating, onUpdate, onToast }) {
         </select>
       </div>
       ${moveFrom ? html`<button className="cleaning-btn-sm" onClick=${cancelMove}>이동 취소</button>` : null}
+      <button className="cleaning-btn-sm" onClick=${function(){var s=document.getElementById('print-orient');if(!s){s=document.createElement('style');s.id='print-orient';document.head.appendChild(s);}s.textContent='@media print{@page{size:A4 landscape;margin:10mm 15mm}}';window.print();}}>🖨️ 인쇄</button>
     </div>
     <div className="seating-podium">교 탁</div>
     <div className="seating-grid" style=${{gridTemplateColumns:'repeat('+cols+',1fr)'}}>
@@ -508,12 +638,12 @@ function SeatingTab({ students, seating, onUpdate, onToast }) {
           return html`<div key=${key} className=${cls} onClick=${function(){handleSeatClick(key);}}>
             ${sid ? html`<span className="seat-num">${getNum(sid)}</span><span className="seat-name">${name}</span>` : html`<span style=${{fontSize:16,opacity:.3}}>+</span>`}
             ${popup === key && sid && !moveFrom ? html`
-              <div className="seat-action-popup">
+              <div className=${'seat-action-popup' + (r===0?' popup-below':'')} onMouseDown=${function(e){e.stopPropagation();}} onTouchStart=${function(e){e.stopPropagation();}}>
                 <button onClick=${function(e){e.stopPropagation();startMove(key);}}>이동</button>
                 <button onClick=${function(e){e.stopPropagation();clearSeat(key);}}>비우기</button>
               </div>` : null}
             ${popup === key && !sid && !moveFrom && unassigned.length > 0 ? html`
-              <div className="seat-action-popup" style=${{flexDirection:'column',maxHeight:150,overflowY:'auto',minWidth:80}}>
+              <div className=${'seat-action-popup' + (r===0?' popup-below':'')} style=${{flexDirection:'column',maxHeight:150,overflowY:'auto',minWidth:80}} onMouseDown=${function(e){e.stopPropagation();}} onTouchStart=${function(e){e.stopPropagation();}}>
                 ${unassigned.map(function(s){return html`<button key=${s.id} onClick=${function(e){e.stopPropagation();assignStudent(key,s.id);}}>${s.number}. ${s.name}</button>`;})}
               </div>` : null}
           </div>`;
@@ -528,6 +658,31 @@ function SeatingTab({ students, seating, onUpdate, onToast }) {
         </div>
       </div>` : null}
     ${moveFrom ? html`<div style=${{padding:'8px 16px',fontSize:13,color:'var(--warning)',fontWeight:600}}>💡 이동할 자리를 선택하세요 (빈자리 또는 다른 학생과 교환)</div>` : null}
+
+    <div className="seating-print-area">
+      <h2>${classInfo.className || ''} 자리배치도</h2>
+      <div className="print-sub">${new Date().toLocaleDateString('ko-KR',{year:'numeric',month:'2-digit',day:'2-digit'}).replace(/\./g,'.').replace(/\s/g,'')}~</div>
+      <table>
+        <tbody>
+          ${Array.from({length:rows}).map(function(_,i){
+            var r = rows - 1 - i;
+            return html`<tr key=${r}>
+              ${Array.from({length:cols}).map(function(_,j){
+                var c = cols - 1 - j;
+                var key = r+'-'+c;
+                var sid = layout[key];
+                var name = sid ? getName(sid) : '';
+                var num = sid ? getNum(sid) : '';
+                return html`<td key=${key} className="seating-print-cell">
+                  ${sid ? html`<div className="sp-num">${num}</div><div className="sp-name">${name}</div>` : null}
+                </td>`;
+              })}
+            </tr>`;
+          })}
+          <tr><td colSpan=${cols} className="seating-print-podium">[ 교　탁 ]</td></tr>
+        </tbody>
+      </table>
+    </div>
   </div>`;
 }
 
@@ -539,6 +694,7 @@ function CleaningTab({ students, cleaning, classInfo, onUpdate, onToast }) {
 
   var zones = cleaning.zones || [];
   var assignments = cleaning.assignments || {};
+  var notes = cleaning.notes || '';
 
   var allAssigned = {};
   zones.forEach(function(z){ (assignments[z.id]||[]).forEach(function(sid){ allAssigned[sid]=z.id; }); });
@@ -547,14 +703,14 @@ function CleaningTab({ students, cleaning, classInfo, onUpdate, onToast }) {
     var n = newZoneName.trim();
     if (!n) return;
     var nz = zones.concat([{id:uid(),name:n}]);
-    onUpdate({zones:nz,assignments:assignments});
+    onUpdate({zones:nz,assignments:assignments,notes:notes});
     setNewZoneName(''); onToast(n+' 구역 추가');
   };
 
   var delZone = function(zid) {
     var nz = zones.filter(function(z){return z.id!==zid;});
     var na = Object.assign({},assignments); delete na[zid];
-    onUpdate({zones:nz,assignments:na});
+    onUpdate({zones:nz,assignments:na,notes:notes});
     if (selZone===zid) setSelZone(null);
     onToast('구역 삭제 완료');
   };
@@ -569,13 +725,17 @@ function CleaningTab({ students, cleaning, classInfo, onUpdate, onToast }) {
       cur.push(sid);
     }
     var na = Object.assign({},assignments); na[selZone]=cur;
-    onUpdate({zones:zones,assignments:na});
+    onUpdate({zones:zones,assignments:na,notes:notes});
+  };
+
+  var updateNotes = function(val) {
+    onUpdate({zones:zones,assignments:assignments,notes:val});
   };
 
   var getName = function(sid) { var s = students.find(function(x){return x.id===sid;}); return s ? s.name : '?'; };
   var getNum = function(sid) { var s = students.find(function(x){return x.id===sid;}); return s ? s.number : 0; };
 
-  var doPrint = function() { window.print(); };
+  var doPrint = function() { var s=document.getElementById('print-orient');if(!s){s=document.createElement('style');s.id='print-orient';document.head.appendChild(s);}s.textContent='@media print{@page{size:A4 portrait;margin:15mm}}';window.print(); };
 
   if (!students.length) return html`<div className="empty-state"><div className="empty-icon">🧹</div><div className="empty-text">학생 명단을 먼저 등록해주세요.</div></div>`;
 
@@ -593,7 +753,7 @@ function CleaningTab({ students, cleaning, classInfo, onUpdate, onToast }) {
     ${editMode ? html`
       <div className="cleaning-add-zone">
         <input placeholder="새 구역 이름" value=${newZoneName} onInput=${function(e){setNewZoneName(e.target.value);}}
-          onKeyDown=${function(e){if(e.key==='Enter')addZone();}} />
+          onKeyDown=${function(e){if(e.key==='Enter'&&!e.nativeEvent.isComposing)addZone();}} />
         <button onClick=${addZone}>추가</button>
       </div>` : null}
 
@@ -611,7 +771,7 @@ function CleaningTab({ students, cleaning, classInfo, onUpdate, onToast }) {
             ${members.length === 0
               ? html`<span className="cleaning-empty-zone">배정된 학생 없음</span>`
               : members.map(function(sid){ return html`<button key=${sid} className="cleaning-student-chip"
-                  onClick=${function(e){e.stopPropagation(); if(!editMode){var cur=(assignments[z.id]||[]).filter(function(x){return x!==sid;}); var na=Object.assign({},assignments);na[z.id]=cur;onUpdate({zones:zones,assignments:na});}}}>${getName(sid)}</button>`; })}
+                  onClick=${function(e){e.stopPropagation(); if(!editMode){var cur=(assignments[z.id]||[]).filter(function(x){return x!==sid;}); var na=Object.assign({},assignments);na[z.id]=cur;onUpdate({zones:zones,assignments:na,notes:notes});}}}>${getNum(sid)}. ${getName(sid)}</button>`; })}
           </div>
         </div>`;
     })}
@@ -632,18 +792,30 @@ function CleaningTab({ students, cleaning, classInfo, onUpdate, onToast }) {
         })}
       </div>` : null}
 
+    <div className="cleaning-notes-section">
+      <div className="section-title" style=${{padding:'12px 16px 4px'}}>청소 유의사항</div>
+      <textarea className="cleaning-notes-input" placeholder=${"청소 유의사항을 입력하세요.\n예) 청소시간이 짧아요. 빨리빨리~"} value=${notes} onInput=${function(e){updateNotes(e.target.value);}} rows="4"></textarea>
+    </div>
+
     <div className="print-area">
-      <h2>${classInfo.schoolName || '학급노트'} 청소구역 배정표</h2>
-      <div className="print-sub">${classInfo.className || ''} ${classInfo.teacherName ? '담임: '+classInfo.teacherName : ''} | ${todayStr()}</div>
-      <table>
+      <h2>${classInfo.className || ''} 청소구역표</h2>
+      <div className="print-sub">${new Date().toLocaleDateString('ko-KR',{year:'numeric',month:'2-digit',day:'2-digit'}).replace(/\./g,'.').replace(/\s/g,'')}~</div>
+      <table className="print-clean-table">
         <thead><tr><th>청소구역</th><th>담당 학생</th></tr></thead>
         <tbody>
           ${zones.map(function(z){
             var members = (assignments[z.id]||[]).map(function(sid){return getNum(sid)+'. '+getName(sid);}).join(', ');
-            return html`<tr key=${z.id}><td>${z.name}</td><td>${members || '-'}</td></tr>`;
+            return html`<tr key=${z.id}><td className="print-zone-name">${z.name}</td><td className="print-zone-members">${members || '-'}</td></tr>`;
           })}
         </tbody>
       </table>
+      ${notes.trim() ? html`<div className="print-notes-box">
+        <div className="print-notes-title">청소 유의사항</div>
+        <div className="print-notes-content">${notes.split('\n').map(function(line,i){return html`<div key=${i}>${line || '\u00A0'}</div>`;})}</div>
+      </div>` : null}
+      <div className="print-deco">
+        <span>🧹</span><span>✨</span><span>🧤</span><span>🪣</span><span>🧽</span><span>🫧</span><span>🗑️</span><span>💪</span><span>🌟</span><span>🧹</span>
+      </div>
     </div>
   </div>`;
 }
@@ -714,38 +886,155 @@ function StudentDetail({ student, memos, points, onBack, onDeleteMemo, onDeleteP
 }
 
 // ===== LookupTab =====
-function LookupTab({ students, memos, points, onDeleteMemo, onDeletePoint, onToast }) {
+function LookupTab({ students, memos, points, date, onDeleteMemo, onDeletePoint, onToast }) {
   const [search, setSearch] = useState('');
   const [selStudent, setSelStudent] = useState(null);
+
+  // 기간 검색 기본값: 이번 달 1일 ~ 오늘
+  var today = date || new Date().toISOString().slice(0,10);
+  var defFrom = today.slice(0,7) + '-01';
+  const [dateFrom, setDateFrom] = useState(defFrom);
+  const [dateTo, setDateTo] = useState(today);
+  const [rangeLabel, setRangeLabel] = useState('이번 달');
 
   if (selStudent) return html`<${StudentDetail}
     student=${selStudent} memos=${memos} points=${points}
     onBack=${function(){setSelStudent(null);}} onDeleteMemo=${onDeleteMemo} onDeletePoint=${onDeletePoint} onToast=${onToast} />`;
 
-  var filtered = students.filter(function(s){ return s.name.includes(search) || String(s.number).includes(search); });
+  // 기간 프리셋
+  var setPreset = function(label) {
+    setRangeLabel(label);
+    var d = new Date(today);
+    if (label==='오늘') { setDateFrom(today); setDateTo(today); }
+    else if (label==='이번 주') {
+      var day = d.getDay(); var diff = day === 0 ? 6 : day - 1;
+      var mon = new Date(d); mon.setDate(d.getDate() - diff);
+      setDateFrom(mon.toISOString().slice(0,10)); setDateTo(today);
+    }
+    else if (label==='이번 달') { setDateFrom(today.slice(0,7)+'-01'); setDateTo(today); }
+    else if (label==='전체') { setDateFrom('2000-01-01'); setDateTo('2099-12-31'); }
+  };
+  var onFromChange = function(e){ setDateFrom(e.target.value); setRangeLabel('직접설정'); };
+  var onToChange = function(e){ setDateTo(e.target.value); setRangeLabel('직접설정'); };
+
+  // 기간 필터링된 데이터 (현재 존재하는 학생만)
+  var studentIds = new Set(students.map(function(s){return s.id;}));
+  var fMemos = memos.filter(function(m){ return m.date && m.date >= dateFrom && m.date <= dateTo && studentIds.has(m.studentId); });
+  var fPoints = points.filter(function(p){ return p.date && p.date >= dateFrom && p.date <= dateTo && studentIds.has(p.studentId); });
+
+  // 이벤트 학생 목록
+  var eventStudentIds = new Set();
+  fMemos.forEach(function(m){ eventStudentIds.add(m.studentId); });
+  fPoints.forEach(function(p){ eventStudentIds.add(p.studentId); });
+
+  var baseList = search ? students.filter(function(s){ return s.name.includes(search) || String(s.number).includes(search); })
+    : students.filter(function(s){ return eventStudentIds.has(s.id); });
 
   var getNet = function(sid) {
-    var sp = points.filter(function(p){return p.studentId===sid;});
+    var sp = fPoints.filter(function(p){return p.studentId===sid;});
     return sp.filter(function(p){return p.type==='reward';}).reduce(function(s,p){return s+p.points;},0)
          - sp.filter(function(p){return p.type==='penalty';}).reduce(function(s,p){return s+p.points;},0);
   };
-  var getMemoCnt = function(sid) { return memos.filter(function(m){return m.studentId===sid;}).length; };
+  var getMemoCnt = function(sid) { return fMemos.filter(function(m){return m.studentId===sid;}).length; };
+
+  // 기간 기반 통계 계산
+  var totalStudents = students.length;
+  var absentCats = ['병결','무단결석'];
+  var hasData = fMemos.length > 0 || fPoints.length > 0;
+
+  // 출석률: 기간 내 출결 메모가 있는 날짜별로 결석 학생 수를 계산하여 평균
+  var absentEntries = fMemos.filter(function(m){ return m.categories && m.categories.some(function(c){return absentCats.indexOf(c)>=0;}); });
+  var absentByDate = {};
+  absentEntries.forEach(function(m){
+    if(!absentByDate[m.date]) absentByDate[m.date] = new Set();
+    absentByDate[m.date].add(m.studentId);
+  });
+  var absentDates = Object.keys(absentByDate);
+  var attendRate = '--';
+  if (absentDates.length > 0 && totalStudents > 0) {
+    var totalRate = 0;
+    absentDates.forEach(function(d){ totalRate += (totalStudents - absentByDate[d].size) / totalStudents; });
+    attendRate = Math.round(totalRate / absentDates.length * 100);
+  } else if (hasData && totalStudents > 0) {
+    attendRate = 100;
+  }
+
+  var totalReward = fPoints.filter(function(p){return p.type==='reward';}).reduce(function(s,p){return s+p.points;},0);
+  var totalPenalty = fPoints.filter(function(p){return p.type==='penalty';}).reduce(function(s,p){return s+p.points;},0);
+
+  // 카테고리별 메모 빈도 (기간 기반)
+  var catCounts = {};
+  var maxCatCount = 0;
+  Object.keys(MEMO_CATEGORIES).forEach(function(g){ MEMO_CATEGORIES[g].forEach(function(c){ catCounts[c]=0; }); });
+  fMemos.forEach(function(m){ if(m.categories){m.categories.forEach(function(c){ if(catCounts[c]!==undefined){catCounts[c]++;} });} });
+  Object.keys(catCounts).forEach(function(c){ if(catCounts[c]>maxCatCount) maxCatCount=catCounts[c]; });
+
+  var barColors = {'출결':'#0891b2','상담관련':'#8b5cf6','생활지도 및 학습관련':'#f59e0b','기타':'#64748b'};
+
+  // 기간 표시 텍스트
+  var rangeText = dateFrom === dateTo ? dateFrom.replace(/-/g,'.') : dateFrom.replace(/-/g,'.') + ' ~ ' + dateTo.replace(/-/g,'.');
 
   if (!students.length) return html`<div className="empty-state"><div className="empty-icon">📋</div><div className="empty-text">등록된 학생이 없습니다</div></div>`;
 
   return html`<div>
+    <div className="dash-range">
+      <div className="dash-range-presets">
+        ${['오늘','이번 주','이번 달','전체'].map(function(lb){
+          return html`<button key=${lb} className=${'dash-range-btn'+(rangeLabel===lb?' active':'')} onClick=${function(){setPreset(lb);}}>${lb}</button>`;
+        })}
+      </div>
+      <div className="dash-range-dates">
+        <input type="date" className="dash-date-input" value=${dateFrom} onChange=${onFromChange} />
+        <span className="dash-range-sep">~</span>
+        <input type="date" className="dash-date-input" value=${dateTo} onChange=${onToChange} />
+      </div>
+    </div>
+
+    <div className="dash-cards">
+      <div className="dash-card">
+        <div className="dash-card-value" style=${{color:'var(--primary)'}}>${attendRate==='--'?'--':attendRate+'%'}</div>
+        <div className="dash-card-label">평균 출석률</div>
+      </div>
+      <div className="dash-card">
+        <div className="dash-card-value" style=${{color:'var(--success)'}}>+${totalReward}</div>
+        <div className="dash-card-label">상점 합계</div>
+      </div>
+      <div className="dash-card">
+        <div className="dash-card-value" style=${{color:'var(--danger)'}}>-${totalPenalty}</div>
+        <div className="dash-card-label">벌점 합계</div>
+      </div>
+    </div>
+
+    <div className="dash-section">
+      <div className="dash-section-title">카테고리별 메모 빈도</div>
+      ${Object.keys(MEMO_CATEGORIES).map(function(g){ var color=barColors[g]||'#94a3b8'; return MEMO_CATEGORIES[g].map(function(c){
+        var pct = maxCatCount>0 ? Math.round(catCounts[c]/maxCatCount*100) : 0;
+        return html`<div className="dash-bar-row" key=${c}>
+          <div className="dash-bar-label">${c}</div>
+          <div className="dash-bar-track"><div className="dash-bar-fill" style=${{width:pct+'%',background:color}}></div></div>
+          <div className="dash-bar-count">${catCounts[c]}</div>
+        </div>`;
+      }); })}
+    </div>
+
+    <div className="dash-divider"></div>
+
     <div className="search-bar">
       <input className="input-field" placeholder="🔍 학생 이름 검색..." value=${search} onInput=${function(e){setSearch(e.target.value);}} />
     </div>
-    ${filtered.map(function(s) {
+    ${!search && html`<div style=${{padding:'4px 16px',fontSize:'11px',color:'var(--text-light)'}}>${rangeText} 이벤트 학생 ${eventStudentIds.size}명</div>`}
+    ${baseList.length === 0 && !search ? html`<div className="empty-state" style=${{padding:'24px 0'}}><div className="empty-icon">📭</div><div className="empty-text">해당 기간 기록된 이벤트가 없습니다</div></div>` : null}
+    ${baseList.map(function(s) {
       var net = getNet(s.id);
       var cnt = getMemoCnt(s.id);
+      var mCnt = fMemos.filter(function(m){return m.studentId===s.id;}).length;
+      var pCnt = fPoints.filter(function(p){return p.studentId===s.id;}).length;
       return html`
         <div key=${s.id} className="student-list-item" onClick=${function(){setSelStudent(s);}}>
           <div className="sl-number">${s.number}</div>
           <div className="sl-info">
             <div className="sl-name">${s.name}</div>
-            <div className="sl-meta">메모 ${cnt}건</div>
+            <div className="sl-meta">메모 ${mCnt}건${pCnt>0?' · 상벌점 '+pCnt+'건':''}</div>
           </div>
           ${net !== 0 ? html`<div className=${'sl-points ' + (net>0?'positive':'negative')}>${net>0?'상점 +'+net:'벌점 '+net}</div>` : null}
           <div className="sl-arrow">›</div>
@@ -755,7 +1044,7 @@ function LookupTab({ students, memos, points, onDeleteMemo, onDeletePoint, onToa
 }
 
 // ===== Settings =====
-function Settings({ classInfo, students, onUpdateCI, onUpdateSt, onClose, onToast, onReload }) {
+function Settings({ classInfo, students, memos, points, onUpdateCI, onUpdateSt, onCleanupStudent, onResetData, onClose, onToast, onReload }) {
   const [sn, setSn] = useState(classInfo.schoolName);
   const [tn, setTn] = useState(classInfo.teacherName);
   var parsedGrade = ''; var parsedClass = '';
@@ -771,7 +1060,15 @@ function Settings({ classInfo, students, onUpdateCI, onUpdateSt, onClose, onToas
   const [bulk, setBulk] = useState('');
   const [showBulk, setShowBulk] = useState(false);
   const [delConfirm, setDelConfirm] = useState(null);
+  const [editId, setEditId] = useState(null);
+  const [editName, setEditName] = useState('');
+  const [pinInput, setPinInput] = useState('');
+  const [hasPin, setHasPin] = useState(!!load(KEYS.pin,''));
+  const [resetConfirm, setResetConfirm] = useState(false);
+  const [logo, setLogo] = useState(classInfo.logo || '');
   const fileRef = useRef(null);
+  const csvRef = useRef(null);
+  const logoRef = useRef(null);
 
   var saveCI = function() {
     var cnVal = '';
@@ -779,7 +1076,7 @@ function Settings({ classInfo, students, onUpdateCI, onUpdateSt, onClose, onToas
     else if (grade) cnVal = grade + '학년';
     else if (cls) cnVal = cls + '반';
     else cnVal = '담임반';
-    onUpdateCI({ schoolName: sn.trim(), teacherName: tn.trim(), className: cnVal });
+    onUpdateCI({ schoolName: sn.trim(), teacherName: tn.trim(), className: cnVal, logo: logo });
     onToast('학급 정보 저장 완료');
   };
 
@@ -804,7 +1101,59 @@ function Settings({ classInfo, students, onUpdateCI, onUpdateSt, onClose, onToas
 
   var delStudent = function(id) {
     onUpdateSt(students.filter(function(s){return s.id !== id;}));
-    setDelConfirm(null); onToast('학생 삭제 완료');
+    onCleanupStudent(id);
+    setDelConfirm(null); onToast('학생 삭제 완료 (관련 기록도 정리됨)');
+  };
+
+  var doCSVExport = function() {
+    var allCats = [];
+    Object.keys(MEMO_CATEGORIES).forEach(function(g){MEMO_CATEGORIES[g].forEach(function(c){allCats.push(c);});});
+    var header = ['번호','이름','메모건수','상점합계','벌점합계'].concat(allCats);
+    var rows = students.map(function(s){
+      var sMemos = memos.filter(function(m){return m.studentId===s.id;});
+      var sPoints = points.filter(function(p){return p.studentId===s.id;});
+      var reward = sPoints.filter(function(p){return p.type==='reward';}).reduce(function(a,p){return a+p.points;},0);
+      var penalty = sPoints.filter(function(p){return p.type==='penalty';}).reduce(function(a,p){return a+p.points;},0);
+      var catCounts = {};
+      allCats.forEach(function(c){catCounts[c]=0;});
+      sMemos.forEach(function(m){if(m.categories){m.categories.forEach(function(c){if(catCounts[c]!==undefined)catCounts[c]++;});}});
+      return [s.number,s.name,sMemos.length,reward,penalty].concat(allCats.map(function(c){return catCounts[c];}));
+    });
+    var bom = '\uFEFF';
+    var csv = bom + header.join(',') + '\n' + rows.map(function(r){return r.join(',');}).join('\n');
+    var blob = new Blob([csv],{type:'text/csv;charset=utf-8'});
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a'); a.href=url; a.download='학급노트_통계_'+todayStr()+'.csv'; a.click();
+    URL.revokeObjectURL(url);
+    onToast('CSV 파일 다운로드 완료');
+  };
+
+  var doCSVImport = function(e) {
+    var file = e.target.files && e.target.files[0];
+    if(!file) return;
+    var reader = new FileReader();
+    reader.onload = function(){
+      var text = reader.result;
+      var lines = text.split('\n').map(function(l){return l.trim();}).filter(function(l){return l.length>0;});
+      if(lines.length<2){onToast('데이터가 없습니다','error');return;}
+      var headerLine = lines[0].toLowerCase();
+      var hasHeader = headerLine.includes('이름') || headerLine.includes('name') || headerLine.includes('번호');
+      var startIdx = hasHeader ? 1 : 0;
+      var maxN = students.length > 0 ? Math.max.apply(null,students.map(function(s){return s.number;})) : 0;
+      var newStudents = [];
+      for(var i=startIdx;i<lines.length;i++){
+        var cols = lines[i].split(',').map(function(c){return c.trim().replace(/"/g,'');});
+        var name = ''; var num = 0;
+        if(cols.length>=2 && !isNaN(Number(cols[0]))){num=Number(cols[0]);name=cols[1];}
+        else{name=cols[0];num=maxN+1+newStudents.length;}
+        if(name) newStudents.push({id:uid(),number:num,name:name});
+      }
+      if(newStudents.length===0){onToast('학생을 찾을 수 없습니다','error');return;}
+      onUpdateSt(students.concat(newStudents));
+      onToast(newStudents.length+'명 학생 CSV 등록 완료');
+    };
+    reader.readAsText(file);
+    e.target.value='';
   };
 
   var doExport = function() {
@@ -852,8 +1201,36 @@ function Settings({ classInfo, students, onUpdateCI, onUpdateSt, onClose, onToas
         <div className="modal-body">
           <div className="settings-section">
             <div className="settings-label">학급 정보</div>
-            <input className="settings-input" placeholder="학교 이름" value=${sn} onInput=${function(e){setSn(e.target.value);}} />
+            <div style=${{fontSize:12,fontWeight:700,color:'var(--text-sec)',marginBottom:4}}>학교</div>
+            <div style=${{display:'flex',gap:10,alignItems:'center',marginBottom:8}}>
+              <div style=${{width:52,height:52,borderRadius:'50%',border:'2px dashed var(--border)',display:'flex',alignItems:'center',justifyContent:'center',overflow:'hidden',flexShrink:0,cursor:'pointer',background:'var(--bg)'}} onClick=${function(){logoRef.current && logoRef.current.click();}}>
+                ${logo ? html`<img src=${logo} style=${{width:'100%',height:'100%',objectFit:'cover'}} />` : html`<span style=${{fontSize:10,color:'var(--text-light)',textAlign:'center',lineHeight:1.2}}>${sn ? sn.slice(0,4) : '학교\n마크'}</span>`}
+              </div>
+              <div style=${{flex:1}}>
+                <input className="settings-input" style=${{marginBottom:4}} placeholder="학교 이름" value=${sn} onInput=${function(e){setSn(e.target.value);}} />
+                <div style=${{display:'flex',gap:6}}>
+                  <button className="btn-secondary" style=${{fontSize:10,padding:'4px 8px',flex:3}} onClick=${function(){logoRef.current && logoRef.current.click();}}>🖼️ 마크 선택</button>
+                  ${logo && html`<button className="btn-secondary" style=${{fontSize:10,padding:'4px 8px',flex:1,color:'var(--danger)',borderColor:'var(--danger)'}} onClick=${function(){setLogo('');}}>삭제</button>`}
+                </div>
+              </div>
+              <input ref=${logoRef} type="file" accept="image/*" style=${{display:'none'}} onChange=${function(e){
+                var file = e.target.files[0]; if(!file) return;
+                var reader = new FileReader();
+                reader.onload = function(ev){
+                  var img = new Image(); img.onload = function(){
+                    var c = document.createElement('canvas'); var sz = 128;
+                    c.width=sz; c.height=sz; var ctx=c.getContext('2d');
+                    var s=Math.min(img.width,img.height); var sx=(img.width-s)/2; var sy=(img.height-s)/2;
+                    ctx.drawImage(img,sx,sy,s,s,0,0,sz,sz);
+                    setLogo(c.toDataURL('image/png',0.8));
+                  }; img.src=ev.target.result;
+                }; reader.readAsDataURL(file);
+                e.target.value='';
+              }} />
+            </div>
+            <div style=${{fontSize:12,fontWeight:700,color:'var(--text-sec)',marginBottom:4}}>담임교사</div>
             <input className="settings-input" placeholder="선생님 이름" value=${tn} onInput=${function(e){setTn(e.target.value);}} />
+            <div style=${{fontSize:12,fontWeight:700,color:'var(--text-sec)',marginBottom:4}}>학년반</div>
             <div className="grade-class-row">
               <select value=${grade} onChange=${function(e){setGrade(e.target.value);}}>
                 <option value="">학년 선택</option>
@@ -876,20 +1253,43 @@ function Settings({ classInfo, students, onUpdateCI, onUpdateSt, onClose, onToas
             ${students.map(function(s) { return html`
               <div key=${s.id} className="student-manage-item">
                 <span className="sm-num">${s.number}</span>
-                <span className="sm-name">${s.name}</span>
-                ${delConfirm===s.id
-                  ? html`<div className="confirm-bar">
-                      <button className="confirm-yes" onClick=${function(){delStudent(s.id);}}>삭제</button>
-                      <button className="confirm-no" onClick=${function(){setDelConfirm(null);}}>취소</button>
-                    </div>`
-                  : html`<button className="sm-delete" onClick=${function(){setDelConfirm(s.id);}}>✕</button>`
-                }
+                ${editId===s.id ? html`
+                  <div style=${{flex:1}}>
+                    <input className="settings-input" style=${{marginBottom:6,padding:'6px 10px',fontSize:13}} value=${editName}
+                      onInput=${function(e){setEditName(e.target.value);}}
+                      onKeyDown=${function(e){if(e.key==='Enter'&&!e.nativeEvent.isComposing){
+                        onUpdateSt(students.map(function(st){return st.id===s.id?Object.assign({},st,{name:editName.trim()||'공번'}):st;}));
+                        setEditId(null); onToast('학생 정보 수정 완료');
+                      }}} />
+                    <div style=${{display:'flex',gap:6}}>
+                      <button className="btn-primary" style=${{flex:2,fontSize:11,padding:'5px 0'}} onClick=${function(){
+                        onUpdateSt(students.map(function(st){return st.id===s.id?Object.assign({},st,{name:editName.trim()||'공번'}):st;}));
+                        setEditId(null); onToast('학생 정보 수정 완료');
+                      }}>저장</button>
+                      <button className="btn-secondary" style=${{flex:2,fontSize:11,padding:'5px 0',color:'var(--danger)',borderColor:'var(--danger)'}} onClick=${function(){
+                        onUpdateSt(students.map(function(st){return st.id===s.id?Object.assign({},st,{name:'공번'}):st;}));
+                        setEditId(null); onToast(s.number+'번 공번 처리 완료');
+                      }}>공번 처리</button>
+                      <button className="btn-secondary" style=${{flex:1,fontSize:11,padding:'5px 0'}} onClick=${function(){setEditId(null);}}>취소</button>
+                    </div>
+                  </div>
+                ` : html`
+                  <span className="sm-name" style=${{cursor:'pointer',flex:1}} onClick=${function(){setEditId(s.id);setEditName(s.name);setDelConfirm(null);}}>${s.name}</span>
+                  ${delConfirm===s.id
+                    ? html`<div className="confirm-bar">
+                        <button className="confirm-yes" onClick=${function(){delStudent(s.id);}}>삭제</button>
+                        <button className="confirm-no" onClick=${function(){setDelConfirm(null);}}>취소</button>
+                      </div>`
+                    : html`<button className="sm-delete" onClick=${function(){setDelConfirm(s.id);setEditId(null);}}>✕</button>`
+                  }
+                `}
               </div>
             `; })}
+            <div style=${{fontSize:12,fontWeight:700,color:'var(--text-sec)',marginTop:12,marginBottom:4}}>한 명씩 추가</div>
             <div className="add-student-row">
               <input className="settings-input" style=${{marginBottom:0}} placeholder="학생 이름"
                 value=${newName} onInput=${function(e){setNewName(e.target.value);}}
-                onKeyDown=${function(e){if(e.key==='Enter')addOne();}} />
+                onKeyDown=${function(e){if(e.key==='Enter'&&!e.nativeEvent.isComposing)addOne();}} />
               <button className="add-btn" onClick=${addOne}>추가</button>
             </div>
             <button className="btn-secondary" style=${{marginTop:8}} onClick=${function(){setShowBulk(!showBulk);}}>
@@ -902,20 +1302,82 @@ function Settings({ classInfo, students, onUpdateCI, onUpdateSt, onClose, onToas
                 <button className="btn-primary" onClick=${addBulkFn}>일괄 추가</button>
               </div>
             ` : null}
+            <button className="btn-secondary" style=${{marginTop:8}} onClick=${function(){csvRef.current&&csvRef.current.click();}}>📄 CSV 파일로 학생 등록</button>
+            <input ref=${csvRef} type="file" accept=".csv,.txt" style=${{display:'none'}} onChange=${doCSVImport} />
           </div>
 
           <div className="divider" />
 
           <div className="settings-section">
             <div className="settings-label">데이터 관리</div>
+            <button className="btn-secondary" style=${{marginBottom:8}} onClick=${doCSVExport}>📊 통계 내보내기 (CSV)</button>
             <button className="btn-secondary" style=${{marginBottom:8}} onClick=${doExport}>💾 데이터 백업 (JSON 다운로드)</button>
             <button className="btn-secondary" onClick=${function(){fileRef.current && fileRef.current.click();}}>📂 데이터 복원 (JSON 불러오기)</button>
             <input ref=${fileRef} type="file" accept=".json" style=${{display:'none'}} onChange=${doImport} />
+            <div style=${{marginTop:12,paddingTop:12,borderTop:'1px dashed var(--border)'}}>
+              <div style=${{fontSize:11,color:'var(--text-light)',marginBottom:6}}>메모·상벌점 기록 초기화 (학생 명단은 유지)</div>
+              ${resetConfirm ? html`
+                <div style=${{fontSize:12,color:'var(--danger)',fontWeight:700,marginBottom:6}}>정말 모든 메모와 상벌점 기록을 삭제하시겠습니까?</div>
+                <div style=${{display:'flex',gap:8}}>
+                  <button className="btn-danger" style=${{flex:1}} onClick=${function(){ onResetData(); setResetConfirm(false); onToast('메모·상벌점 기록이 초기화되었습니다'); }}>삭제 확인</button>
+                  <button className="btn-secondary" style=${{flex:1}} onClick=${function(){setResetConfirm(false);}}>취소</button>
+                </div>
+              ` : html`<button className="btn-secondary" style=${{color:'var(--danger)',borderColor:'var(--danger)'}} onClick=${function(){setResetConfirm(true);}}>🗑️ 기록 초기화</button>`}
+            </div>
+          </div>
+
+          <div className="divider" />
+
+          <div className="settings-section">
+            <div className="settings-label">🔒 앱 잠금 (4자리 PIN)</div>
+            ${hasPin ? html`
+              <div style=${{fontSize:13,color:'var(--success)',marginBottom:8}}>비밀번호가 설정되어 있습니다</div>
+              <button className="btn-secondary" style=${{marginBottom:8}} onClick=${function(){save(KEYS.pin,'');setHasPin(false);onToast('비밀번호 해제 완료');}}>🔓 비밀번호 해제</button>
+            ` : html`
+              <input className="settings-input" type="password" inputMode="numeric" maxLength="4" placeholder="4자리 숫자 입력"
+                value=${pinInput} onInput=${function(e){setPinInput(e.target.value.replace(/\D/g,'').slice(0,4));}} />
+              <button className="btn-primary" onClick=${function(){
+                if(pinInput.length!==4){onToast('4자리 숫자를 입력하세요','error');return;}
+                save(KEYS.pin,pinInput);setHasPin(true);setPinInput('');onToast('비밀번호 설정 완료');
+              }}>비밀번호 설정</button>
+            `}
           </div>
         </div>
       </div>
     </div>
   `;
+}
+
+// ===== LockScreen =====
+function LockScreen({ onUnlock }) {
+  const [pin, setPin] = useState('');
+  const [error, setError] = useState('');
+  var press = function(n) {
+    if(pin.length>=4) return;
+    var next = pin + n;
+    setPin(next);
+    setError('');
+    if(next.length===4){
+      var saved = load(KEYS.pin,'');
+      if(next===saved){ onUnlock(); }
+      else{ setError('비밀번호가 일치하지 않습니다'); setTimeout(function(){setPin('');setError('');},1000); }
+    }
+  };
+  var del = function(){ setPin(pin.slice(0,-1)); setError(''); };
+  return html`<div className="lock-screen">
+    <div className="lock-icon">🔒</div>
+    <div className="lock-title">학급노트 잠금</div>
+    <div className="lock-dots">
+      ${[0,1,2,3].map(function(i){return html`<div key=${i} className=${'lock-dot'+(i<pin.length?' filled':'')}></div>`;})}
+    </div>
+    <div className="lock-numpad">
+      ${[1,2,3,4,5,6,7,8,9].map(function(n){return html`<button key=${n} className="lock-num" onClick=${function(){press(String(n));}}>${n}</button>`;})}
+      <div></div>
+      <button className="lock-num" onClick=${function(){press('0');}}>0</button>
+      <button className="lock-num lock-del" onClick=${del}>삭제</button>
+    </div>
+    <div className="lock-error">${error}</div>
+  </div>`;
 }
 
 // ===== App =====
@@ -930,6 +1392,7 @@ function App() {
   const [date, setDate] = useState(todayStr());
   const [showSettings, setShowSettings] = useState(false);
   const [toasts, setToasts] = useState([]);
+  const [locked, setLocked] = useState(function(){ return !!load(KEYS.pin,''); });
 
   useEffect(function(){ save(KEYS.classInfo, ci); }, [ci]);
   useEffect(function(){ save(KEYS.students, students); }, [students]);
@@ -951,12 +1414,14 @@ function App() {
   var title = ci.schoolName || '학급노트';
   var sub = [ci.className, ci.teacherName].filter(Boolean).join(' · ');
 
+  if(locked) return html`<${LockScreen} onUnlock=${function(){setLocked(false);}} />`;
+
   return html`
     <div className="app">
-      <div className="top-title-bar">쫑아빠의 학급노트</div>
+      <div className="top-title-bar">쫑아빠의 학급노트 <span style=${{fontSize:'10px',opacity:0.65,fontWeight:400,marginLeft:'4px'}}>Ver.${new Date().getFullYear()}</span></div>
       <header className="header">
         <div className="header-left">
-          <img className="header-logo" src="logo.gif" alt="양산여중" />
+          ${ci.logo ? html`<img className="header-logo" src=${ci.logo} alt=${title} />` : html`<div className="header-logo" style=${{display:'flex',alignItems:'center',justifyContent:'center',background:'rgba(255,255,255,.25)',fontSize:11,fontWeight:700,lineHeight:1.1,textAlign:'center',color:'#fff'}}>${title.slice(0,2)}</div>`}
           <div>
             <div className="header-title">${title}</div>
             ${sub ? html`<div className="header-sub">${sub}</div>` : null}
@@ -966,7 +1431,7 @@ function App() {
           <div className="header-date">
             <input type="date" value=${date} onChange=${function(e){setDate(e.target.value);}} />
           </div>
-          <button className="icon-btn" onClick=${function(){setShowSettings(true);}} title="설정">⚙</button>
+          <button className="icon-btn setting-btn" onClick=${function(){setShowSettings(true);}} title="설정"><span>⚙</span><span className="setting-label">기본 설정</span></button>
         </div>
       </header>
 
@@ -977,13 +1442,13 @@ function App() {
           onSavePoint=${function(p){setPoints(function(pp){return pp.concat([p]);});}}
           onToast=${toast} />` : null}
         ${tab === 'seating' ? html`<${SeatingTab}
-          students=${students} seating=${seating}
+          students=${students} seating=${seating} classInfo=${ci}
           onUpdate=${setSeating} onToast=${toast} />` : null}
         ${tab === 'cleaning' ? html`<${CleaningTab}
           students=${students} cleaning=${cleaning} classInfo=${ci}
           onUpdate=${setCleaning} onToast=${toast} />` : null}
         ${tab === 'lookup' ? html`<${LookupTab}
-          students=${students} memos=${memos} points=${points}
+          students=${students} memos=${memos} points=${points} date=${date}
           onDeleteMemo=${function(id){setMemos(function(p){return p.filter(function(m){return m.id!==id;});});}}
           onDeletePoint=${function(id){setPoints(function(p){return p.filter(function(x){return x.id!==id;});});}}
           onToast=${toast} />` : null}
@@ -991,23 +1456,25 @@ function App() {
 
       <nav className="tabbar">
         <button className=${'tab-item' + (tab==='input'?' active':'')} onClick=${function(){setTab('input');}}>
-          <span className="tab-icon">✏️</span><span className="tab-label">출결 및 메모</span>
+          <span className="tab-icon">📝</span><span className="tab-label">출결 및 메모</span>
         </button>
         <button className=${'tab-item' + (tab==='seating'?' active':'')} onClick=${function(){setTab('seating');}}>
-          <span className="tab-icon">💺</span><span className="tab-label">자리배치</span>
+          <span className="tab-icon">🪑</span><span className="tab-label">자리배치</span>
         </button>
         <button className=${'tab-item' + (tab==='cleaning'?' active':'')} onClick=${function(){setTab('cleaning');}}>
           <span className="tab-icon">🧹</span><span className="tab-label">청소관리</span>
         </button>
         <button className=${'tab-item' + (tab==='lookup'?' active':'')} onClick=${function(){setTab('lookup');}}>
-          <span className="tab-icon">🔍</span><span className="tab-label">검색</span>
+          <span className="tab-icon">📊</span><span className="tab-label">통계</span>
         </button>
       </nav>
       <div className="footer-bar">© 2026 쫑아빠의 학급노트. All rights reserved.</div>
 
       ${showSettings ? html`<${Settings}
-        classInfo=${ci} students=${students}
+        classInfo=${ci} students=${students} memos=${memos} points=${points}
         onUpdateCI=${setCi} onUpdateSt=${setStudents}
+        onCleanupStudent=${function(id){ setMemos(function(p){return p.filter(function(m){return m.studentId!==id;});}); setPoints(function(p){return p.filter(function(x){return x.studentId!==id;});}); }}
+        onResetData=${function(){ setMemos([]); setPoints([]); save(KEYS.memos,[]); save(KEYS.points,[]); }}
         onClose=${function(){setShowSettings(false);}} onToast=${toast} onReload=${reload} />` : null}
 
       ${toasts.map(function(t){ return html`<div key=${t.id} className=${'toast ' + t.type}>${t.msg}</div>`; })}
