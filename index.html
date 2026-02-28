@@ -14,13 +14,14 @@
   --primary:#0891b2;--primary-dark:#0e7490;--primary-light:#ecfeff;
   --success:#16a34a;--success-light:#f0fdf4;
   --danger:#dc2626;--danger-light:#fef2f2;
+  --warning:#f59e0b;--warning-light:#fffbeb;
   --bg:#f1f5f9;--card:#fff;--text:#0f172a;
   --text-sec:#64748b;--text-light:#94a3b8;
   --border:#e2e8f0;--border-light:#f1f5f9;
   --radius:12px;--radius-sm:8px;
   --shadow:0 1px 3px rgba(0,0,0,.08);
   --shadow-lg:0 4px 20px rgba(0,0,0,.12);
-  --max-w:420px;--header-h:56px;--tab-h:64px;
+  --max-w:480px;--header-h:56px;--tab-h:64px;
 }
 html,body{height:100%;background:#e2e8f0;
   font-family:-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;
@@ -30,8 +31,16 @@ html,body{height:100%;background:#e2e8f0;
 /* ===== App Shell ===== */
 .app{max-width:var(--max-w);margin:0 auto;height:100%;display:flex;flex-direction:column;background:var(--bg);position:relative;box-shadow:var(--shadow-lg)}
 
+/* Top Title Bar */
+.top-title-bar{background:var(--primary-dark);color:#fff;text-align:center;padding:6px 16px;font-size:13px;font-weight:700;letter-spacing:.5px;flex-shrink:0}
+
+/* Footer */
+.footer-bar{background:var(--primary-dark);color:rgba(255,255,255,.6);text-align:center;padding:6px 16px;font-size:10px;flex-shrink:0;letter-spacing:.3px}
+
 /* Header */
 .header{height:var(--header-h);background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 16px;flex-shrink:0;z-index:10}
+.header-left{display:flex;align-items:center;gap:10px}
+.header-logo{width:38px;height:38px;border-radius:50%;object-fit:cover;border:2px solid rgba(255,255,255,.4);flex-shrink:0}
 .header-title{font-size:18px;font-weight:700;letter-spacing:-.3px}
 .header-sub{font-size:11px;opacity:.85;margin-top:1px}
 .header-actions{display:flex;align-items:center;gap:8px}
@@ -46,7 +55,7 @@ html,body{height:100%;background:#e2e8f0;
 .tab-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;border:none;background:none;color:var(--text-light);font-size:11px;font-weight:600;cursor:pointer;transition:color .15s;font-family:inherit}
 .tab-item.active{color:var(--primary)}
 .tab-icon{font-size:22px;line-height:1}
-.tab-label{font-size:11px}
+.tab-label{font-size:10px}
 
 /* Main */
 .main-content{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;padding-bottom:8px}
@@ -150,13 +159,55 @@ html,body{height:100%;background:#e2e8f0;
 .delete-record-btn{background:none;border:none;color:var(--text-light);font-size:16px;cursor:pointer;padding:2px;line-height:1}
 .delete-record-btn:hover{color:var(--danger)}
 
-/* Progress */
-.progress-form{padding:16px}
-.progress-card{margin:0 16px 8px;padding:14px;background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow)}
-.progress-period{display:inline-block;background:var(--primary-light);color:var(--primary-dark);font-size:12px;font-weight:700;padding:3px 10px;border-radius:10px;margin-bottom:4px}
-.progress-unit{font-size:15px;font-weight:700;margin-bottom:2px}
-.progress-content{font-size:14px;color:var(--text-sec);line-height:1.4}
-.progress-date{font-size:11px;color:var(--text-light);margin-top:4px}
+/* ===== Seating ===== */
+.seating-controls{display:flex;align-items:center;justify-content:space-between;padding:12px 16px 4px}
+.seating-rc{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:var(--text-sec)}
+.seating-rc select{padding:6px 8px;border:1.5px solid var(--border);border-radius:6px;font-size:14px;font-family:inherit;background:var(--card);color:var(--text)}
+.seating-podium{text-align:center;padding:6px;margin:4px 16px 8px;background:var(--primary);color:#fff;border-radius:var(--radius-sm);font-size:13px;font-weight:700;letter-spacing:1px}
+.seating-grid{display:grid;gap:5px;padding:0 16px 12px}
+.seat{display:flex;flex-direction:column;align-items:center;justify-content:center;height:50px;border:2px solid var(--border);border-radius:var(--radius-sm);background:var(--card);cursor:pointer;transition:all .15s;font-size:12px;font-weight:600;color:var(--text-sec);position:relative}
+.seat:active{transform:scale(.95)}
+.seat.occupied{border-color:var(--primary);background:var(--primary-light);color:var(--primary-dark)}
+.seat.moving{border-color:var(--warning);background:var(--warning-light);animation:pulse 1s infinite}
+.seat.move-target{border-color:var(--success);border-style:dashed}
+.seat .seat-num{font-size:10px;color:var(--text-light);line-height:1}
+.seat .seat-name{font-size:13px;font-weight:700;line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%;padding:0 2px}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.6}}
+.seat-action-popup{position:absolute;bottom:calc(100% + 4px);left:50%;transform:translateX(-50%);background:var(--text);color:#fff;border-radius:8px;padding:4px;display:flex;gap:2px;z-index:20;white-space:nowrap;box-shadow:0 4px 12px rgba(0,0,0,.3)}
+.seat-action-popup button{padding:6px 10px;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;background:transparent;color:#fff}
+.seat-action-popup button:active{background:rgba(255,255,255,.2)}
+.seating-unassigned{padding:8px 16px}
+.seating-unassigned-title{font-size:12px;font-weight:600;color:var(--text-light);margin-bottom:6px}
+.seating-chip-row{display:flex;flex-wrap:wrap;gap:4px}
+.seating-chip{padding:5px 10px;border-radius:14px;border:1.5px solid var(--border);background:var(--card);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit}
+.seating-chip:active{transform:scale(.95)}
+.seating-chip.highlight{border-color:var(--success);background:var(--success-light);color:var(--success)}
+
+/* ===== Cleaning ===== */
+.cleaning-header{display:flex;align-items:center;justify-content:space-between;padding:12px 16px 8px}
+.cleaning-header-actions{display:flex;gap:6px}
+.cleaning-btn-sm{padding:7px 12px;border:1.5px solid var(--border);border-radius:var(--radius-sm);background:var(--card);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;color:var(--text)}
+.cleaning-btn-sm:active{transform:scale(.95)}
+.cleaning-btn-sm.active{border-color:var(--primary);background:var(--primary-light);color:var(--primary-dark)}
+.cleaning-zone-card{margin:0 16px 8px;padding:12px 14px;background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);cursor:pointer;transition:all .15s}
+.cleaning-zone-card.selected{border:2px solid var(--primary);background:var(--primary-light)}
+.cleaning-zone-card:not(.selected){border:2px solid transparent}
+.cleaning-zone-name{font-size:15px;font-weight:700;margin-bottom:6px;display:flex;align-items:center;justify-content:space-between}
+.cleaning-zone-students{display:flex;flex-wrap:wrap;gap:4px;min-height:28px}
+.cleaning-student-chip{padding:4px 10px;border-radius:12px;font-size:12px;font-weight:600;background:var(--primary-light);color:var(--primary-dark);cursor:pointer;border:none;font-family:inherit}
+.cleaning-student-chip:active{transform:scale(.95)}
+.cleaning-empty-zone{font-size:12px;color:var(--text-light);padding:4px 0}
+.cleaning-assign-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;padding:8px 16px}
+.cleaning-assign-cell{display:flex;flex-direction:column;align-items:center;justify-content:center;height:44px;border:1.5px solid var(--border);border-radius:6px;background:var(--card);cursor:pointer;font-size:11px;font-weight:600;transition:all .15s}
+.cleaning-assign-cell:active{transform:scale(.95)}
+.cleaning-assign-cell.assigned{border-color:var(--text-light);background:var(--border-light);color:var(--text-light);cursor:default;opacity:.5}
+.cleaning-assign-cell.in-zone{border-color:var(--primary);background:var(--primary-light);color:var(--primary-dark)}
+.cleaning-add-zone{display:flex;gap:6px;padding:0 16px 8px}
+.cleaning-add-zone input{flex:1;padding:10px 12px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:14px;font-family:inherit;background:var(--card)}
+.cleaning-add-zone input:focus{outline:none;border-color:var(--primary)}
+.cleaning-add-zone button{padding:10px 14px;border:none;border-radius:var(--radius-sm);background:var(--primary);color:#fff;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap}
+.cleaning-del-btn{background:none;border:none;color:var(--text-light);font-size:14px;cursor:pointer;padding:2px 4px}
+.cleaning-del-btn:hover{color:var(--danger)}
 
 /* Modal */
 .modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);z-index:100;display:flex;align-items:flex-end;justify-content:center}
@@ -172,6 +223,9 @@ html,body{height:100%;background:#e2e8f0;
 .settings-label{font-size:13px;font-weight:700;color:var(--text-sec);margin-bottom:8px}
 .settings-input{width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:15px;font-family:inherit;background:var(--card);color:var(--text);margin-bottom:8px}
 .settings-input:focus{outline:none;border-color:var(--primary)}
+.grade-class-row{display:flex;gap:8px;margin-bottom:8px}
+.grade-class-row select{flex:1;padding:12px 14px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:15px;font-family:inherit;background:var(--card);color:var(--text);appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2364748b' d='M6 8L1 3h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;cursor:pointer}
+.grade-class-row select:focus{outline:none;border-color:var(--primary)}
 .student-manage-item{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border-light)}
 .sm-num{font-size:13px;color:var(--text-light);width:24px;text-align:center;flex-shrink:0}
 .sm-name{flex:1;font-size:15px;font-weight:600}
@@ -196,6 +250,22 @@ html,body{height:100%;background:#e2e8f0;
 
 @media(min-width:480px){.app{border-left:1px solid var(--border);border-right:1px solid var(--border)}}
 @media(max-width:360px){.student-grid{grid-template-columns:repeat(4,1fr)}.student-cell{height:52px}.student-cell .s-name{font-size:13px}}
+
+/* ===== Print ===== */
+@media print{
+  body{background:#fff!important}
+  .app{box-shadow:none;max-width:100%;height:auto}
+  .top-title-bar,.header,.tabbar,.footer-bar,.toast,.modal-overlay{display:none!important}
+  .main-content{overflow:visible;padding:0}
+  .cleaning-header,.cleaning-assign-grid,.cleaning-add-zone,.cleaning-btn-sm{display:none!important}
+  .print-area{display:block!important;padding:20px}
+  .print-area h2{text-align:center;font-size:20px;margin-bottom:4px}
+  .print-area .print-sub{text-align:center;font-size:13px;color:#666;margin-bottom:16px}
+  .print-area table{width:100%;border-collapse:collapse;font-size:14px}
+  .print-area th,.print-area td{border:1px solid #333;padding:8px 10px;text-align:left}
+  .print-area th{background:#e0e0e0;font-weight:700;width:120px}
+}
+.print-area{display:none}
   </style>
 </head>
 <body>
@@ -212,13 +282,21 @@ const html = htm.bind(React.createElement);
 
 // ===== Constants =====
 const MEMO_CATEGORIES = {
-  '출결': ['생리결석', '병결', '무단결석', '지각', '조퇴', '결과'],
-  '상담·관계': ['학부모상담', '학생상담', '교우관계'],
-  '생활·학습': ['보건', '생활지도', '학습', '칭찬'],
-  '기타': ['진로', '가정연락', '기타'],
+  '출결': ['병결', '인정결석', '무단결석', '지각', '조퇴', '결과'],
+  '상담관련': ['학부모상담', '학생상담', '교우관계', '진로상담'],
+  '생활지도 및 학습관련': ['생활지도', '질병특기사항', '학습'],
+  '기타': ['가정연락', '기타'],
 };
 const REWARD_REASONS = ['선행', '봉사', '청소', '도움', '모범', '발표', '성적우수', '출석우수'];
 const PENALTY_REASONS = ['지각', '결석', '수업태도', '폭력', '기물파손', '흡연', '기타위반'];
+const DEFAULT_ZONES = [
+  { id: 'z1', name: '교실 바닥' },
+  { id: 'z2', name: '교실 창문/사물함' },
+  { id: 'z3', name: '복도' },
+  { id: 'z4', name: '화장실' },
+  { id: 'z5', name: '계단' },
+  { id: 'z6', name: '특별구역' },
+];
 
 // ===== Utilities =====
 const uid = () => Date.now().toString(36) + Math.random().toString(36).substr(2, 6);
@@ -226,7 +304,7 @@ const todayStr = () => { const d = new Date(); return d.getFullYear() + '-' + St
 const fmtDate = s => { const p = s.split('-'); return Number(p[1]) + '월 ' + Number(p[2]) + '일'; };
 
 // ===== Store =====
-const KEYS = { classInfo:'hn_ci', students:'hn_st', memos:'hn_me', points:'hn_pt', progress:'hn_pr' };
+const KEYS = { classInfo:'hn_ci', students:'hn_st', memos:'hn_me', points:'hn_pt', seating:'hn_se', cleaning:'hn_cl' };
 const load = (k, fb) => { try { const r = localStorage.getItem(k); return r ? JSON.parse(r) : fb; } catch(e) { return fb; } };
 const save = (k, v) => localStorage.setItem(k, JSON.stringify(v));
 
@@ -234,7 +312,8 @@ const loadCI = () => load(KEYS.classInfo, { schoolName:'', teacherName:'', class
 const loadSt = () => load(KEYS.students, []);
 const loadMe = () => load(KEYS.memos, []);
 const loadPt = () => load(KEYS.points, []);
-const loadPr = () => load(KEYS.progress, []);
+const loadSe = () => load(KEYS.seating, { rows:6, cols:5, layout:{} });
+const loadCl = () => load(KEYS.cleaning, { zones: DEFAULT_ZONES, assignments:{} });
 
 // ===== StudentGrid =====
 function StudentGrid({ students, selectedId, onSelect, memos, today }) {
@@ -350,72 +429,221 @@ function InputTab({ students, memos, points, date, onSaveMemo, onSavePoint, onTo
   </div>`;
 }
 
-// ===== ProgressTab =====
-function ProgressTab({ progress, date, onSave, onDelete, onToast }) {
-  const [period, setPeriod] = useState(1);
-  const [unit, setUnit] = useState('');
-  const [content, setContent] = useState('');
-  const [note, setNote] = useState('');
-  const [delId, setDelId] = useState(null);
+// ===== SeatingTab =====
+function SeatingTab({ students, seating, onUpdate, onToast }) {
+  const [popup, setPopup] = useState(null);
+  const [moveFrom, setMoveFrom] = useState(null);
 
-  var doSave = function() {
-    if (!content.trim()) { onToast('학습 내용을 입력하세요', 'error'); return; }
-    onSave({ id: uid(), date: date, period: period, unit: unit.trim(), content: content.trim(), note: note.trim(), createdAt: new Date().toISOString() });
-    onToast('진도 기록 저장 완료');
-    setPeriod(function(p){return p+1;}); setUnit(''); setContent(''); setNote('');
+  var rows = seating.rows || 6;
+  var cols = seating.cols || 5;
+  var layout = seating.layout || {};
+
+  var getName = function(sid) { var s = students.find(function(x){return x.id===sid;}); return s ? s.name : null; };
+  var getNum = function(sid) { var s = students.find(function(x){return x.id===sid;}); return s ? s.number : ''; };
+
+  var assignedIds = new Set(Object.values(layout));
+  var unassigned = students.filter(function(s){ return !assignedIds.has(s.id); });
+
+  var setRC = function(r, c) { onUpdate({ rows: r, cols: c, layout: layout }); setPopup(null); setMoveFrom(null); };
+
+  var handleSeatClick = function(key) {
+    if (moveFrom) {
+      var newLayout = Object.assign({}, layout);
+      var fromVal = newLayout[moveFrom] || null;
+      var toVal = newLayout[key] || null;
+      if (toVal) newLayout[moveFrom] = toVal; else delete newLayout[moveFrom];
+      if (fromVal) newLayout[key] = fromVal; else delete newLayout[key];
+      onUpdate({ rows: rows, cols: cols, layout: newLayout });
+      setMoveFrom(null); setPopup(null);
+      onToast('자리 이동 완료');
+      return;
+    }
+    if (layout[key]) { setPopup(popup === key ? null : key); }
+    else { setPopup(popup === key ? null : key); }
   };
 
-  var sorted = progress.slice().sort(function(a,b){ return b.createdAt.localeCompare(a.createdAt); });
+  var assignStudent = function(key, sid) {
+    var newLayout = Object.assign({}, layout);
+    newLayout[key] = sid;
+    onUpdate({ rows: rows, cols: cols, layout: newLayout });
+    setPopup(null); onToast(getName(sid) + ' 배치 완료');
+  };
+
+  var clearSeat = function(key) {
+    var newLayout = Object.assign({}, layout);
+    delete newLayout[key];
+    onUpdate({ rows: rows, cols: cols, layout: newLayout });
+    setPopup(null); onToast('자리 비움');
+  };
+
+  var startMove = function(key) { setMoveFrom(key); setPopup(null); };
+  var cancelMove = function() { setMoveFrom(null); };
+
+  if (!students.length) return html`<div className="empty-state"><div className="empty-icon">💺</div><div className="empty-text">학생 명단을 먼저 등록해주세요.</div></div>`;
 
   return html`<div>
-    <div className="progress-form">
-      <div className="section-title" style=${{marginBottom:12}}>새 진도 기록</div>
-      <div className="input-row">
-        <div className="input-group" style=${{flex:'0 0 80px'}}>
-          <label className="input-label">차시</label>
-          <input className="input-field" type="number" min="1" value=${period} onInput=${function(e){setPeriod(Number(e.target.value)||1);}} />
+    <div className="seating-controls">
+      <div className="seating-rc">
+        <span>행</span>
+        <select value=${String(rows)} onChange=${function(e){setRC(Number(e.target.value),cols);}}>
+          ${[4,5,6,7,8].map(function(n){return html`<option key=${n} value=${String(n)}>${n}</option>`;})}
+        </select>
+        <span>× 열</span>
+        <select value=${String(cols)} onChange=${function(e){setRC(rows,Number(e.target.value));}}>
+          ${[3,4,5,6,7,8].map(function(n){return html`<option key=${n} value=${String(n)}>${n}</option>`;})}
+        </select>
+      </div>
+      ${moveFrom ? html`<button className="cleaning-btn-sm" onClick=${cancelMove}>이동 취소</button>` : null}
+    </div>
+    <div className="seating-podium">교 탁</div>
+    <div className="seating-grid" style=${{gridTemplateColumns:'repeat('+cols+',1fr)'}}>
+      ${Array.from({length:rows}).map(function(_,r){
+        return Array.from({length:cols}).map(function(_,c){
+          var key = r+'-'+c;
+          var sid = layout[key];
+          var name = sid ? getName(sid) : null;
+          var isMoving = moveFrom === key;
+          var isMoveTarget = moveFrom && moveFrom !== key;
+          var cls = 'seat' + (sid ? ' occupied' : '') + (isMoving ? ' moving' : '') + (isMoveTarget ? ' move-target' : '');
+          return html`<div key=${key} className=${cls} onClick=${function(){handleSeatClick(key);}}>
+            ${sid ? html`<span className="seat-num">${getNum(sid)}</span><span className="seat-name">${name}</span>` : html`<span style=${{fontSize:16,opacity:.3}}>+</span>`}
+            ${popup === key && sid && !moveFrom ? html`
+              <div className="seat-action-popup">
+                <button onClick=${function(e){e.stopPropagation();startMove(key);}}>이동</button>
+                <button onClick=${function(e){e.stopPropagation();clearSeat(key);}}>비우기</button>
+              </div>` : null}
+            ${popup === key && !sid && !moveFrom && unassigned.length > 0 ? html`
+              <div className="seat-action-popup" style=${{flexDirection:'column',maxHeight:150,overflowY:'auto',minWidth:80}}>
+                ${unassigned.map(function(s){return html`<button key=${s.id} onClick=${function(e){e.stopPropagation();assignStudent(key,s.id);}}>${s.number}. ${s.name}</button>`;})}
+              </div>` : null}
+          </div>`;
+        });
+      })}
+    </div>
+    ${unassigned.length > 0 ? html`
+      <div className="seating-unassigned">
+        <div className="seating-unassigned-title">미배치 학생 (${unassigned.length}명)</div>
+        <div className="seating-chip-row">
+          ${unassigned.map(function(s){ return html`<span key=${s.id} className="seating-chip">${s.number}. ${s.name}</span>`; })}
         </div>
-        <div className="input-group">
-          <label className="input-label">단원</label>
-          <input className="input-field" placeholder="단원명" value=${unit} onInput=${function(e){setUnit(e.target.value);}} />
-        </div>
+      </div>` : null}
+    ${moveFrom ? html`<div style=${{padding:'8px 16px',fontSize:13,color:'var(--warning)',fontWeight:600}}>💡 이동할 자리를 선택하세요 (빈자리 또는 다른 학생과 교환)</div>` : null}
+  </div>`;
+}
+
+// ===== CleaningTab =====
+function CleaningTab({ students, cleaning, classInfo, onUpdate, onToast }) {
+  const [selZone, setSelZone] = useState(null);
+  const [editMode, setEditMode] = useState(false);
+  const [newZoneName, setNewZoneName] = useState('');
+
+  var zones = cleaning.zones || [];
+  var assignments = cleaning.assignments || {};
+
+  var allAssigned = {};
+  zones.forEach(function(z){ (assignments[z.id]||[]).forEach(function(sid){ allAssigned[sid]=z.id; }); });
+
+  var addZone = function() {
+    var n = newZoneName.trim();
+    if (!n) return;
+    var nz = zones.concat([{id:uid(),name:n}]);
+    onUpdate({zones:nz,assignments:assignments});
+    setNewZoneName(''); onToast(n+' 구역 추가');
+  };
+
+  var delZone = function(zid) {
+    var nz = zones.filter(function(z){return z.id!==zid;});
+    var na = Object.assign({},assignments); delete na[zid];
+    onUpdate({zones:nz,assignments:na});
+    if (selZone===zid) setSelZone(null);
+    onToast('구역 삭제 완료');
+  };
+
+  var toggleAssign = function(sid) {
+    if (!selZone) return;
+    var cur = (assignments[selZone]||[]).slice();
+    var idx = cur.indexOf(sid);
+    if (idx>=0) { cur.splice(idx,1); }
+    else {
+      Object.keys(assignments).forEach(function(zid){ var a=assignments[zid]||[]; var i=a.indexOf(sid); if(i>=0){var na=Object.assign({},assignments);na[zid]=a.filter(function(x){return x!==sid;});assignments=na;} });
+      cur.push(sid);
+    }
+    var na = Object.assign({},assignments); na[selZone]=cur;
+    onUpdate({zones:zones,assignments:na});
+  };
+
+  var getName = function(sid) { var s = students.find(function(x){return x.id===sid;}); return s ? s.name : '?'; };
+  var getNum = function(sid) { var s = students.find(function(x){return x.id===sid;}); return s ? s.number : 0; };
+
+  var doPrint = function() { window.print(); };
+
+  if (!students.length) return html`<div className="empty-state"><div className="empty-icon">🧹</div><div className="empty-text">학생 명단을 먼저 등록해주세요.</div></div>`;
+
+  return html`<div>
+    <div className="cleaning-header">
+      <div className="section-title" style=${{margin:0}}>청소구역 배정</div>
+      <div className="cleaning-header-actions">
+        <button className=${'cleaning-btn-sm' + (editMode?' active':'')} onClick=${function(){setEditMode(!editMode);setSelZone(null);}}>
+          ${editMode ? '완료' : '구역 편집'}
+        </button>
+        <button className="cleaning-btn-sm" onClick=${doPrint}>🖨️ 인쇄</button>
       </div>
-      <div style=${{marginBottom:8}}>
-        <label className="input-label">학습내용</label>
-        <textarea className="input-field" rows="2" placeholder="오늘 수업 내용을 간단히 기록하세요."
-          value=${content} onInput=${function(e){setContent(e.target.value);}} />
-      </div>
-      <div style=${{marginBottom:8}}>
-        <label className="input-label">비고 (선택)</label>
-        <input className="input-field" placeholder="준비물, 과제, 특이사항 등" value=${note} onInput=${function(e){setNote(e.target.value);}} />
-      </div>
-      <button className="btn-primary" onClick=${doSave}>진도 저장</button>
     </div>
 
-    <div style=${{padding:'0 0 16px'}}>
-      <div className="section-title" style=${{padding:'0 16px 8px'}}>진도 기록</div>
-      ${sorted.length === 0
-        ? html`<div className="empty-state" style=${{padding:'24px 20px'}}><div className="empty-text">아직 진도 기록이 없습니다</div></div>`
-        : sorted.map(function(p) { return html`
-          <div className="progress-card" key=${p.id}>
-            <div className="timeline-item-header">
-              <div>
-                <span className="progress-period">${p.period}차시</span>
-                ${p.unit ? html`<span className="progress-unit" style=${{marginLeft:8}}>${p.unit}</span>` : null}
-              </div>
-              <button className="delete-record-btn" onClick=${function(){setDelId(delId===p.id?null:p.id);}}>✕</button>
-            </div>
-            <div className="progress-content">${p.content}</div>
-            ${p.note ? html`<div className="progress-content" style=${{fontStyle:'italic'}}>📌 ${p.note}</div>` : null}
-            <div className="progress-date">${fmtDate(p.date)}</div>
-            ${delId===p.id ? html`
-              <div className="confirm-bar">
-                <button className="confirm-yes" onClick=${function(){onDelete(p.id);setDelId(null);onToast('삭제 완료');}}>삭제</button>
-                <button className="confirm-no" onClick=${function(){setDelId(null);}}>취소</button>
-              </div>` : null}
+    ${editMode ? html`
+      <div className="cleaning-add-zone">
+        <input placeholder="새 구역 이름" value=${newZoneName} onInput=${function(e){setNewZoneName(e.target.value);}}
+          onKeyDown=${function(e){if(e.key==='Enter')addZone();}} />
+        <button onClick=${addZone}>추가</button>
+      </div>` : null}
+
+    ${zones.map(function(z) {
+      var members = (assignments[z.id]||[]);
+      var isSel = selZone === z.id && !editMode;
+      return html`
+        <div key=${z.id} className=${'cleaning-zone-card' + (isSel?' selected':'')}
+          onClick=${function(){ if(!editMode) setSelZone(selZone===z.id?null:z.id); }}>
+          <div className="cleaning-zone-name">
+            <span>${z.name} (${members.length}명)</span>
+            ${editMode ? html`<button className="cleaning-del-btn" onClick=${function(e){e.stopPropagation();delZone(z.id);}}>✕</button>` : null}
           </div>
-        `; })
-      }
+          <div className="cleaning-zone-students">
+            ${members.length === 0
+              ? html`<span className="cleaning-empty-zone">배정된 학생 없음</span>`
+              : members.map(function(sid){ return html`<button key=${sid} className="cleaning-student-chip"
+                  onClick=${function(e){e.stopPropagation(); if(!editMode){var cur=(assignments[z.id]||[]).filter(function(x){return x!==sid;}); var na=Object.assign({},assignments);na[z.id]=cur;onUpdate({zones:zones,assignments:na});}}}>${getName(sid)}</button>`; })}
+          </div>
+        </div>`;
+    })}
+
+    ${selZone && !editMode ? html`
+      <div style=${{padding:'8px 16px 4px'}}>
+        <div className="section-title">학생을 탭하여 배정 / 해제</div>
+      </div>
+      <div className="cleaning-assign-grid">
+        ${students.map(function(s){
+          var inThisZone = (assignments[selZone]||[]).indexOf(s.id)>=0;
+          var inOther = allAssigned[s.id] && allAssigned[s.id]!==selZone;
+          var cls = 'cleaning-assign-cell' + (inThisZone?' in-zone':'') + (inOther?' assigned':'');
+          return html`<button key=${s.id} className=${cls} onClick=${function(){if(!inOther)toggleAssign(s.id);}}>
+            <span style=${{fontSize:10,color:'var(--text-light)'}}>${s.number}</span>
+            <span>${s.name}</span>
+          </button>`;
+        })}
+      </div>` : null}
+
+    <div className="print-area">
+      <h2>${classInfo.schoolName || '학급노트'} 청소구역 배정표</h2>
+      <div className="print-sub">${classInfo.className || ''} ${classInfo.teacherName ? '담임: '+classInfo.teacherName : ''} | ${todayStr()}</div>
+      <table>
+        <thead><tr><th>청소구역</th><th>담당 학생</th></tr></thead>
+        <tbody>
+          ${zones.map(function(z){
+            var members = (assignments[z.id]||[]).map(function(sid){return getNum(sid)+'. '+getName(sid);}).join(', ');
+            return html`<tr key=${z.id}><td>${z.name}</td><td>${members || '-'}</td></tr>`;
+          })}
+        </tbody>
+      </table>
     </div>
   </div>`;
 }
@@ -530,7 +758,15 @@ function LookupTab({ students, memos, points, onDeleteMemo, onDeletePoint, onToa
 function Settings({ classInfo, students, onUpdateCI, onUpdateSt, onClose, onToast, onReload }) {
   const [sn, setSn] = useState(classInfo.schoolName);
   const [tn, setTn] = useState(classInfo.teacherName);
-  const [cn, setCn] = useState(classInfo.className);
+  var parsedGrade = ''; var parsedClass = '';
+  if (classInfo.className) {
+    var gm = classInfo.className.match(/(\d+)\s*학년/);
+    var cm = classInfo.className.match(/(\d+)\s*반/);
+    if (gm) parsedGrade = gm[1];
+    if (cm) parsedClass = cm[1];
+  }
+  const [grade, setGrade] = useState(parsedGrade);
+  const [cls, setCls] = useState(parsedClass);
   const [newName, setNewName] = useState('');
   const [bulk, setBulk] = useState('');
   const [showBulk, setShowBulk] = useState(false);
@@ -538,7 +774,12 @@ function Settings({ classInfo, students, onUpdateCI, onUpdateSt, onClose, onToas
   const fileRef = useRef(null);
 
   var saveCI = function() {
-    onUpdateCI({ schoolName: sn.trim(), teacherName: tn.trim(), className: cn.trim() || '담임반' });
+    var cnVal = '';
+    if (grade && cls) cnVal = grade + '학년 ' + cls + '반';
+    else if (grade) cnVal = grade + '학년';
+    else if (cls) cnVal = cls + '반';
+    else cnVal = '담임반';
+    onUpdateCI({ schoolName: sn.trim(), teacherName: tn.trim(), className: cnVal });
     onToast('학급 정보 저장 완료');
   };
 
@@ -568,9 +809,10 @@ function Settings({ classInfo, students, onUpdateCI, onUpdateSt, onClose, onToas
 
   var doExport = function() {
     var data = JSON.stringify({
-      version: 1, exportedAt: new Date().toISOString(),
+      version: 2, exportedAt: new Date().toISOString(),
       classInfo: load(KEYS.classInfo, {}), students: load(KEYS.students, []),
-      memos: load(KEYS.memos, []), points: load(KEYS.points, []), progress: load(KEYS.progress, []),
+      memos: load(KEYS.memos, []), points: load(KEYS.points, []),
+      seating: load(KEYS.seating, {}), cleaning: load(KEYS.cleaning, {}),
     }, null, 2);
     var blob = new Blob([data], { type: 'application/json' });
     var url = URL.createObjectURL(blob);
@@ -591,7 +833,8 @@ function Settings({ classInfo, students, onUpdateCI, onUpdateSt, onClose, onToas
         if (d.students) save(KEYS.students, d.students);
         if (d.memos) save(KEYS.memos, d.memos);
         if (d.points) save(KEYS.points, d.points);
-        if (d.progress) save(KEYS.progress, d.progress);
+        if (d.seating) save(KEYS.seating, d.seating);
+        if (d.cleaning) save(KEYS.cleaning, d.cleaning);
         onToast('데이터 복원 완료'); onReload(); onClose();
       } catch(err) { onToast('파일 형식이 올바르지 않습니다', 'error'); }
     };
@@ -611,7 +854,18 @@ function Settings({ classInfo, students, onUpdateCI, onUpdateSt, onClose, onToas
             <div className="settings-label">학급 정보</div>
             <input className="settings-input" placeholder="학교 이름" value=${sn} onInput=${function(e){setSn(e.target.value);}} />
             <input className="settings-input" placeholder="선생님 이름" value=${tn} onInput=${function(e){setTn(e.target.value);}} />
-            <input className="settings-input" placeholder="반 이름 (예: 1학년 3반)" value=${cn} onInput=${function(e){setCn(e.target.value);}} />
+            <div className="grade-class-row">
+              <select value=${grade} onChange=${function(e){setGrade(e.target.value);}}>
+                <option value="">학년 선택</option>
+                <option value="1">1학년</option>
+                <option value="2">2학년</option>
+                <option value="3">3학년</option>
+              </select>
+              <select value=${cls} onChange=${function(e){setCls(e.target.value);}}>
+                <option value="">반 선택</option>
+                ${[1,2,3,4,5,6,7,8,9,10].map(function(n){ return html`<option key=${n} value=${String(n)}>${n}반</option>`; })}
+              </select>
+            </div>
             <button className="btn-primary" style=${{marginTop:0}} onClick=${saveCI}>학급 정보 저장</button>
           </div>
 
@@ -670,7 +924,8 @@ function App() {
   const [students, setStudents] = useState(loadSt);
   const [memos, setMemos] = useState(loadMe);
   const [points, setPoints] = useState(loadPt);
-  const [progress, setProgress] = useState(loadPr);
+  const [seating, setSeating] = useState(loadSe);
+  const [cleaning, setCleaning] = useState(loadCl);
   const [tab, setTab] = useState('input');
   const [date, setDate] = useState(todayStr());
   const [showSettings, setShowSettings] = useState(false);
@@ -680,7 +935,8 @@ function App() {
   useEffect(function(){ save(KEYS.students, students); }, [students]);
   useEffect(function(){ save(KEYS.memos, memos); }, [memos]);
   useEffect(function(){ save(KEYS.points, points); }, [points]);
-  useEffect(function(){ save(KEYS.progress, progress); }, [progress]);
+  useEffect(function(){ save(KEYS.seating, seating); }, [seating]);
+  useEffect(function(){ save(KEYS.cleaning, cleaning); }, [cleaning]);
 
   var toast = useCallback(function(msg, type) {
     var id = Date.now();
@@ -689,7 +945,7 @@ function App() {
   }, []);
 
   var reload = useCallback(function() {
-    setCi(loadCI()); setStudents(loadSt()); setMemos(loadMe()); setPoints(loadPt()); setProgress(loadPr());
+    setCi(loadCI()); setStudents(loadSt()); setMemos(loadMe()); setPoints(loadPt()); setSeating(loadSe()); setCleaning(loadCl());
   }, []);
 
   var title = ci.schoolName || '학급노트';
@@ -697,10 +953,14 @@ function App() {
 
   return html`
     <div className="app">
+      <div className="top-title-bar">쫑아빠의 학급노트</div>
       <header className="header">
-        <div>
-          <div className="header-title">${title}</div>
-          ${sub ? html`<div className="header-sub">${sub}</div>` : null}
+        <div className="header-left">
+          <img className="header-logo" src="logo.gif" alt="양산여중" />
+          <div>
+            <div className="header-title">${title}</div>
+            ${sub ? html`<div className="header-sub">${sub}</div>` : null}
+          </div>
         </div>
         <div className="header-actions">
           <div className="header-date">
@@ -716,11 +976,12 @@ function App() {
           onSaveMemo=${function(m){setMemos(function(p){return p.concat([m]);});}}
           onSavePoint=${function(p){setPoints(function(pp){return pp.concat([p]);});}}
           onToast=${toast} />` : null}
-        ${tab === 'progress' ? html`<${ProgressTab}
-          progress=${progress} date=${date}
-          onSave=${function(p){setProgress(function(pp){return pp.concat([p]);});}}
-          onDelete=${function(id){setProgress(function(p){return p.filter(function(x){return x.id!==id;});});}}
-          onToast=${toast} />` : null}
+        ${tab === 'seating' ? html`<${SeatingTab}
+          students=${students} seating=${seating}
+          onUpdate=${setSeating} onToast=${toast} />` : null}
+        ${tab === 'cleaning' ? html`<${CleaningTab}
+          students=${students} cleaning=${cleaning} classInfo=${ci}
+          onUpdate=${setCleaning} onToast=${toast} />` : null}
         ${tab === 'lookup' ? html`<${LookupTab}
           students=${students} memos=${memos} points=${points}
           onDeleteMemo=${function(id){setMemos(function(p){return p.filter(function(m){return m.id!==id;});});}}
@@ -730,15 +991,19 @@ function App() {
 
       <nav className="tabbar">
         <button className=${'tab-item' + (tab==='input'?' active':'')} onClick=${function(){setTab('input');}}>
-          <span className="tab-icon">✏️</span><span className="tab-label">입력</span>
+          <span className="tab-icon">✏️</span><span className="tab-label">출결 및 메모</span>
         </button>
-        <button className=${'tab-item' + (tab==='progress'?' active':'')} onClick=${function(){setTab('progress');}}>
-          <span className="tab-icon">📖</span><span className="tab-label">진도</span>
+        <button className=${'tab-item' + (tab==='seating'?' active':'')} onClick=${function(){setTab('seating');}}>
+          <span className="tab-icon">💺</span><span className="tab-label">자리배치</span>
+        </button>
+        <button className=${'tab-item' + (tab==='cleaning'?' active':'')} onClick=${function(){setTab('cleaning');}}>
+          <span className="tab-icon">🧹</span><span className="tab-label">청소관리</span>
         </button>
         <button className=${'tab-item' + (tab==='lookup'?' active':'')} onClick=${function(){setTab('lookup');}}>
-          <span className="tab-icon">🔍</span><span className="tab-label">조회</span>
+          <span className="tab-icon">🔍</span><span className="tab-label">검색</span>
         </button>
       </nav>
+      <div className="footer-bar">© 2026 쫑아빠의 학급노트. All rights reserved.</div>
 
       ${showSettings ? html`<${Settings}
         classInfo=${ci} students=${students}
