@@ -1460,7 +1460,7 @@ function App() {
           </div>
         </div>
         <div className="header-actions">
-          <div className="header-date">
+          <div className="header-date" onClick=${function(){ document.querySelector('.header-date input').showPicker ? document.querySelector('.header-date input').showPicker() : document.querySelector('.header-date input').focus(); }}>
             <input type="date" value=${date} onChange=${function(e){setDate(e.target.value);}} />
             <span className="header-date-icon">📅</span>
           </div>
