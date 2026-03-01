@@ -250,6 +250,10 @@ html,body{height:100%;background:#e2e8f0;
 .cleaning-add-zone button{padding:10px 14px;border:none;border-radius:var(--radius-sm);background:var(--primary);color:#fff;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap}
 .cleaning-del-btn{background:none;border:none;color:var(--text-light);font-size:14px;cursor:pointer;padding:2px 4px}
 .cleaning-del-btn:hover{color:var(--danger)}
+.cleaning-edit-actions{display:flex;align-items:center;gap:2px}
+.cleaning-move-btn{background:none;border:none;color:var(--text-light);font-size:16px;cursor:pointer;padding:2px 6px;font-family:inherit;line-height:1}
+.cleaning-move-btn:active{transform:scale(.9)}
+.cleaning-move-btn:disabled{opacity:.2;cursor:default;transform:none}
 .cleaning-notes-section{padding:0 16px 12px}
 .cleaning-notes-input{width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:13px;font-family:inherit;background:var(--card);resize:vertical;min-height:60px;line-height:1.6;box-sizing:border-box}
 .cleaning-notes-input:focus{outline:none;border-color:var(--primary)}
@@ -794,6 +798,16 @@ function CleaningTab({ students, cleaning, classInfo, onUpdate, onToast }) {
     onToast('구역 삭제 완료');
   };
 
+  var moveZone = function(zid, dir) {
+    var idx = zones.findIndex(function(z){return z.id===zid;});
+    if (idx < 0) return;
+    var ni = idx + dir;
+    if (ni < 0 || ni >= zones.length) return;
+    var nz = zones.slice();
+    var tmp = nz[idx]; nz[idx] = nz[ni]; nz[ni] = tmp;
+    onUpdate({zones:nz,assignments:assignments,notes:notes});
+  };
+
   var toggleAssign = function(sid) {
     if (!selZone) return;
     var cur = (assignments[selZone]||[]).slice();
@@ -836,7 +850,7 @@ function CleaningTab({ students, cleaning, classInfo, onUpdate, onToast }) {
         <button onClick=${addZone}>추가</button>
       </div>` : null}
 
-    ${zones.map(function(z) {
+    ${zones.map(function(z, zi) {
       var members = (assignments[z.id]||[]);
       var isSel = selZone === z.id && !editMode;
       return html`
@@ -844,7 +858,11 @@ function CleaningTab({ students, cleaning, classInfo, onUpdate, onToast }) {
           onClick=${function(){ if(!editMode) setSelZone(selZone===z.id?null:z.id); }}>
           <div className="cleaning-zone-name">
             <span>${z.name} (${members.length}명)</span>
-            ${editMode ? html`<button className="cleaning-del-btn" onClick=${function(e){e.stopPropagation();delZone(z.id);}}>✕</button>` : null}
+            ${editMode ? html`<div className="cleaning-edit-actions">
+              <button className="cleaning-move-btn" disabled=${zi===0} onClick=${function(e){e.stopPropagation();moveZone(z.id,-1);}}>▲</button>
+              <button className="cleaning-move-btn" disabled=${zi===zones.length-1} onClick=${function(e){e.stopPropagation();moveZone(z.id,1);}}>▼</button>
+              <button className="cleaning-del-btn" onClick=${function(e){e.stopPropagation();delZone(z.id);}}>✕</button>
+            </div>` : null}
           </div>
           <div className="cleaning-zone-students">
             ${members.length === 0
