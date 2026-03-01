@@ -4,6 +4,7 @@ dist
 *.local
 *.json
 !예시데이터_백업.json
+!manifest.json
 *.textClipping
 *.jpeg
 *.png
