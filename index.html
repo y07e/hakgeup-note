@@ -41,11 +41,12 @@ html,body{height:100%;background:#e2e8f0;
 
 /* Header */
 .header{height:var(--header-h);background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 16px;flex-shrink:0;z-index:10}
-.header-left{display:flex;align-items:center;gap:10px}
+.header-left{display:flex;align-items:center;gap:10px;min-width:0;flex:1}
+.header-left>div{min-width:0;overflow:hidden}
 .header-logo{width:38px;height:38px;border-radius:50%;object-fit:cover;border:2px solid rgba(255,255,255,.4);flex-shrink:0}
-.header-title{font-size:18px;font-weight:700;letter-spacing:-.3px}
-.header-sub{font-size:13px;font-weight:600;opacity:.95;margin-top:2px}
-.header-actions{display:flex;align-items:center;gap:8px}
+.header-title{font-size:18px;font-weight:700;letter-spacing:-.3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.header-sub{font-size:13px;font-weight:600;opacity:.95;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.header-actions{display:flex;align-items:center;gap:8px;flex-shrink:0}
 .header-date{font-size:14px;background:rgba(255,255,255,.25);padding:6px 12px;border-radius:20px;display:flex;align-items:center;gap:6px;cursor:pointer;position:relative;-webkit-user-select:none;user-select:none}
 .header-date-text{font-size:14px;font-weight:600;white-space:nowrap;color:#fff}
 .header-date-icon{font-size:16px;line-height:1;flex-shrink:0}
@@ -71,6 +72,23 @@ html,body{height:100%;background:#e2e8f0;
 .icon-btn:active{transform:scale(.95)}
 .setting-btn{width:auto;height:auto;border-radius:8px;flex-direction:column;gap:1px;padding:4px 8px;font-size:16px}
 .setting-label{font-size:9px;font-weight:800;letter-spacing:-.2px;opacity:1}
+
+/* Narrow screen (Galaxy Fold etc.) */
+@media(max-width:380px){
+.header{padding:0 10px}
+.header-left{gap:6px}
+.header-logo{width:30px;height:30px}
+.header-title{font-size:14px}
+.header-sub{font-size:11px}
+.header-actions{gap:4px}
+.header-date{padding:4px 8px;gap:4px}
+.header-date-text{font-size:12px}
+.header-date-icon{font-size:13px}
+.setting-btn{padding:3px 5px;font-size:14px}
+.setting-label{display:none}
+.dp-drop{right:-4px;width:260px;padding:12px}
+.dp-day{width:30px;height:30px;font-size:12px}
+}
 
 /* Tab Bar */
 .tabbar{height:var(--tab-h);background:var(--card);display:flex;border-top:1px solid var(--border);flex-shrink:0;z-index:10}
