@@ -46,14 +46,27 @@ html,body{height:100%;background:#e2e8f0;
 .header-title{font-size:18px;font-weight:700;letter-spacing:-.3px}
 .header-sub{font-size:13px;font-weight:600;opacity:.95;margin-top:2px}
 .header-actions{display:flex;align-items:center;gap:8px}
-.header-date{font-size:14px;background:rgba(255,255,255,.25);padding:6px 12px;border-radius:20px;display:flex;align-items:center;gap:6px;cursor:pointer}
-.header-date-icon{font-size:16px;line-height:1;flex-shrink:0;pointer-events:none}
-.header-date input[type="date"]{background:none;border:none;color:#fff;font-size:14px;font-weight:600;font-family:inherit;cursor:pointer;width:115px;color-scheme:dark;-webkit-text-fill-color:#fff;outline:none}
-.header-date input::-webkit-calendar-picker-indicator{display:none!important;-webkit-appearance:none;width:0;height:0;margin:0;padding:0;opacity:0;pointer-events:none}
-.header-date input::-webkit-date-and-time-value{color:#fff;-webkit-text-fill-color:#fff}
-.header-date input::-webkit-datetime-edit-year-field,.header-date input::-webkit-datetime-edit-month-field,.header-date input::-webkit-datetime-edit-day-field{color:#fff;-webkit-text-fill-color:#fff}
-.header-date input::-webkit-datetime-edit-year-field:focus,.header-date input::-webkit-datetime-edit-month-field:focus,.header-date input::-webkit-datetime-edit-day-field:focus{background:transparent;color:#fff;-webkit-text-fill-color:#fff;outline:none}
-.header-date input::selection{background:transparent}
+.header-date{font-size:14px;background:rgba(255,255,255,.25);padding:6px 12px;border-radius:20px;display:flex;align-items:center;gap:6px;cursor:pointer;position:relative;-webkit-user-select:none;user-select:none}
+.header-date-text{font-size:14px;font-weight:600;white-space:nowrap;color:#fff}
+.header-date-icon{font-size:16px;line-height:1;flex-shrink:0}
+.dp-overlay{position:fixed;top:0;left:0;right:0;bottom:0;z-index:99}
+.dp-drop{position:absolute;top:calc(100% + 8px);right:-8px;background:#fff;border-radius:16px;box-shadow:0 8px 30px rgba(0,0,0,.25);padding:16px;z-index:100;width:280px;color:#0f172a;-webkit-user-select:none;user-select:none}
+.dp-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.dp-title{font-size:15px;font-weight:700}
+.dp-nav{width:30px;height:30px;border:none;background:#f1f5f9;border-radius:50%;cursor:pointer;font-size:13px;color:#64748b;display:flex;align-items:center;justify-content:center;font-family:inherit}
+.dp-nav:hover{background:#e2e8f0}
+.dp-weeks{display:grid;grid-template-columns:repeat(7,1fr);text-align:center;font-size:11px;font-weight:600;color:#94a3b8;margin-bottom:2px}
+.dp-weeks span{padding:4px 0}
+.dp-days{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+.dp-day{width:34px;height:34px;border:none;background:none;border-radius:50%;cursor:pointer;font-size:13px;color:#334155;display:flex;align-items:center;justify-content:center;margin:0 auto;font-family:inherit;transition:background .1s}
+.dp-day:hover{background:#f1f5f9}
+.dp-day.today{background:#ecfeff;color:#0891b2;font-weight:700}
+.dp-day.sel{background:#0891b2;color:#fff;font-weight:700}
+.dp-day.sel:hover{background:#0e7490}
+.dp-day.other{color:#cbd5e1;cursor:default}
+.dp-day.other:hover{background:none}
+.dp-today-btn{width:100%;margin-top:10px;padding:7px;border:1px solid #e2e8f0;border-radius:8px;background:#f8fafc;color:#0891b2;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit}
+.dp-today-btn:hover{background:#ecfeff}
 .icon-btn{width:36px;height:36px;border-radius:50%;border:none;background:rgba(255,255,255,.2);color:#fff;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .15s}
 .icon-btn:active{transform:scale(.95)}
 .setting-btn{width:auto;height:auto;border-radius:8px;flex-direction:column;gap:1px;padding:4px 8px;font-size:16px}
@@ -380,6 +393,19 @@ const DEFAULT_ZONES = [
 const uid = () => Date.now().toString(36) + Math.random().toString(36).substr(2, 6);
 const todayStr = () => { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'); };
 const fmtDate = s => { const p = s.split('-'); return Number(p[1]) + '월 ' + Number(p[2]) + '일'; };
+const fmtDateFull = s => { const p = s.split('-'); return p[0] + '. ' + p[1] + '. ' + p[2] + '.'; };
+const fmtISO = (y,m,d) => y + '-' + String(m+1).padStart(2,'0') + '-' + String(d).padStart(2,'0');
+function getCalDays(y, m) {
+  var first = new Date(y, m, 1).getDay();
+  var total = new Date(y, m + 1, 0).getDate();
+  var prevTotal = new Date(y, m, 0).getDate();
+  var days = [];
+  for (var i = first - 1; i >= 0; i--) days.push({d: prevTotal - i, c: false});
+  for (var i = 1; i <= total; i++) days.push({d: i, c: true});
+  var remain = days.length % 7;
+  if (remain > 0) for (var i = 1; i <= 7 - remain; i++) days.push({d: i, c: false});
+  return days;
+}
 
 // ===== Store =====
 const KEYS = { classInfo:'hn_ci', students:'hn_st', memos:'hn_me', points:'hn_pt', seating:'hn_se', cleaning:'hn_cl', pin:'hn_pin' };
@@ -1425,6 +1451,9 @@ function App() {
   const [tab, setTab] = useState('input');
   const [date, setDate] = useState(todayStr());
   const [showSettings, setShowSettings] = useState(false);
+  const [showDP, setShowDP] = useState(false);
+  const [dpY, setDpY] = useState(function(){ return parseInt(todayStr().split('-')[0]); });
+  const [dpM, setDpM] = useState(function(){ return parseInt(todayStr().split('-')[1]) - 1; });
   const [toasts, setToasts] = useState([]);
   const [locked, setLocked] = useState(function(){ return !!load(KEYS.pin,''); });
 
@@ -1462,9 +1491,30 @@ function App() {
           </div>
         </div>
         <div className="header-actions">
-          <div className="header-date" onClick=${function(e){ if(e.target.tagName==='INPUT') return; var inp=e.currentTarget.querySelector('input'); if(document.activeElement===inp){inp.blur();return;} try{inp.showPicker();}catch(ex){inp.focus();} }}>
-            <input type="date" value=${date} onChange=${function(e){setDate(e.target.value);}} />
+          <div className="header-date" onClick=${function(){ if(!showDP){var p=date.split('-');setDpY(parseInt(p[0]));setDpM(parseInt(p[1])-1);} setShowDP(!showDP); }}>
+            <span className="header-date-text">${fmtDateFull(date)}</span>
             <span className="header-date-icon">📅</span>
+            ${showDP && html`
+              <div className="dp-overlay" onClick=${function(e){e.stopPropagation();setShowDP(false);}}></div>
+              <div className="dp-drop" onClick=${function(e){e.stopPropagation();}}>
+                <div className="dp-head">
+                  <button className="dp-nav" onClick=${function(){if(dpM===0){setDpM(11);setDpY(dpY-1);}else{setDpM(dpM-1);}}}>${'◀'}</button>
+                  <span className="dp-title">${dpY}년 ${dpM+1}월</span>
+                  <button className="dp-nav" onClick=${function(){if(dpM===11){setDpM(0);setDpY(dpY+1);}else{setDpM(dpM+1);}}}>${'▶'}</button>
+                </div>
+                <div className="dp-weeks">
+                  ${['일','월','화','수','목','금','토'].map(function(w){return html`<span key=${w}>${w}</span>`;})}
+                </div>
+                <div className="dp-days">
+                  ${getCalDays(dpY,dpM).map(function(item,idx){
+                    var iso = fmtISO(dpY,dpM,item.d);
+                    var cls = 'dp-day' + (item.c?'':' other') + (item.c && date===iso?' sel':'') + (item.c && todayStr()===iso?' today':'');
+                    return html`<button key=${idx} className=${cls} onClick=${item.c ? function(){setDate(iso);setShowDP(false);} : undefined}>${item.d}</button>`;
+                  })}
+                </div>
+                <button className="dp-today-btn" onClick=${function(){setDate(todayStr());setShowDP(false);}}>오늘</button>
+              </div>
+            `}
           </div>
           <button className="icon-btn setting-btn" onClick=${function(){setShowSettings(true);}} title="설정"><span>⚙</span><span className="setting-label">기본 설정</span></button>
         </div>
