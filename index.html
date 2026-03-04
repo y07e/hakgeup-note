@@ -280,6 +280,10 @@ html,body{height:100%;background:#e2e8f0;
 .diary-add-task input:focus{outline:none;border-color:var(--primary)}
 .diary-add-task button{padding:8px 14px;border:none;border-radius:var(--radius-sm);background:var(--primary);color:#fff;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap}
 .diary-empty{font-size:13px;color:var(--text-light);padding:8px 0;text-align:center}
+.diary-print-btns{display:flex;gap:8px;padding:0 16px 12px}
+.diary-print-btns button{flex:1;padding:10px;border:1.5px solid var(--border);border-radius:var(--radius-sm);background:var(--card);font-size:13px;font-weight:600;color:var(--text);cursor:pointer;font-family:inherit}
+.diary-print-btns button:active{transform:scale(.97)}
+.diary-print-area,.diary-print-month{display:none}
 
 /* Dashboard */
 .dash-range{padding:10px 16px 4px}
@@ -376,7 +380,7 @@ html,body{height:100%;background:#e2e8f0;
   html,body{background:#fff!important;overflow:visible!important;width:100%!important;height:auto!important}
   #root{display:block!important;overflow:visible!important}
   .app{display:block!important;box-shadow:none!important;overflow:visible!important;margin:0!important;padding:0!important;max-width:none!important;width:100%!important}
-  .top-title-bar,.header,.tabbar,.footer-bar,.toast,.modal-overlay,.sub-tabs,.seating-controls,.seating-podium,.seating-grid,.seating-unassigned,.seating-chip-row,.cleaning-header,.cleaning-assign-grid,.cleaning-add-zone,.cleaning-btn-sm,.cleaning-zone-card,.cleaning-notes-section,.section-title,.hint,.save-btn,.student-grid,.cat-group,.memo-section,.memo-box{display:none!important}
+  .top-title-bar,.header,.tabbar,.footer-bar,.toast,.modal-overlay,.sub-tabs,.seating-controls,.seating-podium,.seating-grid,.seating-unassigned,.seating-chip-row,.cleaning-header,.cleaning-assign-grid,.cleaning-add-zone,.cleaning-btn-sm,.cleaning-zone-card,.cleaning-notes-section,.section-title,.hint,.save-btn,.student-grid,.cat-group,.memo-section,.memo-box,.diary-header,.diary-section,.diary-print-btns{display:none!important}
   .main-content{display:block!important;overflow:visible!important;padding:0!important;margin:0!important;width:100%!important;height:auto!important}
   /* 청소 인쇄 (A4 세로) */
   .print-area{display:block!important;padding:2mm 0;page-break-inside:avoid}
@@ -401,6 +405,18 @@ html,body{height:100%;background:#e2e8f0;
   .seating-print-cell .sp-num{font-size:16pt;color:#444;margin-bottom:1mm;display:block}
   .seating-print-cell .sp-name{font-size:18pt;font-family:'A2GBold',sans-serif;font-weight:bold;color:#000;display:block;-webkit-text-stroke:0.5px #000}
   .seating-print-podium{text-align:center!important;font-size:16pt;font-weight:900;letter-spacing:6mm;border:2px solid #000;background:#eee;color:#000;height:14mm!important;-webkit-text-stroke:0.5px #000}
+  /* 학급일지 1일분 인쇄 */
+  [data-print="diary-day"] .diary-print-area{display:block!important;padding:2mm 0;page-break-inside:avoid}
+  [data-print="diary-month"] .diary-print-month{display:block!important;padding:2mm 0}
+  .diary-print-area h2,.diary-print-month h2{text-align:center;font-size:22pt;font-weight:900;margin-bottom:1mm;border-bottom:2.5px solid #000;padding-bottom:3mm}
+  .diary-print-area .print-sub,.diary-print-month .print-sub{text-align:center;font-size:14pt;color:#444;margin-bottom:5mm}
+  .diary-print-table{width:100%;border-collapse:collapse;font-size:12pt;border:2px solid #333}
+  .diary-print-table thead th{background:#3b6ea5;color:#fff;font-weight:700;font-size:13pt;padding:8px 12px;text-align:center;border:1.5px solid #333}
+  .diary-print-table tbody td{border:1.5px solid #999;padding:10px 12px;vertical-align:top;font-size:11pt;line-height:1.7}
+  .diary-print-table .dp-label{background:#e3eef9;font-weight:700;text-align:center;color:#2a5a8a;width:18%}
+  .diary-print-table .dp-date{background:#e3eef9;font-weight:700;text-align:center;color:#2a5a8a;width:10%}
+  .diary-print-task{margin:2px 0}
+  .diary-print-task-done{text-decoration:line-through;color:#999}
 }
 .print-area{display:none}
   </style>
@@ -948,7 +964,7 @@ function CleaningTab({ students, cleaning, classInfo, onUpdate, onToast }) {
 }
 
 // ===== DiaryTab =====
-function DiaryTab({ diary, date, onUpdate, onToast }) {
+function DiaryTab({ diary, date, classInfo, onUpdate, onToast }) {
   const [newTask, setNewTask] = useState('');
   var entry = diary[date] || { notes: '', tasks: [] };
   var m = parseInt(date.split('-')[1]);
@@ -979,6 +995,23 @@ function DiaryTab({ diary, date, onUpdate, onToast }) {
     onToast('삭제 완료');
   };
 
+  var doPrint = function(mode) {
+    var app = document.querySelector('.app');
+    var s = document.getElementById('print-orient');
+    if(!s){s=document.createElement('style');s.id='print-orient';document.head.appendChild(s);}
+    s.textContent = mode === 'month' ? '@media print{@page{size:A4 landscape;margin:10mm 15mm}}' : '@media print{@page{size:A4 portrait;margin:15mm}}';
+    app.setAttribute('data-print', mode === 'month' ? 'diary-month' : 'diary-day');
+    var cleanup = function(){ app.removeAttribute('data-print'); };
+    window.addEventListener('afterprint', cleanup, {once:true});
+    setTimeout(function(){ window.print(); }, 100);
+  };
+
+  var y = parseInt(date.split('-')[0]);
+  var dayOfWeek = ['일','월','화','수','목','금','토'][new Date(date).getDay()];
+  var className = classInfo.className || '';
+
+  var monthDays = Object.keys(diary).filter(function(k){ return k.startsWith(y+'-'+(m<10?'0'+m:m)); }).sort();
+
   return html`<div>
     <div className="diary-header">
       <span className="diary-header-title">📔 학급일지</span>
@@ -1004,6 +1037,54 @@ function DiaryTab({ diary, date, onUpdate, onToast }) {
         <input placeholder="새 할 일 입력" value=${newTask} onInput=${function(e){setNewTask(e.target.value);}} onKeyDown=${function(e){if(e.key==='Enter')addTask();}} />
         <button onClick=${addTask}>추가</button>
       </div>
+    </div>
+
+    <div className="diary-print-btns">
+      <button onClick=${function(){doPrint('day');}}>🖨️ 오늘 인쇄</button>
+      <button onClick=${function(){doPrint('month');}}>🖨️ ${m}월 인쇄</button>
+    </div>
+
+    <div className="diary-print-area">
+      <h2>${className} 학급일지</h2>
+      <div className="print-sub">${y}년 ${m}월 ${d}일 (${dayOfWeek})</div>
+      <table className="diary-print-table">
+        <tbody>
+          <tr>
+            <td className="dp-label">전달사항</td>
+            <td>${entry.notes ? entry.notes.split('\n').map(function(line,i){return html`<div key=${i}>${line || '\u00A0'}</div>`;}) : html`<span style=${{color:'#999'}}>없음</span>`}</td>
+          </tr>
+          <tr>
+            <td className="dp-label">할 일</td>
+            <td>${entry.tasks.length === 0 ? html`<span style=${{color:'#999'}}>없음</span>` : entry.tasks.map(function(t){
+              return html`<div key=${t.id} className=${'diary-print-task'+(t.done?' diary-print-task-done':'')}>${t.done?'☑':'☐'} ${t.text}</div>`;
+            })}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div className="diary-print-month">
+      <h2>${className} ${m}월 학급일지</h2>
+      <div className="print-sub">${y}년 ${m}월</div>
+      ${monthDays.length === 0 ? html`<div style=${{textAlign:'center',fontSize:'14pt',color:'#999',padding:'20mm 0'}}>기록된 일지가 없습니다</div>` : html`
+        <table className="diary-print-table">
+          <thead><tr><th>날짜</th><th>전달사항</th><th>할 일</th></tr></thead>
+          <tbody>
+            ${monthDays.map(function(dk){
+              var de = diary[dk];
+              var dd = parseInt(dk.split('-')[2]);
+              var dw = ['일','월','화','수','목','금','토'][new Date(dk).getDay()];
+              return html`<tr key=${dk}>
+                <td className="dp-date">${dd}일(${dw})</td>
+                <td>${de.notes ? de.notes.split('\n').map(function(line,i){return html`<div key=${i}>${line || '\u00A0'}</div>`;}) : '-'}</td>
+                <td>${(de.tasks||[]).length===0 ? '-' : (de.tasks||[]).map(function(t){
+                  return html`<div key=${t.id} className=${'diary-print-task'+(t.done?' diary-print-task-done':'')}>${t.done?'☑':'☐'} ${t.text}</div>`;
+                })}</td>
+              </tr>`;
+            })}
+          </tbody>
+        </table>
+      `}
     </div>
   </div>`;
 }
@@ -1660,7 +1741,7 @@ function App() {
           onSavePoint=${function(p){setPoints(function(pp){return pp.concat([p]);});}}
           onToast=${toast} />` : null}
         ${tab === 'diary' ? html`<${DiaryTab}
-          diary=${diary} date=${date}
+          diary=${diary} date=${date} classInfo=${ci}
           onUpdate=${setDiary} onToast=${toast} />` : null}
         ${tab === 'seating' ? html`<${SeatingTab}
           students=${students} seating=${seating} classInfo=${ci}
