@@ -453,8 +453,14 @@ function getCalDays(y, m) {
   return days;
 }
 
+// ===== Version =====
+const APP_VERSION = '2026.03.04';
+var UPDATES = [
+  { ver: '2026.03.04', items: ['📔 학급일지 탭 추가 — 날짜별 전달사항과 할 일 체크리스트 관리'] }
+];
+
 // ===== Store =====
-const KEYS = { classInfo:'hn_ci', students:'hn_st', memos:'hn_me', points:'hn_pt', seating:'hn_se', cleaning:'hn_cl', diary:'hn_di', pin:'hn_pin' };
+const KEYS = { classInfo:'hn_ci', students:'hn_st', memos:'hn_me', points:'hn_pt', seating:'hn_se', cleaning:'hn_cl', diary:'hn_di', pin:'hn_pin', lastVer:'hn_ver' };
 const load = (k, fb) => { try { const r = localStorage.getItem(k); return r ? JSON.parse(r) : fb; } catch(e) { return fb; } };
 const save = (k, v) => localStorage.setItem(k, JSON.stringify(v));
 
@@ -1581,6 +1587,7 @@ function App() {
   const [dpM, setDpM] = useState(function(){ return parseInt(todayStr().split('-')[1]) - 1; });
   const [toasts, setToasts] = useState([]);
   const [locked, setLocked] = useState(function(){ return !!load(KEYS.pin,''); });
+  const [showUpdate, setShowUpdate] = useState(function(){ return load(KEYS.lastVer,'') !== APP_VERSION; });
 
   useEffect(function(){ save(KEYS.classInfo, ci); }, [ci]);
   useEffect(function(){ save(KEYS.students, students); }, [students]);
@@ -1607,7 +1614,7 @@ function App() {
 
   return html`
     <div className="app">
-      <div className="top-title-bar">쫑아빠의 학급노트 <span style=${{fontSize:'10px',opacity:0.65,fontWeight:400,marginLeft:'4px'}}>Ver.${new Date().getFullYear()}</span></div>
+      <div className="top-title-bar">쫑아빠의 학급노트 <span style=${{fontSize:'10px',opacity:0.65,fontWeight:400,marginLeft:'4px'}}>Ver.${APP_VERSION}</span></div>
       <header className="header">
         <div className="header-left">
           ${ci.logo ? html`<img className="header-logo" src=${ci.logo} alt=${title} />` : html`<div className="header-logo" style=${{display:'flex',alignItems:'center',justifyContent:'center',background:'rgba(255,255,255,.25)',fontSize:11,fontWeight:700,lineHeight:1.1,textAlign:'center',color:'#fff'}}>${title.slice(0,2)}</div>`}
@@ -1693,6 +1700,26 @@ function App() {
         onCleanupStudent=${function(id){ setMemos(function(p){return p.filter(function(m){return m.studentId!==id;});}); setPoints(function(p){return p.filter(function(x){return x.studentId!==id;});}); }}
         onResetData=${function(){ setMemos([]); setPoints([]); save(KEYS.memos,[]); save(KEYS.points,[]); }}
         onClose=${function(){setShowSettings(false);}} onToast=${toast} onReload=${reload} />` : null}
+
+      ${showUpdate ? html`<div className="modal-overlay" onClick=${function(){setShowUpdate(false);save(KEYS.lastVer,APP_VERSION);}}>
+        <div className="modal" style=${{maxHeight:'70vh',borderRadius:'20px 20px 0 0'}} onClick=${function(e){e.stopPropagation();}}>
+          <div className="modal-header">
+            <div className="modal-title">🎉 업데이트 안내</div>
+            <button className="modal-close" onClick=${function(){setShowUpdate(false);save(KEYS.lastVer,APP_VERSION);}}>✕</button>
+          </div>
+          <div className="modal-body" style=${{padding:'20px'}}>
+            <div style=${{fontSize:13,color:'var(--text-light)',marginBottom:16}}>Ver. ${APP_VERSION}</div>
+            ${UPDATES.map(function(u){
+              return html`<div key=${u.ver} style=${{marginBottom:12}}>
+                ${u.items.map(function(item,i){
+                  return html`<div key=${i} style=${{fontSize:14,lineHeight:1.7,color:'var(--text)'}}>${item}</div>`;
+                })}
+              </div>`;
+            })}
+            <button style=${{width:'100%',padding:'12px',border:'none',borderRadius:'var(--radius-sm)',background:'var(--primary)',color:'#fff',fontSize:15,fontWeight:700,cursor:'pointer',fontFamily:'inherit',marginTop:8}} onClick=${function(){setShowUpdate(false);save(KEYS.lastVer,APP_VERSION);}}>확인</button>
+          </div>
+        </div>
+      </div>` : null}
 
       ${toasts.map(function(t){ return html`<div key=${t.id} className=${'toast ' + t.type}>${t.msg}</div>`; })}
     </div>
