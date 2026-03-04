@@ -96,7 +96,8 @@ html,body{height:100%;background:#e2e8f0;
 .tab-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;border:none;background:none;color:var(--text-light);font-size:11px;font-weight:600;cursor:pointer;transition:color .15s;font-family:inherit}
 .tab-item.active{color:var(--primary)}
 .tab-icon{font-size:22px;line-height:1}
-.tab-label{font-size:10px}
+.tab-label{font-size:9px}
+@media(max-width:380px){.tab-icon{font-size:18px}.tab-label{font-size:8px}.tab-item{gap:1px}}
 
 /* Main */
 .main-content{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;padding-bottom:8px}
@@ -257,6 +258,28 @@ html,body{height:100%;background:#e2e8f0;
 .cleaning-notes-section{padding:0 16px 12px}
 .cleaning-notes-input{width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:13px;font-family:inherit;background:var(--card);resize:vertical;min-height:60px;line-height:1.6;box-sizing:border-box}
 .cleaning-notes-input:focus{outline:none;border-color:var(--primary)}
+
+/* ===== Diary ===== */
+.diary-header{display:flex;align-items:center;justify-content:space-between;padding:12px 16px 8px}
+.diary-header-title{font-size:16px;font-weight:700;color:var(--text)}
+.diary-header-date{font-size:14px;font-weight:600;color:var(--primary)}
+.diary-section{margin:0 16px 12px;padding:14px;background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow)}
+.diary-section-title{font-size:14px;font-weight:700;color:var(--text);margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.diary-notes{width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:13px;font-family:inherit;background:var(--bg);resize:vertical;min-height:80px;line-height:1.6;box-sizing:border-box}
+.diary-notes:focus{outline:none;border-color:var(--primary)}
+.diary-task{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border-light)}
+.diary-task:last-of-type{border-bottom:none}
+.diary-task.done .diary-task-text{text-decoration:line-through;color:var(--text-light)}
+.diary-task-check{width:20px;height:20px;border-radius:4px;border:2px solid var(--border);background:var(--card);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:12px;color:#fff;transition:all .15s}
+.diary-task-check.checked{background:var(--primary);border-color:var(--primary)}
+.diary-task-text{flex:1;font-size:13px;font-weight:500;color:var(--text);min-width:0;word-break:break-word}
+.diary-task-del{background:none;border:none;color:var(--text-light);font-size:14px;cursor:pointer;padding:2px 4px;flex-shrink:0}
+.diary-task-del:hover{color:var(--danger)}
+.diary-add-task{display:flex;gap:6px;margin-top:10px}
+.diary-add-task input{flex:1;padding:8px 12px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:13px;font-family:inherit;background:var(--bg)}
+.diary-add-task input:focus{outline:none;border-color:var(--primary)}
+.diary-add-task button{padding:8px 14px;border:none;border-radius:var(--radius-sm);background:var(--primary);color:#fff;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap}
+.diary-empty{font-size:13px;color:var(--text-light);padding:8px 0;text-align:center}
 
 /* Dashboard */
 .dash-range{padding:10px 16px 4px}
@@ -431,7 +454,7 @@ function getCalDays(y, m) {
 }
 
 // ===== Store =====
-const KEYS = { classInfo:'hn_ci', students:'hn_st', memos:'hn_me', points:'hn_pt', seating:'hn_se', cleaning:'hn_cl', pin:'hn_pin' };
+const KEYS = { classInfo:'hn_ci', students:'hn_st', memos:'hn_me', points:'hn_pt', seating:'hn_se', cleaning:'hn_cl', diary:'hn_di', pin:'hn_pin' };
 const load = (k, fb) => { try { const r = localStorage.getItem(k); return r ? JSON.parse(r) : fb; } catch(e) { return fb; } };
 const save = (k, v) => localStorage.setItem(k, JSON.stringify(v));
 
@@ -469,6 +492,7 @@ const loadMe = () => load(KEYS.memos, DEMO_MEMOS);
 const loadPt = () => load(KEYS.points, DEMO_POINTS);
 const loadSe = () => load(KEYS.seating, DEMO_SEATING);
 const loadCl = () => load(KEYS.cleaning, DEMO_CLEANING);
+const loadDi = () => load(KEYS.diary, {});
 
 // ===== StudentGrid =====
 function StudentGrid({ students, selectedId, onSelect, memos, today }) {
@@ -917,6 +941,67 @@ function CleaningTab({ students, cleaning, classInfo, onUpdate, onToast }) {
   </div>`;
 }
 
+// ===== DiaryTab =====
+function DiaryTab({ diary, date, onUpdate, onToast }) {
+  const [newTask, setNewTask] = useState('');
+  var entry = diary[date] || { notes: '', tasks: [] };
+  var m = parseInt(date.split('-')[1]);
+  var d = parseInt(date.split('-')[2]);
+
+  var updateEntry = function(patch) {
+    var ne = Object.assign({}, entry, patch);
+    var nd = Object.assign({}, diary);
+    nd[date] = ne;
+    onUpdate(nd);
+  };
+
+  var addTask = function() {
+    var txt = newTask.trim();
+    if (!txt) return;
+    var t = { id: Date.now().toString(36) + Math.random().toString(36).slice(2,6), text: txt, done: false };
+    updateEntry({ tasks: entry.tasks.concat([t]) });
+    setNewTask('');
+    onToast('할 일 추가');
+  };
+
+  var toggleTask = function(id) {
+    updateEntry({ tasks: entry.tasks.map(function(t){ return t.id===id ? Object.assign({},t,{done:!t.done}) : t; }) });
+  };
+
+  var deleteTask = function(id) {
+    updateEntry({ tasks: entry.tasks.filter(function(t){ return t.id!==id; }) });
+    onToast('삭제 완료');
+  };
+
+  return html`<div>
+    <div className="diary-header">
+      <span className="diary-header-title">📔 학급일지</span>
+      <span className="diary-header-date">${m}월 ${d}일</span>
+    </div>
+
+    <div className="diary-section">
+      <div className="diary-section-title">📋 전달사항</div>
+      <textarea className="diary-notes" placeholder=${"오늘의 전달사항을 입력하세요.\n예) 학부모 상담 안내문 배부"} value=${entry.notes} onInput=${function(e){ updateEntry({ notes: e.target.value }); }} rows="4"></textarea>
+    </div>
+
+    <div className="diary-section">
+      <div className="diary-section-title">✅ 할 일</div>
+      ${entry.tasks.length === 0 ? html`<div className="diary-empty">등록된 할 일이 없습니다</div>` : null}
+      ${entry.tasks.map(function(t) {
+        return html`<div key=${t.id} className=${'diary-task' + (t.done?' done':'')}>
+          <div className=${'diary-task-check' + (t.done?' checked':'')} onClick=${function(){toggleTask(t.id);}}>${t.done?'✓':''}</div>
+          <span className="diary-task-text">${t.text}</span>
+          <button className="diary-task-del" onClick=${function(){deleteTask(t.id);}}>✕</button>
+        </div>`;
+      })}
+      <div className="diary-add-task">
+        <input placeholder="새 할 일 입력" value=${newTask} onInput=${function(e){setNewTask(e.target.value);}} onKeyDown=${function(e){if(e.key==='Enter')addTask();}} />
+        <button onClick=${addTask}>추가</button>
+      </div>
+    </div>
+  </div>`;
+}
+
 // ===== StudentDetail =====
 function StudentDetail({ student, memos, points, onBack, onDeleteMemo, onDeletePoint, onToast }) {
   const [delId, setDelId] = useState(null);
@@ -1259,6 +1344,7 @@ function Settings({ classInfo, students, memos, points, onUpdateCI, onUpdateSt, 
       classInfo: load(KEYS.classInfo, {}), students: load(KEYS.students, []),
       memos: load(KEYS.memos, []), points: load(KEYS.points, []),
       seating: load(KEYS.seating, {}), cleaning: load(KEYS.cleaning, {}),
+      diary: load(KEYS.diary, {}),
     }, null, 2);
     var blob = new Blob([data], { type: 'application/json' });
     var url = URL.createObjectURL(blob);
@@ -1281,6 +1367,7 @@ function Settings({ classInfo, students, memos, points, onUpdateCI, onUpdateSt, 
         if (d.points) save(KEYS.points, d.points);
         if (d.seating) save(KEYS.seating, d.seating);
         if (d.cleaning) save(KEYS.cleaning, d.cleaning);
+        if (d.diary) save(KEYS.diary, d.diary);
         onToast('데이터 복원 완료'); onReload(); onClose();
       } catch(err) { onToast('파일 형식이 올바르지 않습니다', 'error'); }
     };
@@ -1485,6 +1572,7 @@ function App() {
   const [points, setPoints] = useState(loadPt);
   const [seating, setSeating] = useState(loadSe);
   const [cleaning, setCleaning] = useState(loadCl);
+  const [diary, setDiary] = useState(loadDi);
   const [tab, setTab] = useState('input');
   const [date, setDate] = useState(todayStr());
   const [showSettings, setShowSettings] = useState(false);
@@ -1500,6 +1588,7 @@ function App() {
   useEffect(function(){ save(KEYS.points, points); }, [points]);
   useEffect(function(){ save(KEYS.seating, seating); }, [seating]);
   useEffect(function(){ save(KEYS.cleaning, cleaning); }, [cleaning]);
+  useEffect(function(){ save(KEYS.diary, diary); }, [diary]);
 
   var toast = useCallback(function(msg, type) {
     var id = Date.now();
@@ -1508,7 +1597,7 @@ function App() {
   }, []);
 
   var reload = useCallback(function() {
-    setCi(loadCI()); setStudents(loadSt()); setMemos(loadMe()); setPoints(loadPt()); setSeating(loadSe()); setCleaning(loadCl());
+    setCi(loadCI()); setStudents(loadSt()); setMemos(loadMe()); setPoints(loadPt()); setSeating(loadSe()); setCleaning(loadCl()); setDiary(loadDi());
   }, []);
 
   var title = ci.schoolName || '학급노트';
@@ -1563,6 +1652,9 @@ function App() {
           onSaveMemo=${function(m){setMemos(function(p){return p.concat([m]);});}}
           onSavePoint=${function(p){setPoints(function(pp){return pp.concat([p]);});}}
           onToast=${toast} />` : null}
+        ${tab === 'diary' ? html`<${DiaryTab}
+          diary=${diary} date=${date}
+          onUpdate=${setDiary} onToast=${toast} />` : null}
         ${tab === 'seating' ? html`<${SeatingTab}
           students=${students} seating=${seating} classInfo=${ci}
           onUpdate=${setSeating} onToast=${toast} />` : null}
@@ -1579,6 +1671,9 @@ function App() {
       <nav className="tabbar">
         <button className=${'tab-item' + (tab==='input'?' active':'')} onClick=${function(){setTab('input');}}>
           <span className="tab-icon">📝</span><span className="tab-label">출결 및 메모</span>
+        </button>
+        <button className=${'tab-item' + (tab==='diary'?' active':'')} onClick=${function(){setTab('diary');}}>
+          <span className="tab-icon">📔</span><span className="tab-label">학급일지</span>
         </button>
         <button className=${'tab-item' + (tab==='seating'?' active':'')} onClick=${function(){setTab('seating');}}>
           <span className="tab-icon">🪑</span><span className="tab-label">자리배치</span>
