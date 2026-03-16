@@ -417,8 +417,21 @@ html,body{height:100%;background:#e2e8f0;
   .diary-print-table .dp-date{background:#e3eef9;font-weight:700;text-align:center;color:#2a5a8a;width:10%}
   .diary-print-task{margin:2px 0}
   .diary-print-task-done{text-decoration:line-through;color:#999}
+  /* 조퇴/외출증 인쇄 */
+  [data-print="leave-pass"] .lp-print-area{display:block!important;padding:0}
+  .lp-card{border:2.5px solid #333;padding:20px 28px;margin:8mm 0;page-break-inside:avoid}
+  .lp-title{text-align:center;font-size:20pt;font-weight:900;font-family:'A2GBold',sans-serif;border-bottom:2.5px solid #000;padding-bottom:8px;margin-bottom:16px;letter-spacing:2px;text-decoration:underline}
+  .lp-body{font-size:13pt;line-height:2.2}
+  .lp-row{margin:2px 0}
+  .lp-info-right{text-align:right;font-size:14pt;letter-spacing:3px}
+  .lp-statement{text-align:center;font-size:14pt;margin:10px 0}
+  .lp-date{text-align:center;margin-top:16px;font-size:13pt}
+  .lp-school{text-align:center;font-size:14pt;font-weight:700;margin-top:6px}
+  .lp-teacher{text-align:right;font-size:13pt;margin-top:4px}
+  .lp-cut-line{text-align:center;font-size:11pt;color:#999;margin:2mm 0;letter-spacing:1px}
 }
 .print-area{display:none}
+.lp-print-area{display:none}
   </style>
 </head>
 <body>
@@ -1312,6 +1325,109 @@ function LookupTab({ students, memos, points, date, onDeleteMemo, onDeletePoint,
   </div>`;
 }
 
+// ===== LeavePassModal =====
+function LeavePassModal({ students, classInfo, date, onClose, onToast }) {
+  const [selSt, setSelSt] = useState(null);
+  const [passType, setPassType] = useState('조퇴');
+  const [reason, setReason] = useState('');
+  const [fromH, setFromH] = useState('');
+  const [fromM, setFromM] = useState('');
+  const [toH, setToH] = useState('');
+  const [toM, setToM] = useState('');
+
+  var selStudent = students.find(function(s){ return s.id === selSt; });
+  var dp = date.split('-');
+  var yearStr = dp[0]; var monthStr = String(parseInt(dp[1])); var dayStr = String(parseInt(dp[2]));
+  var cnMatch = (classInfo.className || '').match(/(\d+)\s*학년\s*(\d+)\s*반/);
+  var gradeStr = cnMatch ? cnMatch[1] : '__'; var classStr = cnMatch ? cnMatch[2] : '__';
+  var schoolName = classInfo.schoolName || '________';
+  var teacherName = classInfo.teacherName || '________';
+
+  var doPrint = function() {
+    if (!selSt) { onToast('학생을 선택하세요', 'error'); return; }
+    if (!reason.trim()) { onToast('사유를 입력하세요', 'error'); return; }
+    var app = document.querySelector('.app');
+    app.setAttribute('data-print', 'leave-pass');
+    var s = document.getElementById('print-orient');
+    if (!s) { s = document.createElement('style'); s.id = 'print-orient'; document.head.appendChild(s); }
+    s.textContent = '@media print{@page{size:A4 portrait;margin:15mm 20mm}}';
+    setTimeout(function(){ window.print(); }, 100);
+    setTimeout(function(){ app.removeAttribute('data-print'); }, 500);
+  };
+
+  var passCard = function(label) {
+    return html`
+      <div className="lp-card">
+        <div className="lp-title">${'조퇴/외출증'} [${label}]</div>
+        <div className="lp-body">
+          <div className="lp-row lp-info-right">
+            <span>${gradeStr}학년  ${classStr}반  ${selStudent ? selStudent.number : '__'}번</span>
+          </div>
+          <div className="lp-row lp-info-right">이름 : ${selStudent ? selStudent.name : '________________'}</div>
+          <div className="lp-row lp-statement">상기 학생의 (${passType})를 허락함.</div>
+          <div className="lp-row">* 사유 : ${reason || ''}</div>
+          <div className="lp-row">* 시간 : ${fromH || '__'}시 ${fromM || '__'}분부터 ${toH || '__'}시 ${toM || '__'}분까지</div>
+          <div className="lp-date">202${yearStr.slice(3)}년 ${monthStr}월 ${dayStr}일</div>
+          <div className="lp-school">${schoolName.split('').join(' ')}</div>
+          <div className="lp-teacher">${gradeStr}학년 ${classStr}반 담임 ${teacherName}          (인)</div>
+        </div>
+      </div>
+    `;
+  };
+
+  return html`
+    <div className="modal-overlay" onClick=${onClose}>
+      <div className="modal" onClick=${function(e){e.stopPropagation();}}>
+        <div className="modal-header">
+          <div className="modal-title">조퇴/외출증 발급</div>
+          <button className="modal-close" onClick=${onClose}>✕</button>
+        </div>
+        <div className="modal-body">
+          <div style=${{marginBottom:12}}>
+            <div style=${{fontSize:12,fontWeight:700,color:'var(--text-sec)',marginBottom:6}}>구분</div>
+            <div style=${{display:'flex',gap:8}}>
+              <button className=${'tag' + (passType==='조퇴'?' selected':'')} onClick=${function(){setPassType('조퇴');}}>조퇴</button>
+              <button className=${'tag' + (passType==='외출'?' selected':'')} onClick=${function(){setPassType('외출');}}>외출</button>
+            </div>
+          </div>
+          <div style=${{marginBottom:12}}>
+            <div style=${{fontSize:12,fontWeight:700,color:'var(--text-sec)',marginBottom:6}}>학생 선택</div>
+            <div style=${{display:'flex',flexWrap:'wrap',gap:4}}>
+              ${students.map(function(s){
+                return html`<button key=${s.id} className=${'tag' + (selSt===s.id?' selected':'')} style=${{fontSize:12,padding:'4px 8px'}} onClick=${function(){setSelSt(selSt===s.id?null:s.id);}}>${s.number}. ${s.name}</button>`;
+              })}
+            </div>
+          </div>
+          <div style=${{marginBottom:12}}>
+            <div style=${{fontSize:12,fontWeight:700,color:'var(--text-sec)',marginBottom:6}}>사유</div>
+            <input className="input-field" placeholder="병원 방문, 가정 사정 등" value=${reason} onInput=${function(e){setReason(e.target.value);}} />
+          </div>
+          <div style=${{marginBottom:16}}>
+            <div style=${{fontSize:12,fontWeight:700,color:'var(--text-sec)',marginBottom:6}}>시간</div>
+            <div style=${{display:'flex',alignItems:'center',gap:4,flexWrap:'wrap'}}>
+              <input type="number" className="input-field" style=${{width:50,textAlign:'center',padding:'6px 4px'}} placeholder="시" min="0" max="23" value=${fromH} onInput=${function(e){setFromH(e.target.value);}} />
+              <span style=${{fontSize:13}}>시</span>
+              <input type="number" className="input-field" style=${{width:50,textAlign:'center',padding:'6px 4px'}} placeholder="분" min="0" max="59" value=${fromM} onInput=${function(e){setFromM(e.target.value);}} />
+              <span style=${{fontSize:13}}>분부터</span>
+              <input type="number" className="input-field" style=${{width:50,textAlign:'center',padding:'6px 4px'}} placeholder="시" min="0" max="23" value=${toH} onInput=${function(e){setToH(e.target.value);}} />
+              <span style=${{fontSize:13}}>시</span>
+              <input type="number" className="input-field" style=${{width:50,textAlign:'center',padding:'6px 4px'}} placeholder="분" min="0" max="59" value=${toM} onInput=${function(e){setToM(e.target.value);}} />
+              <span style=${{fontSize:13}}>분까지</span>
+            </div>
+          </div>
+          <button className="btn-primary" onClick=${doPrint}>🖨️ 인쇄하기 (보관용 + 학생용)</button>
+        </div>
+      </div>
+    </div>
+
+    <div className="lp-print-area">
+      ${passCard('보관용')}
+      <div className="lp-cut-line">✂ - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -</div>
+      ${passCard('학생용')}
+    </div>
+  `;
+}
+
 // ===== Settings =====
 function Settings({ classInfo, students, memos, points, onUpdateCI, onUpdateSt, onCleanupStudent, onResetData, onClose, onToast, onReload }) {
   const [sn, setSn] = useState(classInfo.schoolName);
@@ -1669,6 +1785,7 @@ function App() {
   const [toasts, setToasts] = useState([]);
   const [locked, setLocked] = useState(function(){ return !!load(KEYS.pin,''); });
   const [showUpdate, setShowUpdate] = useState(function(){ return load(KEYS.lastVer,'') !== APP_VERSION; });
+  const [showLeavePass, setShowLeavePass] = useState(false);
 
   useEffect(function(){ save(KEYS.classInfo, ci); }, [ci]);
   useEffect(function(){ save(KEYS.students, students); }, [students]);
@@ -1730,6 +1847,7 @@ function App() {
               </div>
             `}
           </div>
+          <button className="icon-btn setting-btn" onClick=${function(){setShowLeavePass(true);}} title="조퇴/외출증"><span>📋</span><span className="setting-label">외출증</span></button>
           <button className="icon-btn setting-btn" onClick=${function(){setShowSettings(true);}} title="설정"><span>⚙</span><span className="setting-label">기본 설정</span></button>
         </div>
       </header>
@@ -1774,6 +1892,10 @@ function App() {
         </button>
       </nav>
       <div className="footer-bar">© 2026 쫑아빠의 학급노트. All rights reserved.</div>
+
+      ${showLeavePass ? html`<${LeavePassModal}
+        students=${students} classInfo=${ci} date=${date}
+        onClose=${function(){setShowLeavePass(false);}} onToast=${toast} />` : null}
 
       ${showSettings ? html`<${Settings}
         classInfo=${ci} students=${students} memos=${memos} points=${points}
