@@ -420,16 +420,16 @@ html,body{height:100%;background:#e2e8f0;
   /* 조퇴/외출증 인쇄 */
   [data-print="leave-pass"] .main-content{display:none!important}
   [data-print="leave-pass"] .lp-print-area{display:block!important;padding:0}
-  .lp-card{border:2.5px solid #333;padding:20px 28px;margin:8mm 0;page-break-inside:avoid}
-  .lp-title{text-align:center;font-size:20pt;font-weight:900;font-family:'A2GBold',sans-serif;border-bottom:2.5px solid #000;padding-bottom:8px;margin-bottom:16px;letter-spacing:2px;text-decoration:underline}
-  .lp-body{font-size:13pt;line-height:2.2}
-  .lp-row{margin:2px 0}
-  .lp-info-right{text-align:right;font-size:14pt;letter-spacing:3px}
-  .lp-statement{text-align:center;font-size:14pt;margin:10px 0}
-  .lp-date{text-align:center;margin-top:16px;font-size:13pt}
-  .lp-school{text-align:center;font-size:14pt;font-weight:700;margin-top:6px}
-  .lp-teacher{text-align:right;font-size:13pt;margin-top:4px}
-  .lp-cut-line{text-align:center;font-size:11pt;color:#999;margin:2mm 0;letter-spacing:1px}
+  .lp-card{border:2.5px solid #333;padding:12px 24px;margin:3mm 0;page-break-inside:avoid}
+  .lp-title{text-align:center;font-size:18pt;font-weight:900;font-family:'A2GBold',sans-serif;border-bottom:2.5px solid #000;padding-bottom:6px;margin-bottom:10px;letter-spacing:2px;text-decoration:underline}
+  .lp-body{font-size:12pt;line-height:2}
+  .lp-row{margin:1px 0}
+  .lp-info-right{text-align:right;font-size:13pt;letter-spacing:3px}
+  .lp-statement{text-align:center;font-size:13pt;margin:6px 0}
+  .lp-date{text-align:center;margin-top:10px;font-size:12pt}
+  .lp-school{text-align:center;font-size:13pt;font-weight:700;margin-top:4px}
+  .lp-teacher{text-align:right;font-size:12pt;margin-top:2px}
+  .lp-cut-line{text-align:center;font-size:10pt;color:#999;margin:1mm 0;letter-spacing:1px}
 }
 .print-area{display:none}
 .lp-print-area{display:none}
@@ -1351,7 +1351,7 @@ function LeavePassModal({ students, classInfo, date, onClose, onToast }) {
     app.setAttribute('data-print', 'leave-pass');
     var s = document.getElementById('print-orient');
     if (!s) { s = document.createElement('style'); s.id = 'print-orient'; document.head.appendChild(s); }
-    s.textContent = '@media print{@page{size:A4 portrait;margin:15mm 20mm}}';
+    s.textContent = '@media print{@page{size:A4 portrait;margin:8mm 15mm}}';
     setTimeout(function(){ window.print(); }, 100);
     setTimeout(function(){ app.removeAttribute('data-print'); }, 500);
   };
