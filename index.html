@@ -1351,7 +1351,7 @@ function LeavePassModal({ students, classInfo, date, onClose, onToast }) {
     app.setAttribute('data-print', 'leave-pass');
     var s = document.getElementById('print-orient');
     if (!s) { s = document.createElement('style'); s.id = 'print-orient'; document.head.appendChild(s); }
-    s.textContent = '@media print{@page{size:A4 portrait;margin:8mm 15mm}}';
+    s.textContent = '@media print{@page{size:A4 portrait;margin:30mm 15mm 8mm 15mm}}';
     setTimeout(function(){ window.print(); }, 100);
     setTimeout(function(){ app.removeAttribute('data-print'); }, 500);
   };
