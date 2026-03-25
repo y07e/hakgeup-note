@@ -45,8 +45,8 @@ html,body{height:100%;background:#e2e8f0;
 .header-left{display:flex;align-items:center;gap:10px;min-width:0;flex:1}
 .header-left>div{min-width:0;overflow:hidden}
 .header-logo{width:38px;height:38px;border-radius:50%;object-fit:cover;border:2px solid rgba(255,255,255,.4);flex-shrink:0}
-.header-title{font-size:15px;font-weight:700;letter-spacing:-.3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.header-sub{font-size:11px;font-weight:600;opacity:.95;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.header-title{font-size:18px;font-weight:700;letter-spacing:-.3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.header-sub{font-size:13px;font-weight:600;opacity:.95;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .header-actions{display:flex;align-items:center;gap:8px;flex-shrink:0}
 .header-date{font-size:14px;background:rgba(255,255,255,.25);padding:6px 12px;border-radius:20px;display:flex;align-items:center;gap:6px;cursor:pointer;position:relative;-webkit-user-select:none;user-select:none}
 .header-date-text{font-size:14px;font-weight:600;white-space:nowrap;color:#fff}
@@ -97,6 +97,9 @@ html,body{height:100%;background:#e2e8f0;
 }
 
 /* Tab Bar */
+.form-shortcut-bar{display:flex;gap:6px;padding:6px 12px;background:var(--card);border-bottom:1px solid var(--border);flex-shrink:0}
+.form-shortcut-btn{flex:1;padding:6px 0;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--text);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:background .15s}
+.form-shortcut-btn:active{background:var(--border-light);transform:scale(.97)}
 .tabbar{height:var(--tab-h);background:var(--card);display:flex;border-top:1px solid var(--border);flex-shrink:0;z-index:10}
 .tab-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;border:none;background:none;color:var(--text-light);font-size:11px;font-weight:600;cursor:pointer;transition:color .15s;font-family:inherit}
 .tab-item.active{color:var(--primary)}
@@ -385,7 +388,7 @@ html,body{height:100%;background:#e2e8f0;
   html,body{background:#fff!important;overflow:visible!important;width:100%!important;height:auto!important}
   #root{display:block!important;overflow:visible!important}
   .app{display:block!important;box-shadow:none!important;overflow:visible!important;margin:0!important;padding:0!important;max-width:none!important;width:100%!important}
-  .top-title-bar,.header,.tabbar,.footer-bar,.toast,.modal-overlay,.sub-tabs,.seating-controls,.seating-podium,.seating-grid,.seating-unassigned,.seating-chip-row,.cleaning-header,.cleaning-assign-grid,.cleaning-add-zone,.cleaning-btn-sm,.cleaning-zone-card,.cleaning-notes-section,.section-title,.hint,.save-btn,.student-grid,.cat-group,.memo-section,.memo-box,.diary-header,.diary-section,.diary-print-btns{display:none!important}
+  .top-title-bar,.header,.tabbar,.form-shortcut-bar,.footer-bar,.toast,.modal-overlay,.sub-tabs,.seating-controls,.seating-podium,.seating-grid,.seating-unassigned,.seating-chip-row,.cleaning-header,.cleaning-assign-grid,.cleaning-add-zone,.cleaning-btn-sm,.cleaning-zone-card,.cleaning-notes-section,.section-title,.hint,.save-btn,.student-grid,.cat-group,.memo-section,.memo-box,.diary-header,.diary-section,.diary-print-btns{display:none!important}
   .main-content{display:block!important;overflow:visible!important;padding:0!important;margin:0!important;width:100%!important;height:auto!important}
   /* 청소 인쇄 (A4 세로) */
   .print-area{display:block!important;padding:2mm 0;page-break-inside:avoid}
@@ -2264,12 +2267,15 @@ function App() {
               </div>
             `}
           </div>
-          <button className="icon-btn setting-btn" onClick=${function(){setShowLeavePass(true);}} title="조퇴/외출증"><span>📋</span><span className="setting-label">외출증</span></button>
-          <button className="icon-btn setting-btn" onClick=${function(){setShowApprove(true);}} title="인정사유서"><span>📄</span><span className="setting-label">사유서</span></button>
-          <button className="icon-btn setting-btn" onClick=${function(){setShowAbsence(true);}} title="결석사유서"><span>📝</span><span className="setting-label">결석계</span></button>
           <button className="icon-btn setting-btn" onClick=${function(){setShowSettings(true);}} title="설정"><span>⚙</span><span className="setting-label">기본 설정</span></button>
         </div>
       </header>
+
+      <div className="form-shortcut-bar">
+        <button className="form-shortcut-btn" onClick=${function(){setShowLeavePass(true);}}>📋 외출증</button>
+        <button className="form-shortcut-btn" onClick=${function(){setShowApprove(true);}}>📄 사유서</button>
+        <button className="form-shortcut-btn" onClick=${function(){setShowAbsence(true);}}>📝 결석계</button>
+      </div>
 
       <main className="main-content">
         ${tab === 'input' ? html`<${InputTab}
