@@ -1663,11 +1663,19 @@ function ApproveFormModal({ students, classInfo, date, onClose, onToast }) {
                 ${dragSpan('num', selStudent ? String(selStudent.number) : '1')}
                 ${dragSpan('name', selStudent ? selStudent.name : '홍길동')}
                 ${dragSpan('reason', reason || '병원방문')}
-                ${dragSpan('formType', formType)}
-                ${dragSpan('jY', '6')}
-                ${dragSpan('jM', '3')}
-                ${dragSpan('jD', '25')}
-                ${dragSpan('jP', '1')}
+                ${dragSpan('formType', '○'+formType)}
+                ${dragSpan('jY', '조퇴년')}
+                ${dragSpan('jM', '조퇴월')}
+                ${dragSpan('jD', '조퇴일')}
+                ${dragSpan('jP', '조퇴교시')}
+                ${dragSpan('jiY', '지각년')}
+                ${dragSpan('jiM', '지각월')}
+                ${dragSpan('jiD', '지각일')}
+                ${dragSpan('jiP', '지각교시')}
+                ${dragSpan('gY', '결과년')}
+                ${dragSpan('gM', '결과월')}
+                ${dragSpan('gD', '결과일')}
+                ${dragSpan('gP', '결과교시')}
                 ${dragSpan('dY', '6')}
                 ${dragSpan('dM', '3')}
                 ${dragSpan('dD', '25')}
