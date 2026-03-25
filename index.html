@@ -531,7 +531,7 @@ var UPDATES = [
 ];
 
 // ===== Store =====
-const KEYS = { classInfo:'hn_ci', students:'hn_st', memos:'hn_me', points:'hn_pt', seating:'hn_se', cleaning:'hn_cl', diary:'hn_di', pin:'hn_pin', lastVer:'hn_ver' };
+const KEYS = { classInfo:'hn_ci', students:'hn_st', memos:'hn_me', points:'hn_pt', seating:'hn_se', cleaning:'hn_cl', diary:'hn_di', pin:'hn_pin', lastVer:'hn_ver', formApprove:'hn_form_approve', formAbsence:'hn_form_absence' };
 const load = (k, fb) => { try { const r = localStorage.getItem(k); return r ? JSON.parse(r) : fb; } catch(e) { return fb; } };
 const save = (k, v) => localStorage.setItem(k, JSON.stringify(v));
 
@@ -1504,6 +1504,27 @@ function ApproveFormModal({ students, classInfo, date, onClose, onToast }) {
   const [pos, setPos] = useState(loadAfPos);
   const [dragging, setDragging] = useState(null);
   const previewRef = useRef(null);
+  const afImgRef = useRef(null);
+  const [customImg, setCustomImg] = useState(function(){ return load(KEYS.formApprove, null); });
+
+  var formImgSrc = customImg || 'form_approve.png';
+
+  var handleImgUpload = function(e) {
+    var file = e.target.files[0];
+    if (!file) return;
+    var reader = new FileReader();
+    reader.onload = function(ev) {
+      var dataUrl = ev.target.result;
+      setCustomImg(dataUrl);
+      try { localStorage.setItem(KEYS.formApprove, JSON.stringify(dataUrl)); } catch(err) { onToast && onToast('이미지 용량이 너무 큽니다. 작은 파일로 시도하세요.', 'error'); }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  var resetImg = function() {
+    setCustomImg(null);
+    localStorage.removeItem(KEYS.formApprove);
+  };
 
   var selStudent = students.find(function(s){ return s.id === selSt; });
   var cnMatch = (classInfo.className || '').match(/(\d+)\s*학년\s*(\d+)\s*반/);
@@ -1572,6 +1593,17 @@ function ApproveFormModal({ students, classInfo, date, onClose, onToast }) {
           <button className="modal-close" onClick=${onClose}>✕</button>
         </div>
         <div className="modal-body">
+          <div style=${{marginBottom:12,padding:'8px',background:'var(--bg)',borderRadius:8,border:'1px solid var(--border-light)'}}>
+            <div style=${{display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+              <div style=${{fontSize:12,fontWeight:700,color:'var(--text-sec)'}}>📄 양식 이미지</div>
+              <div style=${{display:'flex',gap:6}}>
+                <button style=${{fontSize:11,padding:'4px 10px',border:'1px solid var(--border)',borderRadius:6,background:'var(--card)',cursor:'pointer',fontFamily:'inherit'}} onClick=${function(){afImgRef.current && afImgRef.current.click();}}>업로드</button>
+                ${customImg ? html`<button style=${{fontSize:11,padding:'4px 10px',border:'1px solid #e74c3c',borderRadius:6,background:'#fff5f5',color:'#e74c3c',cursor:'pointer',fontFamily:'inherit'}} onClick=${resetImg}>초기화</button>` : null}
+              </div>
+            </div>
+            <div style=${{fontSize:11,color:'var(--text-light)',marginTop:4}}>${customImg ? '✅ 사용자 양식 적용 중' : '기본 양식 사용 중 (학교 양식을 촬영/스캔하여 업로드)'}</div>
+            <input ref=${afImgRef} type="file" accept="image/*" style=${{display:'none'}} onChange=${handleImgUpload} />
+          </div>
           <div style=${{marginBottom:12}}>
             <div style=${{fontSize:12,fontWeight:700,color:'var(--text-sec)',marginBottom:6}}>구분</div>
             <div style=${{display:'flex',gap:8}}>
@@ -1625,7 +1657,7 @@ function ApproveFormModal({ students, classInfo, date, onClose, onToast }) {
             <div style=${{marginTop:12,border:'1px solid var(--border)',borderRadius:8,overflow:'hidden'}}>
               <div style=${{fontSize:11,padding:'6px 8px',background:'var(--bg-sec)',color:'var(--text-sec)'}}>드래그로 텍스트 위치를 조정하세요. 위치는 자동 저장됩니다.</div>
               <div ref=${previewRef} style=${{position:'relative',width:'100%',paddingBottom:'141.4%',overflow:'hidden',background:'#fff'}}>
-                <img src="form_approve.png" style=${{position:'absolute',top:0,left:0,width:'100%',height:'100%'}} />
+                <img src=${formImgSrc} style=${{position:'absolute',top:0,left:0,width:'100%',height:'100%'}} />
                 ${dragSpan('grade', gradeStr || '1')}
                 ${dragSpan('cls', classStr || '9')}
                 ${dragSpan('num', selStudent ? String(selStudent.number) : '1')}
@@ -1650,7 +1682,7 @@ function ApproveFormModal({ students, classInfo, date, onClose, onToast }) {
 
     <div className="af-print-area">
       <div className="af-page">
-        <img src="form_approve.png" />
+        <img src=${formImgSrc} />
         <div className="af-overlay">
           <span style=${{top:pos.grade.top+'mm',left:pos.grade.left+'mm',fontSize:'14pt'}}>${gradeStr}</span>
           <span style=${{top:pos.cls.top+'mm',left:pos.cls.left+'mm',fontSize:'14pt'}}>${classStr}</span>
@@ -1712,6 +1744,27 @@ function AbsenceFormModal({ students, classInfo, date, onClose, onToast }) {
   const [editMode, setEditMode] = useState(false);
   const [pos, setPos] = useState(loadAbsPos);
   const previewRef = useRef(null);
+  const absImgRef = useRef(null);
+  const [customImg, setCustomImg] = useState(function(){ return load(KEYS.formAbsence, null); });
+
+  var formImgSrc = customImg || 'form_absence.png';
+
+  var handleImgUpload = function(e) {
+    var file = e.target.files[0];
+    if (!file) return;
+    var reader = new FileReader();
+    reader.onload = function(ev) {
+      var dataUrl = ev.target.result;
+      setCustomImg(dataUrl);
+      try { localStorage.setItem(KEYS.formAbsence, JSON.stringify(dataUrl)); } catch(err) { onToast && onToast('이미지 용량이 너무 큽니다. 작은 파일로 시도하세요.', 'error'); }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  var resetImg = function() {
+    setCustomImg(null);
+    localStorage.removeItem(KEYS.formAbsence);
+  };
 
   var selStudent = students.find(function(s){ return s.id === selSt; });
   var cnMatch = (classInfo.className || '').match(/(\d+)\s*학년\s*(\d+)\s*반/);
@@ -1778,6 +1831,17 @@ function AbsenceFormModal({ students, classInfo, date, onClose, onToast }) {
           <button className="modal-close" onClick=${onClose}>✕</button>
         </div>
         <div className="modal-body" style=${{maxHeight:'65vh',overflowY:'auto'}}>
+          <div style=${{marginBottom:12,padding:'8px',background:'var(--bg)',borderRadius:8,border:'1px solid var(--border-light)'}}>
+            <div style=${{display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+              <div style=${{fontSize:12,fontWeight:700,color:'var(--text-sec)'}}>📝 양식 이미지</div>
+              <div style=${{display:'flex',gap:6}}>
+                <button style=${{fontSize:11,padding:'4px 10px',border:'1px solid var(--border)',borderRadius:6,background:'var(--card)',cursor:'pointer',fontFamily:'inherit'}} onClick=${function(){absImgRef.current && absImgRef.current.click();}}>업로드</button>
+                ${customImg ? html`<button style=${{fontSize:11,padding:'4px 10px',border:'1px solid #e74c3c',borderRadius:6,background:'#fff5f5',color:'#e74c3c',cursor:'pointer',fontFamily:'inherit'}} onClick=${resetImg}>초기화</button>` : null}
+              </div>
+            </div>
+            <div style=${{fontSize:11,color:'var(--text-light)',marginTop:4}}>${customImg ? '✅ 사용자 양식 적용 중' : '기본 양식 사용 중 (학교 양식을 촬영/스캔하여 업로드)'}</div>
+            <input ref=${absImgRef} type="file" accept="image/*" style=${{display:'none'}} onChange=${handleImgUpload} />
+          </div>
           <div style=${{marginBottom:12}}>
             <div style=${{fontSize:12,fontWeight:700,color:'var(--text-sec)',marginBottom:6}}>학생 선택</div>
             <div style=${{display:'flex',flexWrap:'wrap',gap:4}}>
@@ -1814,7 +1878,7 @@ function AbsenceFormModal({ students, classInfo, date, onClose, onToast }) {
             <div style=${{marginTop:12,border:'1px solid var(--border)',borderRadius:8,overflow:'hidden'}}>
               <div style=${{fontSize:11,padding:'6px 8px',background:'var(--bg-sec)',color:'var(--text-sec)'}}>드래그로 텍스트 위치를 조정하세요. 위치는 자동 저장됩니다.</div>
               <div ref=${previewRef} style=${{position:'relative',width:'100%',paddingBottom:'141.4%',overflow:'hidden',background:'#fff'}}>
-                <img src="form_absence.png" style=${{position:'absolute',top:0,left:0,width:'100%',height:'100%'}} />
+                <img src=${formImgSrc} style=${{position:'absolute',top:0,left:0,width:'100%',height:'100%'}} />
                 ${dragSpan('info', gradeStr+'학년 '+classStr+'반')}
                 ${dragSpan('sname', selStudent ? selStudent.name : '홍길동')}
                 ${dragSpan('fY', '6')} ${dragSpan('fM', '3')} ${dragSpan('fD', '25')}
@@ -1834,7 +1898,7 @@ function AbsenceFormModal({ students, classInfo, date, onClose, onToast }) {
 
     <div className="abs-print-area">
       <div className="abs-page">
-        <img src="form_absence.png" />
+        <img src=${formImgSrc} />
         <div className="abs-overlay">
           <span style=${{top:pos.info.top+'mm',left:pos.info.left+'mm',fontSize:'12pt'}}>${gradeStr}학년 ${classStr}반 ${selStudent ? selStudent.number : '__'}번</span>
           <span style=${{top:pos.sname.top+'mm',left:pos.sname.left+'mm',fontSize:'12pt'}}>${selStudent ? selStudent.name : ''}</span>
