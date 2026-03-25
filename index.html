@@ -1548,43 +1548,45 @@ function ApproveFormModal({ students, classInfo, date, onClose, onToast }) {
       <div className="af-page">
         <img src="form_approve.png" />
         <div className="af-overlay">
-          <!-- 학년/반/번 (top:25.4%) -->
-          <span style=${{top:'25.4%',left:'47.6%',fontSize:'12pt'}}>${gradeStr}</span>
-          <span style=${{top:'25.4%',left:'59.3%',fontSize:'12pt'}}>${classStr}</span>
-          <span style=${{top:'25.4%',left:'69%',fontSize:'12pt'}}>${selStudent ? selStudent.number : ''}</span>
-          <!-- 성명 (top:28.5%) -->
-          <span style=${{top:'28.5%',left:'63.7%',fontSize:'12pt'}}>${selStudent ? selStudent.name : ''}</span>
-          <!-- 사유 (top:37.1%) -->
-          <span style=${{top:'37.1%',left:'21.8%',fontSize:'11pt'}}>${reason || ''}</span>
-          <!-- 구분-조퇴/지각/결과 (top:40.2%) -->
-          <span style=${{top:'40.2%',left:'14.1%',fontSize:'11pt'}}>${formType}</span>
-          <!-- 조퇴 일시 (top:46.8%) -->
+          <!-- 학년: top=75mm, left=100mm -->
+          <span style=${{top:'75mm',left:'100mm',fontSize:'12pt'}}>${gradeStr}</span>
+          <!-- 반: top=75mm, left=125mm -->
+          <span style=${{top:'75mm',left:'125mm',fontSize:'12pt'}}>${classStr}</span>
+          <!-- 번: top=75mm, left=145mm -->
+          <span style=${{top:'75mm',left:'145mm',fontSize:'12pt'}}>${selStudent ? selStudent.number : ''}</span>
+          <!-- 성명: top=85mm, left=134mm -->
+          <span style=${{top:'85mm',left:'134mm',fontSize:'12pt'}}>${selStudent ? selStudent.name : ''}</span>
+          <!-- 사유: top=110mm, left=46mm -->
+          <span style=${{top:'110mm',left:'46mm',fontSize:'11pt'}}>${reason || ''}</span>
+          <!-- 구분: top=120mm, left=30mm -->
+          <span style=${{top:'120mm',left:'30mm',fontSize:'11pt'}}>${formType}</span>
+          <!-- 조퇴 일시: top=139mm -->
           ${formType==='조퇴' ? html`
-            <span style=${{top:'46.8%',left:'33.5%',fontSize:'11pt'}}>${jDate.split('-')[0].slice(2)}</span>
-            <span style=${{top:'46.8%',left:'43.5%',fontSize:'11pt'}}>${parseInt(jDate.split('-')[1])}</span>
-            <span style=${{top:'46.8%',left:'52.8%',fontSize:'11pt'}}>${parseInt(jDate.split('-')[2])}</span>
-            <span style=${{top:'46.8%',left:'63.7%',fontSize:'11pt'}}>${jFromP}</span>
+            <span style=${{top:'139mm',left:'70mm',fontSize:'11pt'}}>${jDate.split('-')[0].slice(2)}</span>
+            <span style=${{top:'139mm',left:'92mm',fontSize:'11pt'}}>${parseInt(jDate.split('-')[1])}</span>
+            <span style=${{top:'139mm',left:'111mm',fontSize:'11pt'}}>${parseInt(jDate.split('-')[2])}</span>
+            <span style=${{top:'139mm',left:'134mm',fontSize:'11pt'}}>${jFromP}</span>
           ` : null}
-          <!-- 지각 일시 (top:50.5%) -->
+          <!-- 지각 일시: top=150mm -->
           ${formType==='지각' ? html`
-            <span style=${{top:'50.5%',left:'33.5%',fontSize:'11pt'}}>${jiDate.split('-')[0].slice(2)}</span>
-            <span style=${{top:'50.5%',left:'43.5%',fontSize:'11pt'}}>${parseInt(jiDate.split('-')[1])}</span>
-            <span style=${{top:'50.5%',left:'52.8%',fontSize:'11pt'}}>${parseInt(jiDate.split('-')[2])}</span>
-            <span style=${{top:'50.5%',left:'63.7%',fontSize:'11pt'}}>${jiToP}</span>
+            <span style=${{top:'150mm',left:'70mm',fontSize:'11pt'}}>${jiDate.split('-')[0].slice(2)}</span>
+            <span style=${{top:'150mm',left:'92mm',fontSize:'11pt'}}>${parseInt(jiDate.split('-')[1])}</span>
+            <span style=${{top:'150mm',left:'111mm',fontSize:'11pt'}}>${parseInt(jiDate.split('-')[2])}</span>
+            <span style=${{top:'150mm',left:'134mm',fontSize:'11pt'}}>${jiToP}</span>
           ` : null}
-          <!-- 결과 일시 (top:54.2%) -->
+          <!-- 결과 일시: top=161mm -->
           ${formType==='결과' ? html`
-            <span style=${{top:'54.2%',left:'33.5%',fontSize:'11pt'}}>${gDate.split('-')[0].slice(2)}</span>
-            <span style=${{top:'54.2%',left:'43.5%',fontSize:'11pt'}}>${parseInt(gDate.split('-')[1])}</span>
-            <span style=${{top:'54.2%',left:'52.8%',fontSize:'11pt'}}>${parseInt(gDate.split('-')[2])}</span>
-            <span style=${{top:'54.2%',left:'63.7%',fontSize:'11pt'}}>${gP}</span>
+            <span style=${{top:'161mm',left:'70mm',fontSize:'11pt'}}>${gDate.split('-')[0].slice(2)}</span>
+            <span style=${{top:'161mm',left:'92mm',fontSize:'11pt'}}>${parseInt(gDate.split('-')[1])}</span>
+            <span style=${{top:'161mm',left:'111mm',fontSize:'11pt'}}>${parseInt(gDate.split('-')[2])}</span>
+            <span style=${{top:'161mm',left:'134mm',fontSize:'11pt'}}>${gP}</span>
           ` : null}
-          <!-- 발급 날짜 (top:63.6%) -->
-          <span style=${{top:'63.6%',left:'33.5%',fontSize:'11pt'}}>${date.split('-')[0].slice(2)}</span>
-          <span style=${{top:'63.6%',left:'44.4%',fontSize:'11pt'}}>${parseInt(date.split('-')[1])}</span>
-          <span style=${{top:'63.6%',left:'52.8%',fontSize:'11pt'}}>${parseInt(date.split('-')[2])}</span>
-          <!-- 담임교사 (top:68.5%) -->
-          <span style=${{top:'68.5%',left:'44.4%',fontSize:'11pt'}}>${teacherName}</span>
+          <!-- 발급 날짜: top=189mm -->
+          <span style=${{top:'189mm',left:'70mm',fontSize:'11pt'}}>${date.split('-')[0].slice(2)}</span>
+          <span style=${{top:'189mm',left:'93mm',fontSize:'11pt'}}>${parseInt(date.split('-')[1])}</span>
+          <span style=${{top:'189mm',left:'111mm',fontSize:'11pt'}}>${parseInt(date.split('-')[2])}</span>
+          <!-- 담임교사: top=203mm, left=93mm -->
+          <span style=${{top:'203mm',left:'93mm',fontSize:'11pt'}}>${teacherName}</span>
         </div>
       </div>
     </div>
