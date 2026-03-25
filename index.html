@@ -1609,11 +1609,11 @@ function ApproveFormModal({ students, classInfo, date, onClose, onToast }) {
                   ${dragSpan('name', selStudent ? selStudent.name : '홍길동')}
                   ${dragSpan('reason', reason || '병원방문')}
                   ${dragSpan('formType', formType)}
-                  ${dragSpan('jY', '26')}
+                  ${dragSpan('jY', '6')}
                   ${dragSpan('jM', '3')}
                   ${dragSpan('jD', '25')}
                   ${dragSpan('jP', '1')}
-                  ${dragSpan('dY', '26')}
+                  ${dragSpan('dY', '6')}
                   ${dragSpan('dM', '3')}
                   ${dragSpan('dD', '25')}
                   ${dragSpan('teacher', teacherName || '홍길동')}
@@ -1630,34 +1630,34 @@ function ApproveFormModal({ students, classInfo, date, onClose, onToast }) {
       <div className="af-page">
         <img src="form_approve.png" />
         <div className="af-overlay">
-          <span style=${{top:pos.grade.top+'mm',left:pos.grade.left+'mm',fontSize:'12pt'}}>${gradeStr}</span>
-          <span style=${{top:pos.cls.top+'mm',left:pos.cls.left+'mm',fontSize:'12pt'}}>${classStr}</span>
-          <span style=${{top:pos.num.top+'mm',left:pos.num.left+'mm',fontSize:'12pt'}}>${selStudent ? selStudent.number : ''}</span>
-          <span style=${{top:pos.name.top+'mm',left:pos.name.left+'mm',fontSize:'12pt'}}>${selStudent ? selStudent.name : ''}</span>
-          <span style=${{top:pos.reason.top+'mm',left:pos.reason.left+'mm',fontSize:'11pt'}}>${reason || ''}</span>
-          <span style=${{top:pos.formType.top+'mm',left:pos.formType.left+'mm',fontSize:'11pt'}}>${formType}</span>
+          <span style=${{top:pos.grade.top+'mm',left:pos.grade.left+'mm',fontSize:'14pt'}}>${gradeStr}</span>
+          <span style=${{top:pos.cls.top+'mm',left:pos.cls.left+'mm',fontSize:'14pt'}}>${classStr}</span>
+          <span style=${{top:pos.num.top+'mm',left:pos.num.left+'mm',fontSize:'14pt'}}>${selStudent ? selStudent.number : ''}</span>
+          <span style=${{top:pos.name.top+'mm',left:pos.name.left+'mm',fontSize:'14pt'}}>${selStudent ? selStudent.name : ''}</span>
+          <span style=${{top:pos.reason.top+'mm',left:pos.reason.left+'mm',fontSize:'13pt'}}>${reason || ''}</span>
+          <span style=${{top:pos.formType.top+'mm',left:pos.formType.left+'mm',fontSize:'13pt'}}>${formType}</span>
           ${formType==='조퇴' ? html`
-            <span style=${{top:pos.jY.top+'mm',left:pos.jY.left+'mm',fontSize:'11pt'}}>${jDate.split('-')[0].slice(2)}</span>
-            <span style=${{top:pos.jM.top+'mm',left:pos.jM.left+'mm',fontSize:'11pt'}}>${parseInt(jDate.split('-')[1])}</span>
-            <span style=${{top:pos.jD.top+'mm',left:pos.jD.left+'mm',fontSize:'11pt'}}>${parseInt(jDate.split('-')[2])}</span>
-            <span style=${{top:pos.jP.top+'mm',left:pos.jP.left+'mm',fontSize:'11pt'}}>${jFromP}</span>
+            <span style=${{top:pos.jY.top+'mm',left:pos.jY.left+'mm',fontSize:'13pt'}}>${jDate.split('-')[0].slice(3)}</span>
+            <span style=${{top:pos.jM.top+'mm',left:pos.jM.left+'mm',fontSize:'13pt'}}>${parseInt(jDate.split('-')[1])}</span>
+            <span style=${{top:pos.jD.top+'mm',left:pos.jD.left+'mm',fontSize:'13pt'}}>${parseInt(jDate.split('-')[2])}</span>
+            <span style=${{top:pos.jP.top+'mm',left:pos.jP.left+'mm',fontSize:'13pt'}}>${jFromP}</span>
           ` : null}
           ${formType==='지각' ? html`
-            <span style=${{top:pos.jiY.top+'mm',left:pos.jiY.left+'mm',fontSize:'11pt'}}>${jiDate.split('-')[0].slice(2)}</span>
-            <span style=${{top:pos.jiM.top+'mm',left:pos.jiM.left+'mm',fontSize:'11pt'}}>${parseInt(jiDate.split('-')[1])}</span>
-            <span style=${{top:pos.jiD.top+'mm',left:pos.jiD.left+'mm',fontSize:'11pt'}}>${parseInt(jiDate.split('-')[2])}</span>
-            <span style=${{top:pos.jiP.top+'mm',left:pos.jiP.left+'mm',fontSize:'11pt'}}>${jiToP}</span>
+            <span style=${{top:pos.jiY.top+'mm',left:pos.jiY.left+'mm',fontSize:'13pt'}}>${jiDate.split('-')[0].slice(3)}</span>
+            <span style=${{top:pos.jiM.top+'mm',left:pos.jiM.left+'mm',fontSize:'13pt'}}>${parseInt(jiDate.split('-')[1])}</span>
+            <span style=${{top:pos.jiD.top+'mm',left:pos.jiD.left+'mm',fontSize:'13pt'}}>${parseInt(jiDate.split('-')[2])}</span>
+            <span style=${{top:pos.jiP.top+'mm',left:pos.jiP.left+'mm',fontSize:'13pt'}}>${jiToP}</span>
           ` : null}
           ${formType==='결과' ? html`
-            <span style=${{top:pos.gY.top+'mm',left:pos.gY.left+'mm',fontSize:'11pt'}}>${gDate.split('-')[0].slice(2)}</span>
-            <span style=${{top:pos.gM.top+'mm',left:pos.gM.left+'mm',fontSize:'11pt'}}>${parseInt(gDate.split('-')[1])}</span>
-            <span style=${{top:pos.gD.top+'mm',left:pos.gD.left+'mm',fontSize:'11pt'}}>${parseInt(gDate.split('-')[2])}</span>
-            <span style=${{top:pos.gP.top+'mm',left:pos.gP.left+'mm',fontSize:'11pt'}}>${gP}</span>
+            <span style=${{top:pos.gY.top+'mm',left:pos.gY.left+'mm',fontSize:'13pt'}}>${gDate.split('-')[0].slice(3)}</span>
+            <span style=${{top:pos.gM.top+'mm',left:pos.gM.left+'mm',fontSize:'13pt'}}>${parseInt(gDate.split('-')[1])}</span>
+            <span style=${{top:pos.gD.top+'mm',left:pos.gD.left+'mm',fontSize:'13pt'}}>${parseInt(gDate.split('-')[2])}</span>
+            <span style=${{top:pos.gP.top+'mm',left:pos.gP.left+'mm',fontSize:'13pt'}}>${gP}</span>
           ` : null}
-          <span style=${{top:pos.dY.top+'mm',left:pos.dY.left+'mm',fontSize:'11pt'}}>${date.split('-')[0].slice(2)}</span>
-          <span style=${{top:pos.dM.top+'mm',left:pos.dM.left+'mm',fontSize:'11pt'}}>${parseInt(date.split('-')[1])}</span>
-          <span style=${{top:pos.dD.top+'mm',left:pos.dD.left+'mm',fontSize:'11pt'}}>${parseInt(date.split('-')[2])}</span>
-          <span style=${{top:pos.teacher.top+'mm',left:pos.teacher.left+'mm',fontSize:'11pt'}}>${teacherName}</span>
+          <span style=${{top:pos.dY.top+'mm',left:pos.dY.left+'mm',fontSize:'13pt'}}>${date.split('-')[0].slice(3)}</span>
+          <span style=${{top:pos.dM.top+'mm',left:pos.dM.left+'mm',fontSize:'13pt'}}>${parseInt(date.split('-')[1])}</span>
+          <span style=${{top:pos.dD.top+'mm',left:pos.dD.left+'mm',fontSize:'13pt'}}>${parseInt(date.split('-')[2])}</span>
+          <span style=${{top:pos.teacher.top+'mm',left:pos.teacher.left+'mm',fontSize:'13pt'}}>${teacherName}</span>
         </div>
       </div>
     </div>
