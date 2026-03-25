@@ -417,6 +417,9 @@ html,body{height:100%;background:#e2e8f0;
   .diary-print-table .dp-date{background:#e3eef9;font-weight:700;text-align:center;color:#2a5a8a;width:10%}
   .diary-print-task{margin:2px 0}
   .diary-print-task-done{text-decoration:line-through;color:#999}
+  /* 빈자리 인쇄 */
+  [data-print="seat-empty"] .seating-print-cell .sp-num,
+  [data-print="seat-empty"] .seating-print-cell .sp-name{visibility:hidden}
   /* 조퇴/외출증 인쇄 */
   [data-print="leave-pass"] .main-content{display:none!important}
   [data-print="leave-pass"] .lp-print-area{display:block!important;padding:0}
@@ -767,6 +770,7 @@ function SeatingTab({ students, seating, classInfo, onUpdate, onToast }) {
       </div>
       ${moveFrom ? html`<button className="cleaning-btn-sm" onClick=${cancelMove}>이동 취소</button>` : null}
       <button className="cleaning-btn-sm" onClick=${function(){var s=document.getElementById('print-orient');if(!s){s=document.createElement('style');s.id='print-orient';document.head.appendChild(s);}s.textContent='@media print{@page{size:A4 landscape;margin:10mm 15mm}}';window.print();}}>🖨️ 인쇄</button>
+      <button className="cleaning-btn-sm" onClick=${function(){var s=document.getElementById('print-orient');if(!s){s=document.createElement('style');s.id='print-orient';document.head.appendChild(s);}s.textContent='@media print{@page{size:A4 landscape;margin:10mm 15mm}}';var app=document.getElementById('app');app.setAttribute('data-print','seat-empty');window.print();setTimeout(function(){app.removeAttribute('data-print');},500);}}>🖨️ 빈자리</button>
     </div>
     <div className="seating-podium">교 탁</div>
     <div className="seating-grid" style=${{gridTemplateColumns:'repeat('+cols+',1fr)'}}>
