@@ -1633,9 +1633,9 @@ function ApproveFormModal({ students, classInfo, date, onClose, onToast }) {
           <span style=${{top:pos.grade.top+'mm',left:pos.grade.left+'mm',fontSize:'14pt'}}>${gradeStr}</span>
           <span style=${{top:pos.cls.top+'mm',left:pos.cls.left+'mm',fontSize:'14pt'}}>${classStr}</span>
           <span style=${{top:pos.num.top+'mm',left:pos.num.left+'mm',fontSize:'14pt'}}>${selStudent ? selStudent.number : ''}</span>
-          <span style=${{top:pos.name.top+'mm',left:pos.name.left+'mm',fontSize:'14pt'}}>${selStudent ? selStudent.name : ''}</span>
+          <span style=${{top:pos.name.top+'mm',left:pos.name.left+'mm',fontSize:'14pt',letterSpacing:'3mm'}}>${selStudent ? selStudent.name : ''}</span>
           <span style=${{top:pos.reason.top+'mm',left:pos.reason.left+'mm',fontSize:'13pt'}}>${reason || ''}</span>
-          <span style=${{top:pos.formType.top+'mm',left:pos.formType.left+'mm',fontSize:'13pt'}}>${formType}</span>
+          <span style=${{top:pos.formType.top+'mm',left:pos.formType.left+(formType==='조퇴'?0:formType==='지각'?14:28)+'mm',fontSize:'20pt',fontWeight:'bold',lineHeight:'0.8'}}>○</span>
           ${formType==='조퇴' ? html`
             <span style=${{top:pos.jY.top+'mm',left:pos.jY.left+'mm',fontSize:'13pt'}}>${jDate.split('-')[0].slice(3)}</span>
             <span style=${{top:pos.jM.top+'mm',left:pos.jM.left+'mm',fontSize:'13pt'}}>${parseInt(jDate.split('-')[1])}</span>
@@ -1657,7 +1657,7 @@ function ApproveFormModal({ students, classInfo, date, onClose, onToast }) {
           <span style=${{top:pos.dY.top+'mm',left:pos.dY.left+'mm',fontSize:'13pt'}}>${date.split('-')[0].slice(3)}</span>
           <span style=${{top:pos.dM.top+'mm',left:pos.dM.left+'mm',fontSize:'13pt'}}>${parseInt(date.split('-')[1])}</span>
           <span style=${{top:pos.dD.top+'mm',left:pos.dD.left+'mm',fontSize:'13pt'}}>${parseInt(date.split('-')[2])}</span>
-          <span style=${{top:pos.teacher.top+'mm',left:pos.teacher.left+'mm',fontSize:'13pt'}}>${teacherName}</span>
+          <span style=${{top:pos.teacher.top+'mm',left:pos.teacher.left+'mm',fontSize:'13pt',letterSpacing:'3mm'}}>${teacherName}</span>
         </div>
       </div>
     </div>
