@@ -770,7 +770,7 @@ function SeatingTab({ students, seating, classInfo, onUpdate, onToast }) {
       </div>
       ${moveFrom ? html`<button className="cleaning-btn-sm" onClick=${cancelMove}>이동 취소</button>` : null}
       <button className="cleaning-btn-sm" onClick=${function(){var s=document.getElementById('print-orient');if(!s){s=document.createElement('style');s.id='print-orient';document.head.appendChild(s);}s.textContent='@media print{@page{size:A4 landscape;margin:10mm 15mm}}';window.print();}}>🖨️ 인쇄</button>
-      <button className="cleaning-btn-sm" onClick=${function(){var s=document.getElementById('print-orient');if(!s){s=document.createElement('style');s.id='print-orient';document.head.appendChild(s);}s.textContent='@media print{@page{size:A4 landscape;margin:10mm 15mm}}';var app=document.getElementById('app');app.setAttribute('data-print','seat-empty');window.print();setTimeout(function(){app.removeAttribute('data-print');},500);}}>🖨️ 빈자리</button>
+      <button className="cleaning-btn-sm" onClick=${function(){var s=document.getElementById('print-orient');if(!s){s=document.createElement('style');s.id='print-orient';document.head.appendChild(s);}s.textContent='@media print{@page{size:A4 landscape;margin:10mm 15mm}}';var app=document.querySelector('.app');app.setAttribute('data-print','seat-empty');window.print();setTimeout(function(){app.removeAttribute('data-print');},500);}}>🖨️ 빈자리</button>
     </div>
     <div className="seating-podium">교 탁</div>
     <div className="seating-grid" style=${{gridTemplateColumns:'repeat('+cols+',1fr)'}}>
