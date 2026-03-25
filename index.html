@@ -1453,6 +1453,20 @@ function LeavePassModal({ students, classInfo, date, onClose, onToast }) {
   `;
 }
 
+// ===== 양식 위치 조정 기본값 =====
+var AF_POS_KEY = 'af_positions';
+var AF_DEFAULTS = {
+  grade:{top:72,left:115}, cls:{top:72,left:135}, num:{top:72,left:155},
+  name:{top:70,left:134}, reason:{top:95,left:46}, formType:{top:120,left:30},
+  jY:{top:139,left:70}, jM:{top:139,left:92}, jD:{top:139,left:111}, jP:{top:139,left:134},
+  jiY:{top:150,left:70}, jiM:{top:150,left:92}, jiD:{top:150,left:111}, jiP:{top:150,left:134},
+  gY:{top:161,left:70}, gM:{top:161,left:92}, gD:{top:161,left:111}, gP:{top:161,left:134},
+  dY:{top:189,left:70}, dM:{top:189,left:93}, dD:{top:189,left:111},
+  teacher:{top:188,left:93}
+};
+function loadAfPos(){ try{ var s=localStorage.getItem(AF_POS_KEY); return s ? Object.assign({},AF_DEFAULTS,JSON.parse(s)) : Object.assign({},AF_DEFAULTS); }catch(e){ return Object.assign({},AF_DEFAULTS); } }
+function saveAfPos(p){ localStorage.setItem(AF_POS_KEY, JSON.stringify(p)); }
+
 // ===== ApproveFormModal (인정 조퇴/결과/지각 사유서) =====
 function ApproveFormModal({ students, classInfo, date, onClose, onToast }) {
   const [selSt, setSelSt] = useState(null);
@@ -1464,6 +1478,10 @@ function ApproveFormModal({ students, classInfo, date, onClose, onToast }) {
   const [jiToP, setJiToP] = useState('');
   const [gDate, setGDate] = useState(date);
   const [gP, setGP] = useState('');
+  const [editMode, setEditMode] = useState(false);
+  const [pos, setPos] = useState(loadAfPos);
+  const [dragging, setDragging] = useState(null);
+  const previewRef = useRef(null);
 
   var selStudent = students.find(function(s){ return s.id === selSt; });
   var cnMatch = (classInfo.className || '').match(/(\d+)\s*학년\s*(\d+)\s*반/);
@@ -1484,6 +1502,42 @@ function ApproveFormModal({ students, classInfo, date, onClose, onToast }) {
     s.textContent = '@media print{@page{size:A4 portrait;margin:0}}';
     setTimeout(function(){ window.print(); }, 100);
     setTimeout(function(){ app.removeAttribute('data-print'); }, 500);
+  };
+
+  // 드래그 핸들러
+  var onPointerDown = function(key, e) {
+    e.preventDefault();
+    var rect = previewRef.current.getBoundingClientRect();
+    var scaleX = 210 / rect.width;
+    var scaleY = 297 / rect.height;
+    var startX = e.clientX, startY = e.clientY;
+    var startPos = {top: pos[key].top, left: pos[key].left};
+
+    var onMove = function(ev) {
+      var dx = (ev.clientX - startX) * scaleX;
+      var dy = (ev.clientY - startY) * scaleY;
+      setPos(function(p) {
+        var np = Object.assign({}, p);
+        np[key] = {top: Math.round(startPos.top + dy), left: Math.round(startPos.left + dx)};
+        return np;
+      });
+    };
+    var onUp = function() {
+      document.removeEventListener('pointermove', onMove);
+      document.removeEventListener('pointerup', onUp);
+      setPos(function(p) { saveAfPos(p); return p; });
+    };
+    document.addEventListener('pointermove', onMove);
+    document.addEventListener('pointerup', onUp);
+  };
+
+  var dragSpan = function(key, label) {
+    var p = pos[key];
+    return html`<span
+      style=${{position:'absolute',top:p.top*(297/297)+'mm',left:p.left+'mm',fontSize:'11pt',cursor:'grab',background:'rgba(255,255,0,0.4)',padding:'0 2px',border:'1px dashed #f00',zIndex:10,userSelect:'none',touchAction:'none'}}
+      onPointerDown=${function(e){onPointerDown(key,e);}}
+      title=${key+': top='+p.top+'mm, left='+p.left+'mm'}
+    >${label}</span>`;
   };
 
   return html`
@@ -1539,7 +1593,35 @@ function ApproveFormModal({ students, classInfo, date, onClose, onToast }) {
               <span style=${{fontSize:13}}>교시</span>
             </div>
           </div>` : null}
-          <button className="btn-primary" onClick=${doPrint}>🖨️ 인쇄하기</button>
+          <div style=${{display:'flex',gap:8}}>
+            <button className="btn-primary" style=${{flex:1}} onClick=${doPrint}>🖨️ 인쇄하기</button>
+            <button className="btn-primary" style=${{flex:1,background:'var(--text-sec)'}} onClick=${function(){setEditMode(!editMode);}}>${editMode ? '조정 닫기' : '📐 위치 조정'}</button>
+          </div>
+          ${editMode ? html`
+            <div style=${{marginTop:12,border:'1px solid var(--border)',borderRadius:8,overflow:'hidden'}}>
+              <div style=${{fontSize:11,padding:'6px 8px',background:'var(--bg-sec)',color:'var(--text-sec)'}}>드래그로 텍스트 위치를 조정하세요. 위치는 자동 저장됩니다.</div>
+              <div ref=${previewRef} style=${{position:'relative',width:'100%',paddingBottom:'141.4%',overflow:'hidden',background:'#fff'}}>
+                <img src="form_approve.png" style=${{position:'absolute',top:0,left:0,width:'100%',height:'100%'}} />
+                <div style=${{position:'absolute',top:0,left:0,width:'210mm',height:'297mm',transformOrigin:'top left',transform:'scale('+(previewRef.current?previewRef.current.getBoundingClientRect().width/794:0.45)+')'}}>
+                  ${dragSpan('grade', gradeStr || '1')}
+                  ${dragSpan('cls', classStr || '9')}
+                  ${dragSpan('num', selStudent ? String(selStudent.number) : '1')}
+                  ${dragSpan('name', selStudent ? selStudent.name : '홍길동')}
+                  ${dragSpan('reason', reason || '병원방문')}
+                  ${dragSpan('formType', formType)}
+                  ${dragSpan('jY', '26')}
+                  ${dragSpan('jM', '3')}
+                  ${dragSpan('jD', '25')}
+                  ${dragSpan('jP', '1')}
+                  ${dragSpan('dY', '26')}
+                  ${dragSpan('dM', '3')}
+                  ${dragSpan('dD', '25')}
+                  ${dragSpan('teacher', teacherName || '홍길동')}
+                </div>
+              </div>
+              <button style=${{width:'100%',padding:8,fontSize:12,border:'none',background:'#e74c3c',color:'#fff',cursor:'pointer'}} onClick=${function(){setPos(Object.assign({},AF_DEFAULTS));saveAfPos(AF_DEFAULTS);onToast('위치 초기화 완료');}}>위치 초기화</button>
+            </div>
+          ` : null}
         </div>
       </div>
     </div>
@@ -1548,45 +1630,34 @@ function ApproveFormModal({ students, classInfo, date, onClose, onToast }) {
       <div className="af-page">
         <img src="form_approve.png" />
         <div className="af-overlay">
-          <!-- 학년: top=72mm, left=115mm -->
-          <span style=${{top:'72mm',left:'115mm',fontSize:'12pt'}}>${gradeStr}</span>
-          <!-- 반: top=72mm, left=135mm -->
-          <span style=${{top:'72mm',left:'135mm',fontSize:'12pt'}}>${classStr}</span>
-          <!-- 번: top=72mm, left=155mm -->
-          <span style=${{top:'72mm',left:'155mm',fontSize:'12pt'}}>${selStudent ? selStudent.number : ''}</span>
-          <!-- 성명: top=70mm, left=134mm -->
-          <span style=${{top:'70mm',left:'134mm',fontSize:'12pt'}}>${selStudent ? selStudent.name : ''}</span>
-          <!-- 사유: top=95mm, left=46mm -->
-          <span style=${{top:'95mm',left:'46mm',fontSize:'11pt'}}>${reason || ''}</span>
-          <!-- 구분: top=120mm, left=30mm -->
-          <span style=${{top:'120mm',left:'30mm',fontSize:'11pt'}}>${formType}</span>
-          <!-- 조퇴 일시: top=139mm -->
+          <span style=${{top:pos.grade.top+'mm',left:pos.grade.left+'mm',fontSize:'12pt'}}>${gradeStr}</span>
+          <span style=${{top:pos.cls.top+'mm',left:pos.cls.left+'mm',fontSize:'12pt'}}>${classStr}</span>
+          <span style=${{top:pos.num.top+'mm',left:pos.num.left+'mm',fontSize:'12pt'}}>${selStudent ? selStudent.number : ''}</span>
+          <span style=${{top:pos.name.top+'mm',left:pos.name.left+'mm',fontSize:'12pt'}}>${selStudent ? selStudent.name : ''}</span>
+          <span style=${{top:pos.reason.top+'mm',left:pos.reason.left+'mm',fontSize:'11pt'}}>${reason || ''}</span>
+          <span style=${{top:pos.formType.top+'mm',left:pos.formType.left+'mm',fontSize:'11pt'}}>${formType}</span>
           ${formType==='조퇴' ? html`
-            <span style=${{top:'139mm',left:'70mm',fontSize:'11pt'}}>${jDate.split('-')[0].slice(2)}</span>
-            <span style=${{top:'139mm',left:'92mm',fontSize:'11pt'}}>${parseInt(jDate.split('-')[1])}</span>
-            <span style=${{top:'139mm',left:'111mm',fontSize:'11pt'}}>${parseInt(jDate.split('-')[2])}</span>
-            <span style=${{top:'139mm',left:'134mm',fontSize:'11pt'}}>${jFromP}</span>
+            <span style=${{top:pos.jY.top+'mm',left:pos.jY.left+'mm',fontSize:'11pt'}}>${jDate.split('-')[0].slice(2)}</span>
+            <span style=${{top:pos.jM.top+'mm',left:pos.jM.left+'mm',fontSize:'11pt'}}>${parseInt(jDate.split('-')[1])}</span>
+            <span style=${{top:pos.jD.top+'mm',left:pos.jD.left+'mm',fontSize:'11pt'}}>${parseInt(jDate.split('-')[2])}</span>
+            <span style=${{top:pos.jP.top+'mm',left:pos.jP.left+'mm',fontSize:'11pt'}}>${jFromP}</span>
           ` : null}
-          <!-- 지각 일시: top=150mm -->
           ${formType==='지각' ? html`
-            <span style=${{top:'150mm',left:'70mm',fontSize:'11pt'}}>${jiDate.split('-')[0].slice(2)}</span>
-            <span style=${{top:'150mm',left:'92mm',fontSize:'11pt'}}>${parseInt(jiDate.split('-')[1])}</span>
-            <span style=${{top:'150mm',left:'111mm',fontSize:'11pt'}}>${parseInt(jiDate.split('-')[2])}</span>
-            <span style=${{top:'150mm',left:'134mm',fontSize:'11pt'}}>${jiToP}</span>
+            <span style=${{top:pos.jiY.top+'mm',left:pos.jiY.left+'mm',fontSize:'11pt'}}>${jiDate.split('-')[0].slice(2)}</span>
+            <span style=${{top:pos.jiM.top+'mm',left:pos.jiM.left+'mm',fontSize:'11pt'}}>${parseInt(jiDate.split('-')[1])}</span>
+            <span style=${{top:pos.jiD.top+'mm',left:pos.jiD.left+'mm',fontSize:'11pt'}}>${parseInt(jiDate.split('-')[2])}</span>
+            <span style=${{top:pos.jiP.top+'mm',left:pos.jiP.left+'mm',fontSize:'11pt'}}>${jiToP}</span>
           ` : null}
-          <!-- 결과 일시: top=161mm -->
           ${formType==='결과' ? html`
-            <span style=${{top:'161mm',left:'70mm',fontSize:'11pt'}}>${gDate.split('-')[0].slice(2)}</span>
-            <span style=${{top:'161mm',left:'92mm',fontSize:'11pt'}}>${parseInt(gDate.split('-')[1])}</span>
-            <span style=${{top:'161mm',left:'111mm',fontSize:'11pt'}}>${parseInt(gDate.split('-')[2])}</span>
-            <span style=${{top:'161mm',left:'134mm',fontSize:'11pt'}}>${gP}</span>
+            <span style=${{top:pos.gY.top+'mm',left:pos.gY.left+'mm',fontSize:'11pt'}}>${gDate.split('-')[0].slice(2)}</span>
+            <span style=${{top:pos.gM.top+'mm',left:pos.gM.left+'mm',fontSize:'11pt'}}>${parseInt(gDate.split('-')[1])}</span>
+            <span style=${{top:pos.gD.top+'mm',left:pos.gD.left+'mm',fontSize:'11pt'}}>${parseInt(gDate.split('-')[2])}</span>
+            <span style=${{top:pos.gP.top+'mm',left:pos.gP.left+'mm',fontSize:'11pt'}}>${gP}</span>
           ` : null}
-          <!-- 발급 날짜: top=189mm -->
-          <span style=${{top:'189mm',left:'70mm',fontSize:'11pt'}}>${date.split('-')[0].slice(2)}</span>
-          <span style=${{top:'189mm',left:'93mm',fontSize:'11pt'}}>${parseInt(date.split('-')[1])}</span>
-          <span style=${{top:'189mm',left:'111mm',fontSize:'11pt'}}>${parseInt(date.split('-')[2])}</span>
-          <!-- 담임교사: top=188mm, left=93mm -->
-          <span style=${{top:'188mm',left:'93mm',fontSize:'11pt'}}>${teacherName}</span>
+          <span style=${{top:pos.dY.top+'mm',left:pos.dY.left+'mm',fontSize:'11pt'}}>${date.split('-')[0].slice(2)}</span>
+          <span style=${{top:pos.dM.top+'mm',left:pos.dM.left+'mm',fontSize:'11pt'}}>${parseInt(date.split('-')[1])}</span>
+          <span style=${{top:pos.dD.top+'mm',left:pos.dD.left+'mm',fontSize:'11pt'}}>${parseInt(date.split('-')[2])}</span>
+          <span style=${{top:pos.teacher.top+'mm',left:pos.teacher.left+'mm',fontSize:'11pt'}}>${teacherName}</span>
         </div>
       </div>
     </div>
