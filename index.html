@@ -1533,8 +1533,10 @@ function ApproveFormModal({ students, classInfo, date, onClose, onToast }) {
 
   var dragSpan = function(key, label) {
     var p = pos[key];
+    var topPct = (p.top / 297 * 100).toFixed(2) + '%';
+    var leftPct = (p.left / 210 * 100).toFixed(2) + '%';
     return html`<span
-      style=${{position:'absolute',top:p.top*(297/297)+'mm',left:p.left+'mm',fontSize:'11pt',cursor:'grab',background:'rgba(255,255,0,0.4)',padding:'0 2px',border:'1px dashed #f00',zIndex:10,userSelect:'none',touchAction:'none'}}
+      style=${{position:'absolute',top:topPct,left:leftPct,fontSize:'8px',cursor:'grab',background:'rgba(255,255,0,0.5)',padding:'1px 3px',border:'1px dashed #f00',zIndex:10,userSelect:'none',touchAction:'none',lineHeight:1.2}}
       onPointerDown=${function(e){onPointerDown(key,e);}}
       title=${key+': top='+p.top+'mm, left='+p.left+'mm'}
     >${label}</span>`;
@@ -1602,22 +1604,20 @@ function ApproveFormModal({ students, classInfo, date, onClose, onToast }) {
               <div style=${{fontSize:11,padding:'6px 8px',background:'var(--bg-sec)',color:'var(--text-sec)'}}>드래그로 텍스트 위치를 조정하세요. 위치는 자동 저장됩니다.</div>
               <div ref=${previewRef} style=${{position:'relative',width:'100%',paddingBottom:'141.4%',overflow:'hidden',background:'#fff'}}>
                 <img src="form_approve.png" style=${{position:'absolute',top:0,left:0,width:'100%',height:'100%'}} />
-                <div style=${{position:'absolute',top:0,left:0,width:'210mm',height:'297mm',transformOrigin:'top left',transform:'scale('+(previewRef.current?previewRef.current.getBoundingClientRect().width/794:0.45)+')'}}>
-                  ${dragSpan('grade', gradeStr || '1')}
-                  ${dragSpan('cls', classStr || '9')}
-                  ${dragSpan('num', selStudent ? String(selStudent.number) : '1')}
-                  ${dragSpan('name', selStudent ? selStudent.name : '홍길동')}
-                  ${dragSpan('reason', reason || '병원방문')}
-                  ${dragSpan('formType', formType)}
-                  ${dragSpan('jY', '6')}
-                  ${dragSpan('jM', '3')}
-                  ${dragSpan('jD', '25')}
-                  ${dragSpan('jP', '1')}
-                  ${dragSpan('dY', '6')}
-                  ${dragSpan('dM', '3')}
-                  ${dragSpan('dD', '25')}
-                  ${dragSpan('teacher', teacherName || '홍길동')}
-                </div>
+                ${dragSpan('grade', gradeStr || '1')}
+                ${dragSpan('cls', classStr || '9')}
+                ${dragSpan('num', selStudent ? String(selStudent.number) : '1')}
+                ${dragSpan('name', selStudent ? selStudent.name : '홍길동')}
+                ${dragSpan('reason', reason || '병원방문')}
+                ${dragSpan('formType', formType)}
+                ${dragSpan('jY', '6')}
+                ${dragSpan('jM', '3')}
+                ${dragSpan('jD', '25')}
+                ${dragSpan('jP', '1')}
+                ${dragSpan('dY', '6')}
+                ${dragSpan('dM', '3')}
+                ${dragSpan('dD', '25')}
+                ${dragSpan('teacher', teacherName || '홍길동')}
               </div>
               <button style=${{width:'100%',padding:8,fontSize:12,border:'none',background:'#e74c3c',color:'#fff',cursor:'pointer'}} onClick=${function(){setPos(Object.assign({},AF_DEFAULTS));saveAfPos(AF_DEFAULTS);onToast('위치 초기화 완료');}}>위치 초기화</button>
             </div>
@@ -1743,7 +1743,9 @@ function AbsenceFormModal({ students, classInfo, date, onClose, onToast }) {
   };
   var dragSpan = function(key, label) {
     var p = pos[key];
-    return html`<span style=${{position:'absolute',top:p.top+'mm',left:p.left+'mm',fontSize:'10pt',cursor:'grab',background:'rgba(255,255,0,0.4)',padding:'0 2px',border:'1px dashed #f00',zIndex:10,userSelect:'none',touchAction:'none'}} onPointerDown=${function(e){onPointerDown(key,e);}} title=${key+': top='+p.top+'mm, left='+p.left+'mm'}>${label}</span>`;
+    var topPct = (p.top / 297 * 100).toFixed(2) + '%';
+    var leftPct = (p.left / 210 * 100).toFixed(2) + '%';
+    return html`<span style=${{position:'absolute',top:topPct,left:leftPct,fontSize:'8px',cursor:'grab',background:'rgba(255,255,0,0.5)',padding:'1px 3px',border:'1px dashed #f00',zIndex:10,userSelect:'none',touchAction:'none',lineHeight:1.2}} onPointerDown=${function(e){onPointerDown(key,e);}} title=${key+': top='+p.top+'mm, left='+p.left+'mm'}>${label}</span>`;
   };
 
   return html`
@@ -1791,17 +1793,15 @@ function AbsenceFormModal({ students, classInfo, date, onClose, onToast }) {
               <div style=${{fontSize:11,padding:'6px 8px',background:'var(--bg-sec)',color:'var(--text-sec)'}}>드래그로 텍스트 위치를 조정하세요. 위치는 자동 저장됩니다.</div>
               <div ref=${previewRef} style=${{position:'relative',width:'100%',paddingBottom:'141.4%',overflow:'hidden',background:'#fff'}}>
                 <img src="form_absence.png" style=${{position:'absolute',top:0,left:0,width:'100%',height:'100%'}} />
-                <div style=${{position:'absolute',top:0,left:0,width:'210mm',height:'297mm',transformOrigin:'top left',transform:'scale('+(previewRef.current?previewRef.current.getBoundingClientRect().width/794:0.45)+')'}}>
-                  ${dragSpan('info', gradeStr+'학년 '+classStr+'반')}
-                  ${dragSpan('sname', selStudent ? selStudent.name : '홍길동')}
-                  ${dragSpan('fY', '6')} ${dragSpan('fM', '3')} ${dragSpan('fD', '25')}
-                  ${dragSpan('tY', '6')} ${dragSpan('tM', '3')} ${dragSpan('tD', '25')} ${dragSpan('days', '1')}
-                  ${absTypes.map(function(t){ return dragSpan(t.pk, '✓'); })}
-                  ${dragSpan('opinion', '학부모의견')}
-                  ${dragSpan('pY', '6')} ${dragSpan('pM', '3')} ${dragSpan('pD', '25')}
-                  ${dragSpan('dY', '6')} ${dragSpan('dM', '3')} ${dragSpan('dD', '25')}
-                  ${dragSpan('teacher', teacherName || '홍길동')}
-                </div>
+                ${dragSpan('info', gradeStr+'학년 '+classStr+'반')}
+                ${dragSpan('sname', selStudent ? selStudent.name : '홍길동')}
+                ${dragSpan('fY', '6')} ${dragSpan('fM', '3')} ${dragSpan('fD', '25')}
+                ${dragSpan('tY', '6')} ${dragSpan('tM', '3')} ${dragSpan('tD', '25')} ${dragSpan('days', '1')}
+                ${absTypes.map(function(t){ return dragSpan(t.pk, '✓'); })}
+                ${dragSpan('opinion', '학부모의견')}
+                ${dragSpan('pY', '6')} ${dragSpan('pM', '3')} ${dragSpan('pD', '25')}
+                ${dragSpan('dY', '6')} ${dragSpan('dM', '3')} ${dragSpan('dD', '25')}
+                ${dragSpan('teacher', teacherName || '홍길동')}
               </div>
               <button style=${{width:'100%',padding:8,fontSize:12,border:'none',background:'#e74c3c',color:'#fff',cursor:'pointer'}} onClick=${function(){setPos(Object.assign({},ABS_DEFAULTS));saveAbsPos(ABS_DEFAULTS);onToast('위치 초기화 완료');}}>위치 초기화</button>
             </div>
