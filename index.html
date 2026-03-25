@@ -1464,7 +1464,7 @@ var AF_DEFAULTS = {
   dY:{top:189,left:70}, dM:{top:189,left:93}, dD:{top:189,left:111},
   teacher:{top:188,left:93}
 };
-function loadAfPos(){ try{ var s=localStorage.getItem(AF_POS_KEY); return s ? Object.assign({},AF_DEFAULTS,JSON.parse(s)) : Object.assign({},AF_DEFAULTS); }catch(e){ return Object.assign({},AF_DEFAULTS); } }
+function loadAfPos(){ try{ var s=localStorage.getItem(AF_POS_KEY); if(!s) return JSON.parse(JSON.stringify(AF_DEFAULTS)); var saved=JSON.parse(s); var result={}; Object.keys(AF_DEFAULTS).forEach(function(k){ result[k]=saved[k]||AF_DEFAULTS[k]; }); return result; }catch(e){ return JSON.parse(JSON.stringify(AF_DEFAULTS)); } }
 function saveAfPos(p){ localStorage.setItem(AF_POS_KEY, JSON.stringify(p)); }
 
 // ===== ApproveFormModal (인정 조퇴/결과/지각 사유서) =====
@@ -1676,7 +1676,7 @@ var ABS_DEFAULTS = {
   pY:{top:158,left:28}, pM:{top:158,left:49}, pD:{top:158,left:64},
   dY:{top:263,left:19}, dM:{top:263,left:40}, dD:{top:263,left:53}, teacher:{top:263,left:100}
 };
-function loadAbsPos(){ try{ var s=localStorage.getItem(ABS_POS_KEY); return s ? Object.assign({},ABS_DEFAULTS,JSON.parse(s)) : Object.assign({},ABS_DEFAULTS); }catch(e){ return Object.assign({},ABS_DEFAULTS); } }
+function loadAbsPos(){ try{ var s=localStorage.getItem(ABS_POS_KEY); if(!s) return JSON.parse(JSON.stringify(ABS_DEFAULTS)); var saved=JSON.parse(s); var result={}; Object.keys(ABS_DEFAULTS).forEach(function(k){ result[k]=saved[k]||ABS_DEFAULTS[k]; }); return result; }catch(e){ return JSON.parse(JSON.stringify(ABS_DEFAULTS)); } }
 function saveAbsPos(p){ localStorage.setItem(ABS_POS_KEY, JSON.stringify(p)); }
 
 // ===== AbsenceFormModal (결석사유서) =====
