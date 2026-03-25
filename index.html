@@ -433,31 +433,20 @@ html,body{height:100%;background:#e2e8f0;
   .lp-school{text-align:center;font-size:13pt;font-weight:700;margin-top:4px}
   .lp-teacher{text-align:right;font-size:12pt;margin-top:2px}
   .lp-cut-line{text-align:center;font-size:10pt;color:#999;margin:1mm 0;letter-spacing:1px}
-  /* 인정사유서 인쇄 */
+  /* 인정사유서 인쇄 (배경이미지 오버레이) */
   [data-print="approve-form"] .main-content{display:none!important}
   [data-print="approve-form"] .af-print-area{display:block!important;padding:0}
-  .af-form{border:none;padding:15mm 20mm;font-size:12pt;line-height:1.8;font-family:'Batang','serif'}
-  .af-stamp{position:absolute;top:0;right:0;border:1.5px solid #000;font-size:9pt;line-height:1.6}
-  .af-stamp td{border:1.5px solid #000;padding:2px 10px;text-align:center}
-  .af-title{text-align:center;font-size:22pt;font-weight:900;letter-spacing:6px;margin:20mm 0 15mm 0;font-family:'A2GBold',sans-serif}
-  .af-info{text-align:right;font-size:13pt;letter-spacing:2px;margin-bottom:4px}
-  .af-body{font-size:13pt;line-height:2.2;margin:10mm 0}
-  .af-times{font-size:12pt;line-height:2.4;margin-left:20mm}
-  .af-date{text-align:center;font-size:13pt;margin-top:15mm}
-  .af-teacher{text-align:center;font-size:13pt;margin-top:8mm}
-  .af-school{text-align:center;font-size:16pt;font-weight:700;letter-spacing:6px;margin-top:15mm}
-  /* 결석사유서 인쇄 */
+  .af-page{position:relative;width:210mm;height:297mm;overflow:hidden;page-break-inside:avoid}
+  .af-page img{position:absolute;top:0;left:0;width:100%;height:100%}
+  .af-overlay{position:absolute;top:0;left:0;width:100%;height:100%;font-size:12pt;font-family:'Batang','serif';color:#000}
+  .af-overlay span{position:absolute;white-space:nowrap}
+  /* 결석사유서 인쇄 (배경이미지 오버레이) */
   [data-print="absence-form"] .main-content{display:none!important}
   [data-print="absence-form"] .abs-print-area{display:block!important;padding:0}
-  .abs-form{padding:8mm 12mm;font-size:10pt;line-height:1.5;font-family:'Batang','serif'}
-  .abs-title{text-align:center;font-size:22pt;font-weight:900;letter-spacing:10px;margin:5mm 0 8mm 0;font-family:'A2GBold',sans-serif}
-  .abs-form table{width:100%;border-collapse:collapse;margin-bottom:3mm}
-  .abs-form td,.abs-form th{border:1.5px solid #000;padding:3px 6px;font-size:10pt;vertical-align:middle}
-  .abs-form th{background:#f5f5f5;font-weight:700;text-align:center;white-space:nowrap}
-  .abs-reason-box{border:1.5px solid #000;min-height:25mm;padding:4px 8px;margin-bottom:3mm}
-  .abs-note{font-size:8.5pt;line-height:1.6;margin-bottom:3mm}
-  .abs-gyeong table{width:100%;border-collapse:collapse;font-size:8.5pt}
-  .abs-gyeong td,.abs-gyeong th{border:1px solid #000;padding:2px 4px;text-align:center}
+  .abs-page{position:relative;width:210mm;height:297mm;overflow:hidden;page-break-inside:avoid}
+  .abs-page img{position:absolute;top:0;left:0;width:100%;height:100%}
+  .abs-overlay{position:absolute;top:0;left:0;width:100%;height:100%;font-size:11pt;font-family:'Batang','serif';color:#000}
+  .abs-overlay span{position:absolute;white-space:nowrap}
 }
 .print-area{display:none}
 .lp-print-area{display:none}
@@ -1556,26 +1545,38 @@ function ApproveFormModal({ students, classInfo, date, onClose, onToast }) {
     </div>
 
     <div className="af-print-area">
-      <div className="af-form" style=${{position:'relative'}}>
-        <table className="af-stamp"><tbody>
-          <tr><td>결</td><td>계</td><td>부장</td></tr>
-          <tr><td style=${{height:25}}></td><td></td><td></td></tr>
-        </tbody></table>
-        <div className="af-title">인정 (조퇴, 결과, 지각) 사유서</div>
-        <div className="af-info">제 ${gradeStr} 학년 ${classStr} 반 ${selStudent ? selStudent.number : '__'} 번</div>
-        <div className="af-info">성 명 : ${selStudent ? selStudent.name : '________'}</div>
-        <div className="af-body">
-          <div> 위 학생은  ${reason || '____________________'}  (으)로 인하여</div>
-          <div> 인정 (${formType})하였음을 확인합니다.</div>
+      <div className="af-page">
+        <img src="form_approve.png" />
+        <div className="af-overlay">
+          <span style=${{top:'27.5%',right:'21%',fontSize:'13pt'}}>${gradeStr}</span>
+          <span style=${{top:'27.5%',right:'13.5%',fontSize:'13pt'}}>${classStr}</span>
+          <span style=${{top:'27.5%',right:'7%',fontSize:'13pt'}}>${selStudent ? selStudent.number : ''}</span>
+          <span style=${{top:'30.5%',right:'7%',fontSize:'13pt'}}>${selStudent ? selStudent.name : ''}</span>
+          <span style=${{top:'37%',left:'21%',fontSize:'12pt'}}>${reason || ''}</span>
+          <span style=${{top:'41%',left:'19%',fontSize:'11pt'}}>${formType}</span>
+          ${formType==='조퇴' ? html`
+            <span style=${{top:'48%',left:'30%',fontSize:'11pt'}}>${jDate.split('-')[0].slice(2)}</span>
+            <span style=${{top:'48%',left:'39%',fontSize:'11pt'}}>${parseInt(jDate.split('-')[1])}</span>
+            <span style=${{top:'48%',left:'47%',fontSize:'11pt'}}>${parseInt(jDate.split('-')[2])}</span>
+            <span style=${{top:'48%',left:'56%',fontSize:'11pt'}}>${jFromP}</span>
+          ` : null}
+          ${formType==='지각' ? html`
+            <span style=${{top:'51%',left:'30%',fontSize:'11pt'}}>${jiDate.split('-')[0].slice(2)}</span>
+            <span style=${{top:'51%',left:'39%',fontSize:'11pt'}}>${parseInt(jiDate.split('-')[1])}</span>
+            <span style=${{top:'51%',left:'47%',fontSize:'11pt'}}>${parseInt(jiDate.split('-')[2])}</span>
+            <span style=${{top:'51%',left:'56%',fontSize:'11pt'}}>${jiToP}</span>
+          ` : null}
+          ${formType==='결과' ? html`
+            <span style=${{top:'54%',left:'30%',fontSize:'11pt'}}>${gDate.split('-')[0].slice(2)}</span>
+            <span style=${{top:'54%',left:'39%',fontSize:'11pt'}}>${parseInt(gDate.split('-')[1])}</span>
+            <span style=${{top:'54%',left:'47%',fontSize:'11pt'}}>${parseInt(gDate.split('-')[2])}</span>
+            <span style=${{top:'54%',left:'60%',fontSize:'11pt'}}>${gP}</span>
+          ` : null}
+          <span style=${{top:'64%',left:'33%',fontSize:'11pt'}}>${date.split('-')[0].slice(2)}</span>
+          <span style=${{top:'64%',left:'42%',fontSize:'11pt'}}>${parseInt(date.split('-')[1])}</span>
+          <span style=${{top:'64%',left:'49%',fontSize:'11pt'}}>${parseInt(date.split('-')[2])}</span>
+          <span style=${{top:'69.5%',left:'34%',fontSize:'11pt'}}>${teacherName}</span>
         </div>
-        <div className="af-times">
-          <div>조퇴 일 시 : ${formType==='조퇴' ? fmtDate(jDate)+' '+jFromP+'교시 부터' : '202   년    월   일    교시 부터'}</div>
-          <div>지각 일 시 : ${formType==='지각' ? fmtDate(jiDate)+' '+jiToP+'교시 까지' : '202   년    월   일    교시 까지'}</div>
-          <div>결과 일 시 : ${formType==='결과' ? fmtDate(gDate)+'     '+gP+'교시' : '202   년    월   일         교시'}</div>
-        </div>
-        <div className="af-date">${fmtDate(date)}</div>
-        <div className="af-teacher">담임교사 : ${teacherName}          (인)</div>
-        <div className="af-school">${schoolName.split('').join('  ')}장  귀하</div>
       </div>
     </div>
   `;
@@ -1665,62 +1666,42 @@ function AbsenceFormModal({ students, classInfo, date, onClose, onToast }) {
     </div>
 
     <div className="abs-print-area">
-      <div className="abs-form">
-        <div style=${{position:'relative'}}>
-          <table className="af-stamp" style=${{position:'absolute',top:0,right:0}}><tbody>
-            <tr><td>결</td><td>계</td><td>부장</td></tr>
-            <tr><td style=${{height:20}}></td><td></td><td></td></tr>
-          </tbody></table>
+      <div className="abs-page">
+        <img src="form_absence.png" />
+        <div className="abs-overlay">
+          <!-- 학년/반/번호, 성명 -->
+          <span style=${{top:'10.2%',left:'17%',fontSize:'10pt'}}>${gradeStr}학년 ${classStr}반 ${selStudent ? selStudent.number : '__'}번</span>
+          <span style=${{top:'10.2%',left:'70%',fontSize:'10pt'}}>${selStudent ? selStudent.name : ''}</span>
+          <!-- 결석기간 -->
+          <span style=${{top:'12.3%',left:'17%',fontSize:'9pt'}}>${absFrom.split('-')[0].slice(2)}</span>
+          <span style=${{top:'12.3%',left:'24%',fontSize:'9pt'}}>${parseInt(absFrom.split('-')[1])}</span>
+          <span style=${{top:'12.3%',left:'30%',fontSize:'9pt'}}>${parseInt(absFrom.split('-')[2])}</span>
+          <span style=${{top:'12.3%',left:'42%',fontSize:'9pt'}}>${absTo.split('-')[0].slice(2)}</span>
+          <span style=${{top:'12.3%',left:'49%',fontSize:'9pt'}}>${parseInt(absTo.split('-')[1])}</span>
+          <span style=${{top:'12.3%',left:'55%',fontSize:'9pt'}}>${parseInt(absTo.split('-')[2])}</span>
+          <span style=${{top:'12.3%',left:'72%',fontSize:'9pt'}}>${absDays}</span>
+          <!-- 결석사유 체크 -->
+          ${absType==='2day' ? html`<span style=${{top:'17%',left:'5.5%',fontSize:'10pt'}}>✓</span>` : null}
+          ${absType==='3day' ? html`<span style=${{top:'19.8%',left:'5.5%',fontSize:'10pt'}}>✓</span>` : null}
+          ${absType==='dust' ? html`<span style=${{top:'22.5%',left:'5.5%',fontSize:'10pt'}}>✓</span>` : null}
+          ${absType==='etc' ? html`<span style=${{top:'25.8%',left:'5.5%',fontSize:'10pt'}}>✓</span>` : null}
+          ${absType==='infect' ? html`<span style=${{top:'30%',left:'5.5%',fontSize:'10pt'}}>✓</span>` : null}
+          ${absType==='gyeong' ? html`<span style=${{top:'32.5%',left:'5.5%',fontSize:'10pt'}}>✓</span>` : null}
+          ${absType==='period' ? html`<span style=${{top:'35%',left:'5.5%',fontSize:'10pt'}}>✓</span>` : null}
+          ${absType==='entrance' ? html`<span style=${{top:'37.3%',left:'5.5%',fontSize:'10pt'}}>✓</span>` : null}
+          ${absType==='etc2' ? html`<span style=${{top:'39.8%',left:'5.5%',fontSize:'10pt'}}>✓</span>` : null}
+          <!-- 결석사유 (학부모의견) -->
+          <span style=${{top:'45%',left:'7%',fontSize:'10pt',maxWidth:'85%',whiteSpace:'pre-wrap'}}>${absReason || ''}</span>
+          <!-- 날짜, 보호자 -->
+          <span style=${{top:'53.5%',left:'15%',fontSize:'10pt'}}>${date.split('-')[0].slice(2)}</span>
+          <span style=${{top:'53.5%',left:'27%',fontSize:'10pt'}}>${parseInt(date.split('-')[1])}</span>
+          <span style=${{top:'53.5%',left:'35%',fontSize:'10pt'}}>${parseInt(date.split('-')[2])}</span>
+          <!-- 하단 담임 날짜 -->
+          <span style=${{top:'88.5%',left:'10%',fontSize:'10pt'}}>${date.split('-')[0].slice(2)}</span>
+          <span style=${{top:'88.5%',left:'22%',fontSize:'10pt'}}>${parseInt(date.split('-')[1])}</span>
+          <span style=${{top:'88.5%',left:'30%',fontSize:'10pt'}}>${parseInt(date.split('-')[2])}</span>
+          <span style=${{top:'88.5%',left:'55%',fontSize:'10pt'}}>${teacherName}</span>
         </div>
-        <div className="abs-title">결  석  사  유  서</div>
-        <table>
-          <tbody>
-            <tr>
-              <th>학년 / 반 / 번호</th>
-              <td>${gradeStr}학년 ${classStr}반 ${selStudent ? selStudent.number : '__'}번</td>
-              <th>성명</th>
-              <td>${selStudent ? selStudent.name : '________'}</td>
-            </tr>
-            <tr>
-              <th>결석기간</th>
-              <td colSpan="3">${fmtD(absFrom)} ~ ${fmtD(absTo)}  ( ${absDays} 일간)</td>
-            </tr>
-          </tbody>
-        </table>
-        <table>
-          <tbody>
-            <tr><th style=${{width:'35%'}}>결석사유 (체크)</th><th>증빙서류 (증빙서류는 5일 이내 제출)</th></tr>
-            ${absTypes.slice(0,4).map(function(t){ return html`<tr key=${t.key}><td>${absType===t.key?'☑':'□'} ${t.label}</td><td style=${{fontSize:'9pt'}}>${t.doc}</td></tr>`; })}
-            <tr><th colSpan="2" style=${{textAlign:'left',paddingLeft:8}}>출석인정결</th></tr>
-            ${absTypes.slice(4).map(function(t){ return html`<tr key=${t.key}><td>${absType===t.key?'☑':'□'} ${t.label}</td><td style=${{fontSize:'9pt'}}>${t.doc}</td></tr>`; })}
-          </tbody>
-        </table>
-        <div className="abs-reason-box">
-          <div style=${{fontWeight:700,marginBottom:4}}>결석사유 (학부모의견)</div>
-          <div>${absReason || ''}</div>
-        </div>
-        <div style=${{textAlign:'center',margin:'4mm 0',fontSize:'11pt'}}>${fmtD(date)}       보호자 :             (인)</div>
-        <div className="abs-note">
-          ※ 증빙서류가 필요하나 첨부되지 않은 경우는 미인정결석임.<br/>
-          ※ 미인정결석: 합당하지 않은 사유나 고의로 결석한 경우, 허가된 교외체험학습 일을 초과한 경우 등.<br/>
-          ※ 출석인정결석 외에는 결석사유서를 제출하여도 출석으로 인정되지 않음.
-        </div>
-        <div className="abs-note">※ 경조사 인정 범위 및 인정 일수</div>
-        <div className="abs-gyeong">
-          <table>
-            <tbody>
-              <tr><th>구분</th><th>대상</th><th>일수</th></tr>
-              <tr><td>결혼</td><td>형제, 자매, 부, 모</td><td>1</td></tr>
-              <tr><td>입양</td><td>학생 본인</td><td>20</td></tr>
-              <tr><td rowSpan="4">사망</td><td>부모, 조부모, 외조부모</td><td>5</td></tr>
-              <tr><td>부모의 조부모, 부모의 외조부모</td><td>3</td></tr>
-              <tr><td>형제·자매 및 그의 배우자</td><td>3</td></tr>
-              <tr><td>부모의 형제·자매 및 그의 배우자</td><td>3</td></tr>
-            </tbody>
-          </table>
-        </div>
-        <div style=${{textAlign:'center',margin:'4mm 0',fontSize:'11pt'}}>${fmtD(date)}        담임교사 : ${teacherName}          (인)</div>
-        <div style=${{textAlign:'center',fontSize:'14pt',fontWeight:700,letterSpacing:'4px',marginTop:'3mm'}}>${schoolName}장 귀하</div>
       </div>
     </div>
   `;
