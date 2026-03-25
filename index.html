@@ -772,10 +772,11 @@ function SeatingTab({ students, seating, classInfo, onUpdate, onToast }) {
       <button className="cleaning-btn-sm" onClick=${function(){var s=document.getElementById('print-orient');if(!s){s=document.createElement('style');s.id='print-orient';document.head.appendChild(s);}s.textContent='@media print{@page{size:A4 landscape;margin:10mm 15mm}}';window.print();}}>🖨️ 인쇄</button>
       <button className="cleaning-btn-sm" onClick=${function(){var s=document.getElementById('print-orient');if(!s){s=document.createElement('style');s.id='print-orient';document.head.appendChild(s);}s.textContent='@media print{@page{size:A4 landscape;margin:10mm 15mm}}';var app=document.querySelector('.app');app.setAttribute('data-print','seat-empty');window.print();setTimeout(function(){app.removeAttribute('data-print');},500);}}>🖨️ 빈자리</button>
     </div>
-    <div className="seating-podium">교 탁</div>
     <div className="seating-grid" style=${{gridTemplateColumns:'repeat('+cols+',1fr)'}}>
-      ${Array.from({length:rows}).map(function(_,r){
-        return Array.from({length:cols}).map(function(_,c){
+      ${Array.from({length:rows}).map(function(_,i){
+        var r = rows - 1 - i;
+        return Array.from({length:cols}).map(function(_,j){
+          var c = cols - 1 - j;
           var key = r+'-'+c;
           var sid = layout[key];
           var name = sid ? getName(sid) : null;
@@ -785,18 +786,19 @@ function SeatingTab({ students, seating, classInfo, onUpdate, onToast }) {
           return html`<div key=${key} className=${cls} onClick=${function(){handleSeatClick(key);}}>
             ${sid ? html`<span className="seat-num">${getNum(sid)}</span><span className="seat-name">${name}</span>` : html`<span style=${{fontSize:16,opacity:.3}}>+</span>`}
             ${popup === key && sid && !moveFrom ? html`
-              <div className=${'seat-action-popup' + (r===0?' popup-below':'')} onMouseDown=${function(e){e.stopPropagation();}} onTouchStart=${function(e){e.stopPropagation();}}>
+              <div className=${'seat-action-popup' + (i===0?' popup-below':'')} onMouseDown=${function(e){e.stopPropagation();}} onTouchStart=${function(e){e.stopPropagation();}}>
                 <button onClick=${function(e){e.stopPropagation();startMove(key);}}>이동</button>
                 <button onClick=${function(e){e.stopPropagation();clearSeat(key);}}>비우기</button>
               </div>` : null}
             ${popup === key && !sid && !moveFrom && unassigned.length > 0 ? html`
-              <div className=${'seat-action-popup' + (r===0?' popup-below':'')} style=${{flexDirection:'column',maxHeight:150,overflowY:'auto',minWidth:80}} onMouseDown=${function(e){e.stopPropagation();}} onTouchStart=${function(e){e.stopPropagation();}}>
+              <div className=${'seat-action-popup' + (i===0?' popup-below':'')} style=${{flexDirection:'column',maxHeight:150,overflowY:'auto',minWidth:80}} onMouseDown=${function(e){e.stopPropagation();}} onTouchStart=${function(e){e.stopPropagation();}}>
                 ${unassigned.map(function(s){return html`<button key=${s.id} onClick=${function(e){e.stopPropagation();assignStudent(key,s.id);}}>${s.number}. ${s.name}</button>`;})}
               </div>` : null}
           </div>`;
         });
       })}
     </div>
+    <div className="seating-podium">교 탁</div>
     ${unassigned.length > 0 ? html`
       <div className="seating-unassigned">
         <div className="seating-unassigned-title">미배치 학생 (${unassigned.length}명)</div>
