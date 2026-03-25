@@ -511,9 +511,23 @@ function getCalDays(y, m) {
 }
 
 // ===== Version =====
-const APP_VERSION = '2026.03.04';
+const APP_VERSION = '2026.03.25';
 var UPDATES = [
-  { ver: '2026.03.04', items: ['📔 학급일지 탭 추가 — 날짜별 전달사항과 할 일 체크리스트 관리'] }
+  { ver: '2026.03.25', items: [
+    '📋 조퇴/외출증 발급 및 인쇄 기능 추가',
+    '📄 인정(조퇴·결과·지각) 사유서 인쇄 기능 추가',
+    '📝 결석 사유서 인쇄 기능 추가',
+    '🖼️ 양식 배경 이미지 위에 입력값 오버레이 방식 적용',
+    '🖱️ 드래그로 인쇄 위치 조정 기능 추가',
+    '🪑 자리배치 빈자리 인쇄 기능 추가',
+    '🪑 자리배치 교탁 시점(좌우반전) 보기 적용',
+    '📅 자리배치 날짜 지정 인쇄 기능 추가',
+    '🔘 외출증·사유서·결석계 버튼을 메인 상단 바로 이동'
+  ]},
+  { ver: '2026.03.04', items: [
+    '📔 학급일지 탭 추가 — 날짜별 전달사항과 할 일 체크리스트 관리',
+    '🖨️ 학급일지 인쇄 기능 (1일분 + 월간)'
+  ]}
 ];
 
 // ===== Store =====
@@ -2232,7 +2246,7 @@ function App() {
 
   return html`
     <div className="app">
-      <div className="top-title-bar">쫑아빠의 학급노트 <span style=${{fontSize:'10px',opacity:0.65,fontWeight:400,marginLeft:'4px'}}>Ver.${APP_VERSION}</span></div>
+      <div className="top-title-bar">쫑아빠의 학급노트 <span style=${{fontSize:'10px',opacity:0.65,fontWeight:400,marginLeft:'4px',cursor:'pointer',textDecoration:'underline'}} onClick=${function(){setShowUpdate(true);}}>Ver.${APP_VERSION}</span></div>
       <header className="header">
         <div className="header-left">
           ${ci.logo ? html`<img className="header-logo" src=${ci.logo} alt=${title} />` : html`<div className="header-logo" style=${{display:'flex',alignItems:'center',justifyContent:'center',background:'rgba(255,255,255,.25)',fontSize:11,fontWeight:700,lineHeight:1.1,textAlign:'center',color:'#fff'}}>${title.slice(0,2)}</div>`}
@@ -2344,11 +2358,11 @@ function App() {
             <button className="modal-close" onClick=${function(){setShowUpdate(false);save(KEYS.lastVer,APP_VERSION);}}>✕</button>
           </div>
           <div className="modal-body" style=${{padding:'20px'}}>
-            <div style=${{fontSize:13,color:'var(--text-light)',marginBottom:16}}>Ver. ${APP_VERSION}</div>
             ${UPDATES.map(function(u){
-              return html`<div key=${u.ver} style=${{marginBottom:12}}>
+              return html`<div key=${u.ver} style=${{marginBottom:16}}>
+                <div style=${{fontSize:13,fontWeight:700,color:'var(--primary)',marginBottom:6,paddingBottom:4,borderBottom:'1px solid var(--border-light)'}}>📌 Ver. ${u.ver}</div>
                 ${u.items.map(function(item,i){
-                  return html`<div key=${i} style=${{fontSize:14,lineHeight:1.7,color:'var(--text)'}}>${item}</div>`;
+                  return html`<div key=${i} style=${{fontSize:13,lineHeight:1.8,color:'var(--text)',paddingLeft:8}}>${item}</div>`;
                 })}
               </div>`;
             })}
