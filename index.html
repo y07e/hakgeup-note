@@ -1554,10 +1554,10 @@ function ApproveFormModal({ students, classInfo, date, onClose, onToast }) {
           <span style=${{top:'72mm',left:'135mm',fontSize:'12pt'}}>${classStr}</span>
           <!-- 번: top=72mm, left=155mm -->
           <span style=${{top:'72mm',left:'155mm',fontSize:'12pt'}}>${selStudent ? selStudent.number : ''}</span>
-          <!-- 성명: top=85mm, left=134mm -->
-          <span style=${{top:'85mm',left:'134mm',fontSize:'12pt'}}>${selStudent ? selStudent.name : ''}</span>
-          <!-- 사유: top=110mm, left=46mm -->
-          <span style=${{top:'110mm',left:'46mm',fontSize:'11pt'}}>${reason || ''}</span>
+          <!-- 성명: top=70mm, left=134mm -->
+          <span style=${{top:'70mm',left:'134mm',fontSize:'12pt'}}>${selStudent ? selStudent.name : ''}</span>
+          <!-- 사유: top=95mm, left=46mm -->
+          <span style=${{top:'95mm',left:'46mm',fontSize:'11pt'}}>${reason || ''}</span>
           <!-- 구분: top=120mm, left=30mm -->
           <span style=${{top:'120mm',left:'30mm',fontSize:'11pt'}}>${formType}</span>
           <!-- 조퇴 일시: top=139mm -->
@@ -1585,8 +1585,8 @@ function ApproveFormModal({ students, classInfo, date, onClose, onToast }) {
           <span style=${{top:'189mm',left:'70mm',fontSize:'11pt'}}>${date.split('-')[0].slice(2)}</span>
           <span style=${{top:'189mm',left:'93mm',fontSize:'11pt'}}>${parseInt(date.split('-')[1])}</span>
           <span style=${{top:'189mm',left:'111mm',fontSize:'11pt'}}>${parseInt(date.split('-')[2])}</span>
-          <!-- 담임교사: top=203mm, left=93mm -->
-          <span style=${{top:'203mm',left:'93mm',fontSize:'11pt'}}>${teacherName}</span>
+          <!-- 담임교사: top=188mm, left=93mm -->
+          <span style=${{top:'188mm',left:'93mm',fontSize:'11pt'}}>${teacherName}</span>
         </div>
       </div>
     </div>
