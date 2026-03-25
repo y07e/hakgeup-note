@@ -1664,6 +1664,21 @@ function ApproveFormModal({ students, classInfo, date, onClose, onToast }) {
   `;
 }
 
+// ===== 결석사유서 위치 조정 =====
+var ABS_POS_KEY = 'abs_positions';
+var ABS_DEFAULTS = {
+  info:{top:30,left:30}, sname:{top:30,left:125},
+  fY:{top:36,left:30}, fM:{top:36,left:42}, fD:{top:36,left:54},
+  tY:{top:36,left:75}, tM:{top:36,left:87}, tD:{top:36,left:98}, days:{top:36,left:129},
+  c2day:{top:50,left:10}, c3day:{top:58,left:10}, cdust:{top:67,left:10}, cetc:{top:76,left:10},
+  cinfect:{top:88,left:10}, cgyeong:{top:97,left:10}, cperiod:{top:103,left:10}, centrance:{top:111,left:10}, cetc2:{top:119,left:10},
+  opinion:{top:132,left:14},
+  pY:{top:158,left:28}, pM:{top:158,left:49}, pD:{top:158,left:64},
+  dY:{top:263,left:19}, dM:{top:263,left:40}, dD:{top:263,left:53}, teacher:{top:263,left:100}
+};
+function loadAbsPos(){ try{ var s=localStorage.getItem(ABS_POS_KEY); return s ? Object.assign({},ABS_DEFAULTS,JSON.parse(s)) : Object.assign({},ABS_DEFAULTS); }catch(e){ return Object.assign({},ABS_DEFAULTS); } }
+function saveAbsPos(p){ localStorage.setItem(ABS_POS_KEY, JSON.stringify(p)); }
+
 // ===== AbsenceFormModal (결석사유서) =====
 function AbsenceFormModal({ students, classInfo, date, onClose, onToast }) {
   const [selSt, setSelSt] = useState(null);
@@ -1672,16 +1687,15 @@ function AbsenceFormModal({ students, classInfo, date, onClose, onToast }) {
   const [absDays, setAbsDays] = useState('1');
   const [absType, setAbsType] = useState('');
   const [absReason, setAbsReason] = useState('');
+  const [editMode, setEditMode] = useState(false);
+  const [pos, setPos] = useState(loadAbsPos);
+  const previewRef = useRef(null);
 
   var selStudent = students.find(function(s){ return s.id === selSt; });
   var cnMatch = (classInfo.className || '').match(/(\d+)\s*학년\s*(\d+)\s*반/);
   var gradeStr = cnMatch ? cnMatch[1] : '__';
   var classStr = cnMatch ? cnMatch[2] : '__';
-  var schoolName = classInfo.schoolName || '양산여자중학교';
   var teacherName = classInfo.teacherName || '________';
-
-  var fmtD = function(d) { var p=d.split('-'); return '202'+p[0].slice(3)+' 년 '+parseInt(p[1])+' 월 '+parseInt(p[2])+' 일'; };
-  var fmtShort = function(d) { var p=d.split('-'); return parseInt(p[1])+'월 '+parseInt(p[2])+'일'; };
 
   var doPrint = function() {
     if (!selSt) { onToast('학생을 선택하세요', 'error'); return; }
@@ -1689,22 +1703,48 @@ function AbsenceFormModal({ students, classInfo, date, onClose, onToast }) {
     app.setAttribute('data-print', 'absence-form');
     var s = document.getElementById('print-orient');
     if (!s) { s = document.createElement('style'); s.id = 'print-orient'; document.head.appendChild(s); }
-    s.textContent = '@media print{@page{size:A4 portrait;margin:10mm 12mm}}';
+    s.textContent = '@media print{@page{size:A4 portrait;margin:0}}';
     setTimeout(function(){ window.print(); }, 100);
     setTimeout(function(){ app.removeAttribute('data-print'); }, 500);
   };
 
   var absTypes = [
-    {key:'2day', label:'2일 이내의 결석', doc:'결석사유서 + 하단의 결석사유(학부모의견) 작성'},
-    {key:'3day', label:'3일 이상의 결석', doc:'결석사유서 + 진료확인서, 소견서, 진단서 중 1부'},
-    {key:'dust', label:'미세먼지 민감군, 만성질환으로 인한 질병결석', doc:'결석사유서 + 진료확인서, 소견서, 진단서 중 1부'},
-    {key:'etc', label:'기타 결석', doc:'학교장 사전 허가 필요, 담임교사와 상담'},
-    {key:'infect', label:'감염병 질환', doc:'결석사유서 + 등교가능일이 명시된 진료확인서 등 1부'},
-    {key:'gyeong', label:'경조사', doc:'결석사유서 + 사망확인서 또는 청첩장 등'},
-    {key:'period', label:'생리통 결석(월1회)', doc:'결석사유서'},
-    {key:'entrance', label:'입시 관련 결석', doc:'결석사유서 + 해당학교 입시요강 + 수험표'},
-    {key:'etc2', label:'기타(학교장 사전허가 필수)', doc:'결석사유서 + 증빙서류 필수'}
+    {key:'2day', label:'2일 이내의 결석', pk:'c2day'},
+    {key:'3day', label:'3일 이상의 결석', pk:'c3day'},
+    {key:'dust', label:'미세먼지/만성질환 질병결석', pk:'cdust'},
+    {key:'etc', label:'기타 결석', pk:'cetc'},
+    {key:'infect', label:'감염병 질환', pk:'cinfect'},
+    {key:'gyeong', label:'경조사', pk:'cgyeong'},
+    {key:'period', label:'생리통 결석(월1회)', pk:'cperiod'},
+    {key:'entrance', label:'입시 관련 결석', pk:'centrance'},
+    {key:'etc2', label:'기타(학교장 사전허가)', pk:'cetc2'}
   ];
+
+  // 드래그
+  var onPointerDown = function(key, e) {
+    e.preventDefault();
+    var rect = previewRef.current.getBoundingClientRect();
+    var scaleX = 210 / rect.width;
+    var scaleY = 297 / rect.height;
+    var startX = e.clientX, startY = e.clientY;
+    var startPos = {top: pos[key].top, left: pos[key].left};
+    var onMove = function(ev) {
+      var dx = (ev.clientX - startX) * scaleX;
+      var dy = (ev.clientY - startY) * scaleY;
+      setPos(function(p) { var np = Object.assign({}, p); np[key] = {top: Math.round(startPos.top + dy), left: Math.round(startPos.left + dx)}; return np; });
+    };
+    var onUp = function() {
+      document.removeEventListener('pointermove', onMove);
+      document.removeEventListener('pointerup', onUp);
+      setPos(function(p) { saveAbsPos(p); return p; });
+    };
+    document.addEventListener('pointermove', onMove);
+    document.addEventListener('pointerup', onUp);
+  };
+  var dragSpan = function(key, label) {
+    var p = pos[key];
+    return html`<span style=${{position:'absolute',top:p.top+'mm',left:p.left+'mm',fontSize:'10pt',cursor:'grab',background:'rgba(255,255,0,0.4)',padding:'0 2px',border:'1px dashed #f00',zIndex:10,userSelect:'none',touchAction:'none'}} onPointerDown=${function(e){onPointerDown(key,e);}} title=${key+': top='+p.top+'mm, left='+p.left+'mm'}>${label}</span>`;
+  };
 
   return html`
     <div className="modal-overlay" onClick=${onClose}>
@@ -1742,7 +1782,30 @@ function AbsenceFormModal({ students, classInfo, date, onClose, onToast }) {
             <div style=${{fontSize:12,fontWeight:700,color:'var(--text-sec)',marginBottom:6}}>결석사유 (학부모 의견)</div>
             <textarea className="input-field" rows="3" placeholder="결석 사유를 작성하세요" value=${absReason} onInput=${function(e){setAbsReason(e.target.value);}} style=${{resize:'vertical',fontFamily:'inherit'}}></textarea>
           </div>
-          <button className="btn-primary" onClick=${doPrint}>🖨️ 인쇄하기</button>
+          <div style=${{display:'flex',gap:8}}>
+            <button className="btn-primary" style=${{flex:1}} onClick=${doPrint}>🖨️ 인쇄하기</button>
+            <button className="btn-primary" style=${{flex:1,background:'var(--text-sec)'}} onClick=${function(){setEditMode(!editMode);}}>${editMode ? '조정 닫기' : '📐 위치 조정'}</button>
+          </div>
+          ${editMode ? html`
+            <div style=${{marginTop:12,border:'1px solid var(--border)',borderRadius:8,overflow:'hidden'}}>
+              <div style=${{fontSize:11,padding:'6px 8px',background:'var(--bg-sec)',color:'var(--text-sec)'}}>드래그로 텍스트 위치를 조정하세요. 위치는 자동 저장됩니다.</div>
+              <div ref=${previewRef} style=${{position:'relative',width:'100%',paddingBottom:'141.4%',overflow:'hidden',background:'#fff'}}>
+                <img src="form_absence.png" style=${{position:'absolute',top:0,left:0,width:'100%',height:'100%'}} />
+                <div style=${{position:'absolute',top:0,left:0,width:'210mm',height:'297mm',transformOrigin:'top left',transform:'scale('+(previewRef.current?previewRef.current.getBoundingClientRect().width/794:0.45)+')'}}>
+                  ${dragSpan('info', gradeStr+'학년 '+classStr+'반')}
+                  ${dragSpan('sname', selStudent ? selStudent.name : '홍길동')}
+                  ${dragSpan('fY', '6')} ${dragSpan('fM', '3')} ${dragSpan('fD', '25')}
+                  ${dragSpan('tY', '6')} ${dragSpan('tM', '3')} ${dragSpan('tD', '25')} ${dragSpan('days', '1')}
+                  ${absTypes.map(function(t){ return dragSpan(t.pk, '✓'); })}
+                  ${dragSpan('opinion', '학부모의견')}
+                  ${dragSpan('pY', '6')} ${dragSpan('pM', '3')} ${dragSpan('pD', '25')}
+                  ${dragSpan('dY', '6')} ${dragSpan('dM', '3')} ${dragSpan('dD', '25')}
+                  ${dragSpan('teacher', teacherName || '홍길동')}
+                </div>
+              </div>
+              <button style=${{width:'100%',padding:8,fontSize:12,border:'none',background:'#e74c3c',color:'#fff',cursor:'pointer'}} onClick=${function(){setPos(Object.assign({},ABS_DEFAULTS));saveAbsPos(ABS_DEFAULTS);onToast('위치 초기화 완료');}}>위치 초기화</button>
+            </div>
+          ` : null}
         </div>
       </div>
     </div>
@@ -1751,38 +1814,24 @@ function AbsenceFormModal({ students, classInfo, date, onClose, onToast }) {
       <div className="abs-page">
         <img src="form_absence.png" />
         <div className="abs-overlay">
-          <!-- 학년/반/번호, 성명 -->
-          <span style=${{top:'10.2%',left:'17%',fontSize:'10pt'}}>${gradeStr}학년 ${classStr}반 ${selStudent ? selStudent.number : '__'}번</span>
-          <span style=${{top:'10.2%',left:'70%',fontSize:'10pt'}}>${selStudent ? selStudent.name : ''}</span>
-          <!-- 결석기간 -->
-          <span style=${{top:'12.3%',left:'17%',fontSize:'9pt'}}>${absFrom.split('-')[0].slice(2)}</span>
-          <span style=${{top:'12.3%',left:'24%',fontSize:'9pt'}}>${parseInt(absFrom.split('-')[1])}</span>
-          <span style=${{top:'12.3%',left:'30%',fontSize:'9pt'}}>${parseInt(absFrom.split('-')[2])}</span>
-          <span style=${{top:'12.3%',left:'42%',fontSize:'9pt'}}>${absTo.split('-')[0].slice(2)}</span>
-          <span style=${{top:'12.3%',left:'49%',fontSize:'9pt'}}>${parseInt(absTo.split('-')[1])}</span>
-          <span style=${{top:'12.3%',left:'55%',fontSize:'9pt'}}>${parseInt(absTo.split('-')[2])}</span>
-          <span style=${{top:'12.3%',left:'72%',fontSize:'9pt'}}>${absDays}</span>
-          <!-- 결석사유 체크 -->
-          ${absType==='2day' ? html`<span style=${{top:'17%',left:'5.5%',fontSize:'10pt'}}>✓</span>` : null}
-          ${absType==='3day' ? html`<span style=${{top:'19.8%',left:'5.5%',fontSize:'10pt'}}>✓</span>` : null}
-          ${absType==='dust' ? html`<span style=${{top:'22.5%',left:'5.5%',fontSize:'10pt'}}>✓</span>` : null}
-          ${absType==='etc' ? html`<span style=${{top:'25.8%',left:'5.5%',fontSize:'10pt'}}>✓</span>` : null}
-          ${absType==='infect' ? html`<span style=${{top:'30%',left:'5.5%',fontSize:'10pt'}}>✓</span>` : null}
-          ${absType==='gyeong' ? html`<span style=${{top:'32.5%',left:'5.5%',fontSize:'10pt'}}>✓</span>` : null}
-          ${absType==='period' ? html`<span style=${{top:'35%',left:'5.5%',fontSize:'10pt'}}>✓</span>` : null}
-          ${absType==='entrance' ? html`<span style=${{top:'37.3%',left:'5.5%',fontSize:'10pt'}}>✓</span>` : null}
-          ${absType==='etc2' ? html`<span style=${{top:'39.8%',left:'5.5%',fontSize:'10pt'}}>✓</span>` : null}
-          <!-- 결석사유 (학부모의견) -->
-          <span style=${{top:'45%',left:'7%',fontSize:'10pt',maxWidth:'85%',whiteSpace:'pre-wrap'}}>${absReason || ''}</span>
-          <!-- 날짜, 보호자 -->
-          <span style=${{top:'53.5%',left:'15%',fontSize:'10pt'}}>${date.split('-')[0].slice(2)}</span>
-          <span style=${{top:'53.5%',left:'27%',fontSize:'10pt'}}>${parseInt(date.split('-')[1])}</span>
-          <span style=${{top:'53.5%',left:'35%',fontSize:'10pt'}}>${parseInt(date.split('-')[2])}</span>
-          <!-- 하단 담임 날짜 -->
-          <span style=${{top:'88.5%',left:'10%',fontSize:'10pt'}}>${date.split('-')[0].slice(2)}</span>
-          <span style=${{top:'88.5%',left:'22%',fontSize:'10pt'}}>${parseInt(date.split('-')[1])}</span>
-          <span style=${{top:'88.5%',left:'30%',fontSize:'10pt'}}>${parseInt(date.split('-')[2])}</span>
-          <span style=${{top:'88.5%',left:'55%',fontSize:'10pt'}}>${teacherName}</span>
+          <span style=${{top:pos.info.top+'mm',left:pos.info.left+'mm',fontSize:'12pt'}}>${gradeStr}학년 ${classStr}반 ${selStudent ? selStudent.number : '__'}번</span>
+          <span style=${{top:pos.sname.top+'mm',left:pos.sname.left+'mm',fontSize:'12pt'}}>${selStudent ? selStudent.name : ''}</span>
+          <span style=${{top:pos.fY.top+'mm',left:pos.fY.left+'mm',fontSize:'11pt'}}>${absFrom.split('-')[0].slice(3)}</span>
+          <span style=${{top:pos.fM.top+'mm',left:pos.fM.left+'mm',fontSize:'11pt'}}>${parseInt(absFrom.split('-')[1])}</span>
+          <span style=${{top:pos.fD.top+'mm',left:pos.fD.left+'mm',fontSize:'11pt'}}>${parseInt(absFrom.split('-')[2])}</span>
+          <span style=${{top:pos.tY.top+'mm',left:pos.tY.left+'mm',fontSize:'11pt'}}>${absTo.split('-')[0].slice(3)}</span>
+          <span style=${{top:pos.tM.top+'mm',left:pos.tM.left+'mm',fontSize:'11pt'}}>${parseInt(absTo.split('-')[1])}</span>
+          <span style=${{top:pos.tD.top+'mm',left:pos.tD.left+'mm',fontSize:'11pt'}}>${parseInt(absTo.split('-')[2])}</span>
+          <span style=${{top:pos.days.top+'mm',left:pos.days.left+'mm',fontSize:'11pt'}}>${absDays}</span>
+          ${absTypes.map(function(t){ return absType===t.key ? html`<span style=${{top:pos[t.pk].top+'mm',left:pos[t.pk].left+'mm',fontSize:'13pt'}}>✓</span>` : null; })}
+          <span style=${{top:pos.opinion.top+'mm',left:pos.opinion.left+'mm',fontSize:'11pt',maxWidth:'170mm',whiteSpace:'pre-wrap'}}>${absReason || ''}</span>
+          <span style=${{top:pos.pY.top+'mm',left:pos.pY.left+'mm',fontSize:'11pt'}}>${date.split('-')[0].slice(3)}</span>
+          <span style=${{top:pos.pM.top+'mm',left:pos.pM.left+'mm',fontSize:'11pt'}}>${parseInt(date.split('-')[1])}</span>
+          <span style=${{top:pos.pD.top+'mm',left:pos.pD.left+'mm',fontSize:'11pt'}}>${parseInt(date.split('-')[2])}</span>
+          <span style=${{top:pos.dY.top+'mm',left:pos.dY.left+'mm',fontSize:'11pt'}}>${date.split('-')[0].slice(3)}</span>
+          <span style=${{top:pos.dM.top+'mm',left:pos.dM.left+'mm',fontSize:'11pt'}}>${parseInt(date.split('-')[1])}</span>
+          <span style=${{top:pos.dD.top+'mm',left:pos.dD.left+'mm',fontSize:'11pt'}}>${parseInt(date.split('-')[2])}</span>
+          <span style=${{top:pos.teacher.top+'mm',left:pos.teacher.left+'mm',fontSize:'11pt'}}>${teacherName}</span>
         </div>
       </div>
     </div>
