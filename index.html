@@ -2363,16 +2363,18 @@ function Settings({ classInfo, students, memos, points, onUpdateCI, onUpdateSt, 
             ${students.map(function(s) { return html`
               <div key=${s.id} className="student-manage-item">
                 ${editId===s.id ? html`
-                  <input type="number" className="settings-input" style=${{width:40,padding:'6px 4px',fontSize:13,textAlign:'center',marginRight:6}} value=${editNum}
-                    onInput=${function(e){setEditNum(e.target.value);}} />
                   <div style=${{flex:1}}>
-                    <input className="settings-input" style=${{marginBottom:6,padding:'6px 10px',fontSize:13}} value=${editName}
-                      onInput=${function(e){setEditName(e.target.value);}}
+                    <div style=${{display:'flex',gap:6,marginBottom:6,alignItems:'center'}}>
+                      <input type="number" className="settings-input" style=${{width:44,padding:'6px 4px',fontSize:13,textAlign:'center',marginBottom:0}} value=${editNum}
+                        onInput=${function(e){setEditNum(e.target.value);}} />
+                      <input className="settings-input" style=${{flex:1,padding:'6px 10px',fontSize:13,marginBottom:0}} value=${editName}
+                        onInput=${function(e){setEditName(e.target.value);}}
                       onKeyDown=${function(e){if(e.key==='Enter'&&!e.nativeEvent.isComposing){
                         var newNum = parseInt(editNum) || s.number;
                         onUpdateSt(students.map(function(st){return st.id===s.id?Object.assign({},st,{number:newNum,name:editName.trim()||'공번'}):st;}).sort(function(a,b){return a.number-b.number;}));
                         setEditId(null); onToast('학생 정보 수정 완료');
                       }}} />
+                    </div>
                     <div style=${{display:'flex',gap:6}}>
                       <button className="btn-primary" style=${{flex:2,fontSize:11,padding:'5px 0'}} onClick=${function(){
                         var newNum = parseInt(editNum) || s.number;
