@@ -741,6 +741,12 @@ function InputTab({ students, memos, points, date, onSaveMemo, onSavePoint, onTo
 // ===== 발급 이력 조회/통계 =====
 function FormHistoryView({ students }) {
   const [history, setHistory] = useState(function(){ return load(KEYS.formHistory, []); });
+  useEffect(function(){
+    var refresh = function(){ setHistory(load(KEYS.formHistory, [])); };
+    refresh();
+    window.addEventListener('focus', refresh);
+    return function(){ window.removeEventListener('focus', refresh); };
+  }, []);
   const [viewMode, setViewMode] = useState('list'); // list, stats
   const [filterMonth, setFilterMonth] = useState(new Date().toISOString().slice(0,7));
   const [filterType, setFilterType] = useState('all');
