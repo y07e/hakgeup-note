@@ -2046,12 +2046,18 @@ function Settings({ classInfo, students, memos, points, onUpdateCI, onUpdateSt, 
   };
 
   var doExport = function() {
+    var afPosRaw = localStorage.getItem(AF_POS_KEY);
+    var absPosRaw = localStorage.getItem(ABS_POS_KEY);
     var data = JSON.stringify({
-      version: 2, exportedAt: new Date().toISOString(),
+      version: 3, exportedAt: new Date().toISOString(),
       classInfo: load(KEYS.classInfo, {}), students: load(KEYS.students, []),
       memos: load(KEYS.memos, []), points: load(KEYS.points, []),
       seating: load(KEYS.seating, {}), cleaning: load(KEYS.cleaning, {}),
       diary: load(KEYS.diary, {}),
+      formApproveImg: load(KEYS.formApprove, null),
+      formAbsenceImg: load(KEYS.formAbsence, null),
+      formApprovePos: afPosRaw ? JSON.parse(afPosRaw) : null,
+      formAbsencePos: absPosRaw ? JSON.parse(absPosRaw) : null,
     }, null, 2);
     var blob = new Blob([data], { type: 'application/json' });
     var url = URL.createObjectURL(blob);
@@ -2075,6 +2081,10 @@ function Settings({ classInfo, students, memos, points, onUpdateCI, onUpdateSt, 
         if (d.seating) save(KEYS.seating, d.seating);
         if (d.cleaning) save(KEYS.cleaning, d.cleaning);
         if (d.diary) save(KEYS.diary, d.diary);
+        if (d.formApproveImg) save(KEYS.formApprove, d.formApproveImg);
+        if (d.formAbsenceImg) save(KEYS.formAbsence, d.formAbsenceImg);
+        if (d.formApprovePos) localStorage.setItem(AF_POS_KEY, JSON.stringify(d.formApprovePos));
+        if (d.formAbsencePos) localStorage.setItem(ABS_POS_KEY, JSON.stringify(d.formAbsencePos));
         onToast('데이터 복원 완료'); onReload(); onClose();
       } catch(err) { onToast('파일 형식이 올바르지 않습니다', 'error'); }
     };
