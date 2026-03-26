@@ -684,7 +684,9 @@ function InputTab({ students, memos, points, date, onSaveMemo, onSavePoint, onTo
         <button className="btn-primary" style=${{flex:1}} onClick=${saveQa}>출결 일괄 저장</button>
         <button className="btn-secondary" onClick=${function(){setQaStatus({});}}>초기화</button>
       </div>
-    ` : html`<div>
+    ` : mode === 'history' ? html`
+    <${FormHistoryView} students=${students} />
+  ` : html`<div>
     <div style=${{padding:'8px 16px 0'}}>
       <div className="section-title">학생 선택 ${selName ? html` <span style=${{color:'var(--primary)'}}>— ${selName}</span>` : null}</div>
     </div>
@@ -732,9 +734,6 @@ function InputTab({ students, memos, points, date, onSaveMemo, onSavePoint, onTo
         <button className="btn-primary" style=${{marginTop:12}} onClick=${savePoint}>저장하기</button>
       </div>
     `}
-  ${mode === 'history' ? html`
-    <${FormHistoryView} students=${students} />
-  ` : null}
   </div>`}
   </div>`;
 }
