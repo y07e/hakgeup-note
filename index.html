@@ -2157,6 +2157,7 @@ function Settings({ classInfo, students, memos, points, onUpdateCI, onUpdateSt, 
   const [delConfirm, setDelConfirm] = useState(null);
   const [editId, setEditId] = useState(null);
   const [editName, setEditName] = useState('');
+  const [editNum, setEditNum] = useState('');
   const [pinInput, setPinInput] = useState('');
   const [hasPin, setHasPin] = useState(!!load(KEYS.pin,''));
   const [resetConfirm, setResetConfirm] = useState(false);
@@ -2361,18 +2362,21 @@ function Settings({ classInfo, students, memos, points, onUpdateCI, onUpdateSt, 
             <div className="settings-label">학생 명단 (${students.length}명)</div>
             ${students.map(function(s) { return html`
               <div key=${s.id} className="student-manage-item">
-                <span className="sm-num">${s.number}</span>
                 ${editId===s.id ? html`
+                  <input type="number" className="settings-input" style=${{width:40,padding:'6px 4px',fontSize:13,textAlign:'center',marginRight:6}} value=${editNum}
+                    onInput=${function(e){setEditNum(e.target.value);}} />
                   <div style=${{flex:1}}>
                     <input className="settings-input" style=${{marginBottom:6,padding:'6px 10px',fontSize:13}} value=${editName}
                       onInput=${function(e){setEditName(e.target.value);}}
                       onKeyDown=${function(e){if(e.key==='Enter'&&!e.nativeEvent.isComposing){
-                        onUpdateSt(students.map(function(st){return st.id===s.id?Object.assign({},st,{name:editName.trim()||'공번'}):st;}));
+                        var newNum = parseInt(editNum) || s.number;
+                        onUpdateSt(students.map(function(st){return st.id===s.id?Object.assign({},st,{number:newNum,name:editName.trim()||'공번'}):st;}).sort(function(a,b){return a.number-b.number;}));
                         setEditId(null); onToast('학생 정보 수정 완료');
                       }}} />
                     <div style=${{display:'flex',gap:6}}>
                       <button className="btn-primary" style=${{flex:2,fontSize:11,padding:'5px 0'}} onClick=${function(){
-                        onUpdateSt(students.map(function(st){return st.id===s.id?Object.assign({},st,{name:editName.trim()||'공번'}):st;}));
+                        var newNum = parseInt(editNum) || s.number;
+                        onUpdateSt(students.map(function(st){return st.id===s.id?Object.assign({},st,{number:newNum,name:editName.trim()||'공번'}):st;}).sort(function(a,b){return a.number-b.number;}));
                         setEditId(null); onToast('학생 정보 수정 완료');
                       }}>저장</button>
                       <button className="btn-secondary" style=${{flex:2,fontSize:11,padding:'5px 0',color:'var(--danger)',borderColor:'var(--danger)'}} onClick=${function(){
@@ -2383,7 +2387,8 @@ function Settings({ classInfo, students, memos, points, onUpdateCI, onUpdateSt, 
                     </div>
                   </div>
                 ` : html`
-                  <span className="sm-name" style=${{cursor:'pointer',flex:1}} onClick=${function(){setEditId(s.id);setEditName(s.name);setDelConfirm(null);}}>${s.name}</span>
+                  <span className="sm-num">${s.number}</span>
+                  <span className="sm-name" style=${{cursor:'pointer',flex:1}} onClick=${function(){setEditId(s.id);setEditName(s.name);setEditNum(String(s.number));setDelConfirm(null);}}>${s.name}</span>
                   ${delConfirm===s.id
                     ? html`<div className="confirm-bar">
                         <button className="confirm-yes" onClick=${function(){delStudent(s.id);}}>삭제</button>
