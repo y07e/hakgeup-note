@@ -947,7 +947,7 @@ function SeatingTab({ students, seating, classInfo, onUpdate, onToast }) {
   if (!students.length) return html`<div className="empty-state"><div className="empty-icon">💺</div><div className="empty-text">학생 명단을 먼저 등록해주세요.</div></div>`;
 
   return html`<div>
-    <div style=${{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'12px 16px 8px'}}>
+    <div className="seating-controls" style=${{padding:'12px 16px 8px'}}>
       <div style=${{fontSize:16,fontWeight:700,color:'var(--text)'}}>자리 배치</div>
     </div>
     <div className="seating-controls">
