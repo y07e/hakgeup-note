@@ -1543,23 +1543,30 @@ function LeavePassModal({ students, classInfo, date, onClose, onToast }) {
   var doPrint = function() {
     if (!selSt) { onToast('학생을 선택하세요', 'error'); return; }
     if (!reason.trim()) { onToast('사유를 입력하세요', 'error'); return; }
-    // 발급 이력 저장
-    var history = load(KEYS.formHistory, []);
-    history.push({
-      id: Date.now().toString(36)+Math.random().toString(36).slice(2,6),
-      type: 'leavepass', formType: passType, studentId: selSt,
-      studentName: selStudent.name, studentNum: selStudent.number,
-      reason: reason, fromH: fromH, fromM: fromM, toH: toH, toM: toM,
-      issueDate: date, createdAt: new Date().toISOString()
-    });
-    save(KEYS.formHistory, history);
     var app = document.querySelector('.app');
     app.setAttribute('data-print', 'leave-pass');
     var s = document.getElementById('print-orient');
     if (!s) { s = document.createElement('style'); s.id = 'print-orient'; document.head.appendChild(s); }
     s.textContent = '@media print{@page{size:A4 portrait;margin:30mm 15mm 8mm 15mm}}';
+    var recordData = {
+      id: Date.now().toString(36)+Math.random().toString(36).slice(2,6),
+      type: 'leavepass', formType: passType, studentId: selSt,
+      studentName: selStudent.name, studentNum: selStudent.number,
+      reason: reason, fromH: fromH, fromM: fromM, toH: toH, toM: toM,
+      issueDate: date, createdAt: new Date().toISOString()
+    };
+    var onAfter = function() {
+      window.removeEventListener('afterprint', onAfter);
+      app.removeAttribute('data-print');
+      if (confirm('인쇄가 완료되었나요? (확인 → 이력 저장)')) {
+        var history = load(KEYS.formHistory, []);
+        history.push(recordData);
+        save(KEYS.formHistory, history);
+        onToast('발급 이력이 저장되었습니다.');
+      }
+    };
+    window.addEventListener('afterprint', onAfter);
     setTimeout(function(){ window.print(); }, 100);
-    setTimeout(function(){ app.removeAttribute('data-print'); }, 500);
   };
 
   var passCard = function(label) {
@@ -1698,24 +1705,31 @@ function ApproveFormModal({ students, classInfo, date, onClose, onToast }) {
   var doPrint = function() {
     if (!selSt) { onToast('학생을 선택하세요', 'error'); return; }
     if (!reason.trim()) { onToast('사유를 입력하세요', 'error'); return; }
-    // 발급 이력 저장
-    var history = load(KEYS.formHistory, []);
-    var dateInfo = formType==='조퇴' ? {date:jDate, fromP:jFromP} : formType==='지각' ? {date:jiDate, toP:jiToP} : {date:gDate, period:gP};
-    history.push({
-      id: Date.now().toString(36)+Math.random().toString(36).slice(2,6),
-      type: 'approve', formType: formType, studentId: selSt,
-      studentName: selStudent.name, studentNum: selStudent.number,
-      reason: reason, dateInfo: dateInfo, issueDate: date,
-      createdAt: new Date().toISOString()
-    });
-    save(KEYS.formHistory, history);
     var app = document.querySelector('.app');
     app.setAttribute('data-print', 'approve-form');
     var s = document.getElementById('print-orient');
     if (!s) { s = document.createElement('style'); s.id = 'print-orient'; document.head.appendChild(s); }
     s.textContent = '@media print{@page{size:A4 portrait;margin:0}}';
+    var dateInfo = formType==='조퇴' ? {date:jDate, fromP:jFromP} : formType==='지각' ? {date:jiDate, toP:jiToP} : {date:gDate, period:gP};
+    var recordData = {
+      id: Date.now().toString(36)+Math.random().toString(36).slice(2,6),
+      type: 'approve', formType: formType, studentId: selSt,
+      studentName: selStudent.name, studentNum: selStudent.number,
+      reason: reason, dateInfo: dateInfo, issueDate: date,
+      createdAt: new Date().toISOString()
+    };
+    var onAfter = function() {
+      window.removeEventListener('afterprint', onAfter);
+      app.removeAttribute('data-print');
+      if (confirm('인쇄가 완료되었나요? (확인 → 이력 저장)')) {
+        var history = load(KEYS.formHistory, []);
+        history.push(recordData);
+        save(KEYS.formHistory, history);
+        onToast('발급 이력이 저장되었습니다.');
+      }
+    };
+    window.addEventListener('afterprint', onAfter);
     setTimeout(function(){ window.print(); }, 100);
-    setTimeout(function(){ app.removeAttribute('data-print'); }, 500);
   };
 
   // 드래그 핸들러
@@ -1953,9 +1967,12 @@ function AbsenceFormModal({ students, classInfo, date, onClose, onToast }) {
 
   var doPrint = function() {
     if (!selSt) { onToast('학생을 선택하세요', 'error'); return; }
-    // 발급 이력 저장
-    var history = load(KEYS.formHistory, []);
-    history.push({
+    var app = document.querySelector('.app');
+    app.setAttribute('data-print', 'absence-form');
+    var s = document.getElementById('print-orient');
+    if (!s) { s = document.createElement('style'); s.id = 'print-orient'; document.head.appendChild(s); }
+    s.textContent = '@media print{@page{size:A4 portrait;margin:0}}';
+    var recordData = {
       id: Date.now().toString(36)+Math.random().toString(36).slice(2,6),
       type: 'absence', studentId: selSt,
       studentName: selStudent.name, studentNum: selStudent.number,
@@ -1963,15 +1980,19 @@ function AbsenceFormModal({ students, classInfo, date, onClose, onToast }) {
       absType: absType, absReason: absReason,
       issueDate: new Date().toISOString().slice(0,10),
       createdAt: new Date().toISOString()
-    });
-    save(KEYS.formHistory, history);
-    var app = document.querySelector('.app');
-    app.setAttribute('data-print', 'absence-form');
-    var s = document.getElementById('print-orient');
-    if (!s) { s = document.createElement('style'); s.id = 'print-orient'; document.head.appendChild(s); }
-    s.textContent = '@media print{@page{size:A4 portrait;margin:0}}';
+    };
+    var onAfter = function() {
+      window.removeEventListener('afterprint', onAfter);
+      app.removeAttribute('data-print');
+      if (confirm('인쇄가 완료되었나요? (확인 → 이력 저장)')) {
+        var history = load(KEYS.formHistory, []);
+        history.push(recordData);
+        save(KEYS.formHistory, history);
+        onToast('발급 이력이 저장되었습니다.');
+      }
+    };
+    window.addEventListener('afterprint', onAfter);
     setTimeout(function(){ window.print(); }, 100);
-    setTimeout(function(){ app.removeAttribute('data-print'); }, 500);
   };
 
   var absTypes = [
