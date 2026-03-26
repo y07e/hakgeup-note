@@ -2421,7 +2421,15 @@ function Settings({ classInfo, students, memos, points, onUpdateCI, onUpdateSt, 
                 <button className="btn-primary" onClick=${addBulkFn}>일괄 추가</button>
               </div>
             ` : null}
-            <button className="btn-secondary" style=${{marginTop:8}} onClick=${function(){csvRef.current&&csvRef.current.click();}}>📄 CSV 파일로 학생 등록</button>
+            <div style=${{display:'flex',gap:6,marginTop:8}}>
+              <button className="btn-secondary" style=${{flex:1}} onClick=${function(){csvRef.current&&csvRef.current.click();}}>📄 CSV 파일로 학생 등록</button>
+              <button className="btn-secondary" style=${{flex:1}} onClick=${function(){
+                var csv = '\uFEFF번호,이름\n1,홍길동\n2,김철수\n3,이영희\n4,박지민\n5,최수현';
+                var blob = new Blob([csv], {type:'text/csv;charset=utf-8'});
+                var a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+                a.download = '학생등록_양식.csv'; a.click(); URL.revokeObjectURL(a.href);
+              }}>📥 CSV 양식 다운로드</button>
+            </div>
             <input ref=${csvRef} type="file" accept=".csv,.txt" style=${{display:'none'}} onChange=${doCSVImport} />
           </div>
 
