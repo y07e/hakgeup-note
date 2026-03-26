@@ -1478,13 +1478,13 @@ function LeavePassModal({ students, classInfo, date, onClose, onToast }) {
 // ===== 양식 위치 조정 기본값 =====
 var AF_POS_KEY = 'af_positions';
 var AF_DEFAULTS = {
-  grade:{top:72,left:115}, cls:{top:72,left:135}, num:{top:72,left:155},
-  name:{top:70,left:134}, reason:{top:95,left:46}, formType:{top:120,left:30},
-  jY:{top:139,left:70}, jM:{top:139,left:92}, jD:{top:139,left:111}, jP:{top:139,left:134},
-  jiY:{top:150,left:70}, jiM:{top:150,left:92}, jiD:{top:150,left:111}, jiP:{top:150,left:134},
-  gY:{top:161,left:70}, gM:{top:161,left:92}, gD:{top:161,left:111}, gP:{top:161,left:134},
-  dY:{top:189,left:70}, dM:{top:189,left:93}, dD:{top:189,left:111},
-  teacher:{top:188,left:93}
+  grade:{top:72,left:115}, cls:{top:72,left:135}, num:{top:72,left:153},
+  name:{top:80,left:132}, reason:{top:99,left:88}, formType:{top:109,left:42},
+  jY:{top:131,left:93}, jM:{top:131,left:109}, jD:{top:131,left:125}, jP:{top:131,left:142},
+  jiY:{top:139,left:93}, jiM:{top:139,left:110}, jiD:{top:139,left:125}, jiP:{top:139,left:141},
+  gY:{top:147,left:94}, gM:{top:147,left:111}, gD:{top:147,left:126}, gP:{top:147,left:145},
+  dY:{top:176,left:108}, dM:{top:176,left:128}, dD:{top:176,left:147},
+  teacher:{top:190,left:130}
 };
 function loadAfPos(){ try{ var s=localStorage.getItem(AF_POS_KEY); if(!s) return JSON.parse(JSON.stringify(AF_DEFAULTS)); var saved=JSON.parse(s); var result={}; Object.keys(AF_DEFAULTS).forEach(function(k){ result[k]=saved[k]||AF_DEFAULTS[k]; }); return result; }catch(e){ return JSON.parse(JSON.stringify(AF_DEFAULTS)); } }
 function saveAfPos(p){ localStorage.setItem(AF_POS_KEY, JSON.stringify(p)); }
@@ -1729,14 +1729,14 @@ function ApproveFormModal({ students, classInfo, date, onClose, onToast }) {
 // ===== 결석사유서 위치 조정 =====
 var ABS_POS_KEY = 'abs_positions';
 var ABS_DEFAULTS = {
-  info:{top:30,left:30}, sname:{top:30,left:125},
-  fY:{top:36,left:30}, fM:{top:36,left:42}, fD:{top:36,left:54},
-  tY:{top:36,left:75}, tM:{top:36,left:87}, tD:{top:36,left:98}, days:{top:36,left:129},
-  c2day:{top:50,left:10}, c3day:{top:58,left:10}, cdust:{top:67,left:10}, cetc:{top:76,left:10},
-  cinfect:{top:88,left:10}, cgyeong:{top:97,left:10}, cperiod:{top:103,left:10}, centrance:{top:111,left:10}, cetc2:{top:119,left:10},
-  opinion:{top:132,left:14},
-  pY:{top:158,left:28}, pM:{top:158,left:49}, pD:{top:158,left:64},
-  dY:{top:263,left:19}, dM:{top:263,left:40}, dD:{top:263,left:53}, teacher:{top:263,left:100}
+  info:{top:35,left:72}, sname:{top:35,left:164},
+  fY:{top:42,left:54}, fM:{top:42,left:68}, fD:{top:42,left:81},
+  tY:{top:42,left:111}, tM:{top:42,left:122}, tD:{top:42,left:134}, days:{top:42,left:171},
+  c2day:{top:54,left:21}, c3day:{top:61,left:21}, cdust:{top:68,left:21}, cetc:{top:79,left:21},
+  cinfect:{top:89,left:41}, cgyeong:{top:97,left:41}, cperiod:{top:105,left:41}, centrance:{top:112,left:41}, cetc2:{top:119,left:41},
+  opinion:{top:133,left:50},
+  pY:{top:152,left:46}, pM:{top:152,left:65}, pD:{top:152,left:84},
+  dY:{top:233,left:45}, dM:{top:234,left:65}, dD:{top:234,left:85}, teacher:{top:234,left:151}
 };
 function loadAbsPos(){ try{ var s=localStorage.getItem(ABS_POS_KEY); if(!s) return JSON.parse(JSON.stringify(ABS_DEFAULTS)); var saved=JSON.parse(s); var result={}; Object.keys(ABS_DEFAULTS).forEach(function(k){ result[k]=saved[k]||ABS_DEFAULTS[k]; }); return result; }catch(e){ return JSON.parse(JSON.stringify(ABS_DEFAULTS)); } }
 function saveAbsPos(p){ localStorage.setItem(ABS_POS_KEY, JSON.stringify(p)); }
