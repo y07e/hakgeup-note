@@ -740,7 +740,7 @@ function FormHistoryView({ students }) {
 
   var filtered = history.filter(function(h) {
     var matchMonth = (h.issueDate || h.createdAt || '').slice(0,7) === filterMonth;
-    var matchType = filterType === 'all' || (filterType === 'approve' && h.type === 'approve') || (filterType === 'absence' && h.type === 'absence') || h.formType === filterType;
+    var matchType = filterType === 'all' || (filterType === 'approve' && h.type === 'approve') || (filterType === 'absence' && h.type === 'absence') || (filterType === 'leavepass' && h.type === 'leavepass') || h.formType === filterType;
     return matchMonth && matchType;
   }).sort(function(a,b){ return (b.createdAt||'').localeCompare(a.createdAt||''); });
 
@@ -755,7 +755,7 @@ function FormHistoryView({ students }) {
   var monthData = history.filter(function(h){ return (h.issueDate || h.createdAt || '').slice(0,7) === filterMonth; });
   var statsByType = {};
   monthData.forEach(function(h){
-    var label = h.type==='approve' ? '인정('+h.formType+')' : '결석';
+    var label = h.type==='approve' ? '인정('+h.formType+')' : h.type==='leavepass' ? '외출('+h.formType+')' : '결석';
     statsByType[label] = (statsByType[label]||0) + 1;
   });
   var statsByStudent = {};
@@ -763,16 +763,18 @@ function FormHistoryView({ students }) {
     var key = h.studentNum+'번 '+h.studentName;
     if (!statsByStudent[key]) statsByStudent[key] = {total:0, detail:{}};
     statsByStudent[key].total++;
-    var label = h.type==='approve' ? h.formType : '결석';
+    var label = h.type==='approve' ? h.formType : h.type==='leavepass' ? '외출('+h.formType+')' : '결석';
     statsByStudent[key].detail[label] = (statsByStudent[key].detail[label]||0) + 1;
   });
 
   var typeLabel = function(h) {
     if (h.type==='approve') return '인정('+h.formType+')';
+    if (h.type==='leavepass') return '외출('+h.formType+')';
     return '결석계';
   };
   var typeBadgeColor = function(h) {
     if (h.type==='absence') return '#e74c3c';
+    if (h.type==='leavepass') return '#27ae60';
     if (h.formType==='조퇴') return '#e67e22';
     if (h.formType==='지각') return '#3498db';
     return '#9b59b6';
@@ -790,6 +792,7 @@ function FormHistoryView({ students }) {
         <option value="지각">지각</option>
         <option value="결과">결과</option>
         <option value="absence">결석계</option>
+        <option value="leavepass">외출(조퇴)증</option>
       </select>
       <div style=${{marginLeft:'auto',display:'flex',gap:4}}>
         <button onClick=${function(){setViewMode('list');}} style=${{padding:'5px 12px',borderRadius:6,border:'1px solid var(--border)',background:viewMode==='list'?'var(--primary)':'#fff',color:viewMode==='list'?'#fff':'var(--text)',fontSize:12,cursor:'pointer',fontFamily:'inherit'}}>목록</button>
@@ -812,6 +815,9 @@ function FormHistoryView({ students }) {
               ${h.type==='approve' ? html`
                 <div>사유: ${h.reason}</div>
                 ${h.dateInfo ? html`<div>일시: ${h.dateInfo.date || ''} ${h.dateInfo.fromP ? h.dateInfo.fromP+'교시부터' : ''} ${h.dateInfo.toP ? h.dateInfo.toP+'교시까지' : ''} ${h.dateInfo.period ? h.dateInfo.period+'교시' : ''}</div>` : null}
+              ` : h.type==='leavepass' ? html`
+                <div>사유: ${h.reason}</div>
+                <div>시간: ${h.fromH||'__'}시 ${h.fromM||'__'}분 ~ ${h.toH||'__'}시 ${h.toM||'__'}분</div>
               ` : html`
                 <div>기간: ${h.absFrom} ~ ${h.absTo} (${h.absDays}일)</div>
                 ${h.absType ? html`<div>유형: ${h.absType}</div>` : null}
@@ -1523,6 +1529,16 @@ function LeavePassModal({ students, classInfo, date, onClose, onToast }) {
   var doPrint = function() {
     if (!selSt) { onToast('학생을 선택하세요', 'error'); return; }
     if (!reason.trim()) { onToast('사유를 입력하세요', 'error'); return; }
+    // 발급 이력 저장
+    var history = load(KEYS.formHistory, []);
+    history.push({
+      id: Date.now().toString(36)+Math.random().toString(36).slice(2,6),
+      type: 'leavepass', formType: passType, studentId: selSt,
+      studentName: selStudent.name, studentNum: selStudent.number,
+      reason: reason, fromH: fromH, fromM: fromM, toH: toH, toM: toM,
+      issueDate: date, createdAt: new Date().toISOString()
+    });
+    save(KEYS.formHistory, history);
     var app = document.querySelector('.app');
     app.setAttribute('data-print', 'leave-pass');
     var s = document.getElementById('print-orient');
@@ -2523,7 +2539,7 @@ function App() {
       </header>
 
       <div className="form-shortcut-bar">
-        <button className="form-shortcut-btn" onClick=${function(){setShowLeavePass(true);}}>📋 외출증</button>
+        <button className="form-shortcut-btn" onClick=${function(){setShowLeavePass(true);}}>📋 외출(조퇴)증</button>
         <button className="form-shortcut-btn" onClick=${function(){setShowApprove(true);}}>📄 인정 사유서</button>
         <button className="form-shortcut-btn" onClick=${function(){setShowAbsence(true);}}>📝 결석계</button>
       </div>
