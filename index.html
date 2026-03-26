@@ -531,7 +531,7 @@ var UPDATES = [
 ];
 
 // ===== Store =====
-const KEYS = { classInfo:'hn_ci', students:'hn_st', memos:'hn_me', points:'hn_pt', seating:'hn_se', cleaning:'hn_cl', diary:'hn_di', pin:'hn_pin', lastVer:'hn_ver', formApprove:'hn_form_approve', formAbsence:'hn_form_absence' };
+const KEYS = { classInfo:'hn_ci', students:'hn_st', memos:'hn_me', points:'hn_pt', seating:'hn_se', cleaning:'hn_cl', diary:'hn_di', pin:'hn_pin', lastVer:'hn_ver', formApprove:'hn_form_approve', formAbsence:'hn_form_absence', formHistory:'hn_form_history' };
 const load = (k, fb) => { try { const r = localStorage.getItem(k); return r ? JSON.parse(r) : fb; } catch(e) { return fb; } };
 const save = (k, v) => localStorage.setItem(k, JSON.stringify(v));
 
@@ -652,6 +652,7 @@ function InputTab({ students, memos, points, date, onSaveMemo, onSavePoint, onTo
       <button className=${'sub-tab' + (mode==='memo'?' active':'')} onClick=${function(){setMode('memo');}}>메모 기록</button>
       <button className=${'sub-tab' + (mode==='points'?' active':'')} onClick=${function(){setMode('points');}}>상벌점</button>
       <button className=${'sub-tab' + (mode==='quick'?' active':'')} onClick=${function(){setMode('quick');}}>빠른 출결</button>
+      <button className=${'sub-tab' + (mode==='history'?' active':'')} onClick=${function(){setMode('history');}}>발급 이력</button>
     </div>
 
     ${mode === 'quick' ? html`
@@ -722,7 +723,136 @@ function InputTab({ students, memos, points, date, onSaveMemo, onSavePoint, onTo
         <button className="btn-primary" style=${{marginTop:12}} onClick=${savePoint}>저장하기</button>
       </div>
     `}
+  ${mode === 'history' ? html`
+    <${FormHistoryView} students=${students} />
+  ` : null}
   </div>`}
+  </div>`;
+}
+
+// ===== 발급 이력 조회/통계 =====
+function FormHistoryView({ students }) {
+  const [history, setHistory] = useState(function(){ return load(KEYS.formHistory, []); });
+  const [viewMode, setViewMode] = useState('list'); // list, stats
+  const [filterMonth, setFilterMonth] = useState(new Date().toISOString().slice(0,7));
+  const [filterType, setFilterType] = useState('all');
+  const [detailItem, setDetailItem] = useState(null);
+
+  var filtered = history.filter(function(h) {
+    var matchMonth = (h.issueDate || h.createdAt || '').slice(0,7) === filterMonth;
+    var matchType = filterType === 'all' || (filterType === 'approve' && h.type === 'approve') || (filterType === 'absence' && h.type === 'absence') || h.formType === filterType;
+    return matchMonth && matchType;
+  }).sort(function(a,b){ return (b.createdAt||'').localeCompare(a.createdAt||''); });
+
+  var deleteItem = function(id) {
+    var updated = history.filter(function(h){ return h.id !== id; });
+    setHistory(updated);
+    save(KEYS.formHistory, updated);
+    setDetailItem(null);
+  };
+
+  // 월별 통계
+  var monthData = history.filter(function(h){ return (h.issueDate || h.createdAt || '').slice(0,7) === filterMonth; });
+  var statsByType = {};
+  monthData.forEach(function(h){
+    var label = h.type==='approve' ? '인정('+h.formType+')' : '결석';
+    statsByType[label] = (statsByType[label]||0) + 1;
+  });
+  var statsByStudent = {};
+  monthData.forEach(function(h){
+    var key = h.studentNum+'번 '+h.studentName;
+    if (!statsByStudent[key]) statsByStudent[key] = {total:0, detail:{}};
+    statsByStudent[key].total++;
+    var label = h.type==='approve' ? h.formType : '결석';
+    statsByStudent[key].detail[label] = (statsByStudent[key].detail[label]||0) + 1;
+  });
+
+  var typeLabel = function(h) {
+    if (h.type==='approve') return '인정('+h.formType+')';
+    return '결석계';
+  };
+  var typeBadgeColor = function(h) {
+    if (h.type==='absence') return '#e74c3c';
+    if (h.formType==='조퇴') return '#e67e22';
+    if (h.formType==='지각') return '#3498db';
+    return '#9b59b6';
+  };
+
+  return html`<div style=${{padding:'0 16px 16px'}}>
+    <div style=${{display:'flex',gap:6,marginBottom:10,alignItems:'center',flexWrap:'wrap'}}>
+      <input type="month" value=${filterMonth} onChange=${function(e){setFilterMonth(e.target.value);}}
+        style=${{padding:'6px 10px',borderRadius:8,border:'1px solid var(--border)',fontSize:13,fontFamily:'inherit'}} />
+      <select value=${filterType} onChange=${function(e){setFilterType(e.target.value);}}
+        style=${{padding:'6px 10px',borderRadius:8,border:'1px solid var(--border)',fontSize:13,fontFamily:'inherit'}}>
+        <option value="all">전체</option>
+        <option value="approve">인정사유서</option>
+        <option value="조퇴">조퇴</option>
+        <option value="지각">지각</option>
+        <option value="결과">결과</option>
+        <option value="absence">결석계</option>
+      </select>
+      <div style=${{marginLeft:'auto',display:'flex',gap:4}}>
+        <button onClick=${function(){setViewMode('list');}} style=${{padding:'5px 12px',borderRadius:6,border:'1px solid var(--border)',background:viewMode==='list'?'var(--primary)':'#fff',color:viewMode==='list'?'#fff':'var(--text)',fontSize:12,cursor:'pointer',fontFamily:'inherit'}}>목록</button>
+        <button onClick=${function(){setViewMode('stats');}} style=${{padding:'5px 12px',borderRadius:6,border:'1px solid var(--border)',background:viewMode==='stats'?'var(--primary)':'#fff',color:viewMode==='stats'?'#fff':'var(--text)',fontSize:12,cursor:'pointer',fontFamily:'inherit'}}>통계</button>
+      </div>
+    </div>
+
+    ${viewMode === 'list' ? html`
+      ${filtered.length === 0 ? html`<div style=${{textAlign:'center',padding:30,color:'var(--text-light)',fontSize:13}}>해당 월의 발급 이력이 없습니다.</div>` : null}
+      ${filtered.map(function(h){
+        return html`<div key=${h.id} style=${{padding:'10px 12px',marginBottom:6,background:'#fff',borderRadius:10,border:'1px solid var(--border)',cursor:'pointer'}}
+          onClick=${function(){setDetailItem(detailItem && detailItem.id===h.id ? null : h);}}>
+          <div style=${{display:'flex',alignItems:'center',gap:8}}>
+            <span style=${{display:'inline-block',padding:'2px 8px',borderRadius:10,fontSize:11,fontWeight:600,color:'#fff',background:typeBadgeColor(h)}}>${typeLabel(h)}</span>
+            <span style=${{fontSize:13,fontWeight:600}}>${h.studentNum}번 ${h.studentName}</span>
+            <span style=${{marginLeft:'auto',fontSize:11,color:'var(--text-light)'}}>${(h.issueDate||'').replace(/-/g,'.')}</span>
+          </div>
+          ${detailItem && detailItem.id===h.id ? html`
+            <div style=${{marginTop:8,paddingTop:8,borderTop:'1px solid var(--border)',fontSize:12,color:'var(--text-light)'}}>
+              ${h.type==='approve' ? html`
+                <div>사유: ${h.reason}</div>
+                ${h.dateInfo ? html`<div>일시: ${h.dateInfo.date || ''} ${h.dateInfo.fromP ? h.dateInfo.fromP+'교시부터' : ''} ${h.dateInfo.toP ? h.dateInfo.toP+'교시까지' : ''} ${h.dateInfo.period ? h.dateInfo.period+'교시' : ''}</div>` : null}
+              ` : html`
+                <div>기간: ${h.absFrom} ~ ${h.absTo} (${h.absDays}일)</div>
+                ${h.absType ? html`<div>유형: ${h.absType}</div>` : null}
+                ${h.absReason ? html`<div>의견: ${h.absReason}</div>` : null}
+              `}
+              <div style=${{marginTop:6,display:'flex',gap:6}}>
+                <button onClick=${function(e){e.stopPropagation();deleteItem(h.id);}} style=${{padding:'4px 10px',borderRadius:6,border:'1px solid #e74c3c',background:'#fff5f5',color:'#e74c3c',fontSize:11,cursor:'pointer',fontFamily:'inherit'}}>삭제</button>
+              </div>
+            </div>
+          ` : null}
+        </div>`;
+      })}
+    ` : html`
+      <div style=${{marginBottom:16}}>
+        <div className="section-title">유형별 통계 (${filterMonth.replace('-','년 ')}월)</div>
+        ${Object.keys(statsByType).length === 0 ? html`<div style=${{textAlign:'center',padding:20,color:'var(--text-light)',fontSize:13}}>해당 월의 이력이 없습니다.</div>` : null}
+        <div style=${{display:'flex',flexWrap:'wrap',gap:8,marginTop:8}}>
+          ${Object.entries(statsByType).map(function(e){ return html`
+            <div key=${e[0]} style=${{padding:'10px 16px',borderRadius:10,background:'#f0f4ff',border:'1px solid #d0d8f0',textAlign:'center',minWidth:80}}>
+              <div style=${{fontSize:22,fontWeight:700,color:'var(--primary)'}}>${e[1]}</div>
+              <div style=${{fontSize:12,color:'var(--text-light)',marginTop:2}}>${e[0]}</div>
+            </div>
+          `; })}
+          <div style=${{padding:'10px 16px',borderRadius:10,background:'#fff5f0',border:'1px solid #f0d0c0',textAlign:'center',minWidth:80}}>
+            <div style=${{fontSize:22,fontWeight:700,color:'#e67e22'}}>${monthData.length}</div>
+            <div style=${{fontSize:12,color:'var(--text-light)',marginTop:2}}>합계</div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div className="section-title">학생별 통계</div>
+        ${Object.keys(statsByStudent).length === 0 ? html`<div style=${{textAlign:'center',padding:20,color:'var(--text-light)',fontSize:13}}>해당 월의 이력이 없습니다.</div>` : null}
+        ${Object.entries(statsByStudent).sort(function(a,b){ return b[1].total - a[1].total; }).map(function(e){
+          return html`<div key=${e[0]} style=${{padding:'8px 12px',marginBottom:4,background:'#fff',borderRadius:8,border:'1px solid var(--border)',display:'flex',alignItems:'center',gap:8}}>
+            <span style=${{fontSize:13,fontWeight:600,minWidth:90}}>${e[0]}</span>
+            <span style=${{fontSize:13,fontWeight:700,color:'var(--primary)'}}>${e[1].total}건</span>
+            <span style=${{fontSize:11,color:'var(--text-light)',marginLeft:4}}>(${Object.entries(e[1].detail).map(function(d){return d[0]+' '+d[1];}).join(', ')})</span>
+          </div>`;
+        })}
+      </div>
+    `}
   </div>`;
 }
 
@@ -1538,6 +1668,17 @@ function ApproveFormModal({ students, classInfo, date, onClose, onToast }) {
   var doPrint = function() {
     if (!selSt) { onToast('학생을 선택하세요', 'error'); return; }
     if (!reason.trim()) { onToast('사유를 입력하세요', 'error'); return; }
+    // 발급 이력 저장
+    var history = load(KEYS.formHistory, []);
+    var dateInfo = formType==='조퇴' ? {date:jDate, fromP:jFromP} : formType==='지각' ? {date:jiDate, toP:jiToP} : {date:gDate, period:gP};
+    history.push({
+      id: Date.now().toString(36)+Math.random().toString(36).slice(2,6),
+      type: 'approve', formType: formType, studentId: selSt,
+      studentName: selStudent.name, studentNum: selStudent.number,
+      reason: reason, dateInfo: dateInfo, issueDate: date,
+      createdAt: new Date().toISOString()
+    });
+    save(KEYS.formHistory, history);
     var app = document.querySelector('.app');
     app.setAttribute('data-print', 'approve-form');
     var s = document.getElementById('print-orient');
@@ -1782,6 +1923,18 @@ function AbsenceFormModal({ students, classInfo, date, onClose, onToast }) {
 
   var doPrint = function() {
     if (!selSt) { onToast('학생을 선택하세요', 'error'); return; }
+    // 발급 이력 저장
+    var history = load(KEYS.formHistory, []);
+    history.push({
+      id: Date.now().toString(36)+Math.random().toString(36).slice(2,6),
+      type: 'absence', studentId: selSt,
+      studentName: selStudent.name, studentNum: selStudent.number,
+      absFrom: absFrom, absTo: absTo, absDays: absDays,
+      absType: absType, absReason: absReason,
+      issueDate: new Date().toISOString().slice(0,10),
+      createdAt: new Date().toISOString()
+    });
+    save(KEYS.formHistory, history);
     var app = document.querySelector('.app');
     app.setAttribute('data-print', 'absence-form');
     var s = document.getElementById('print-orient');
@@ -2054,6 +2207,7 @@ function Settings({ classInfo, students, memos, points, onUpdateCI, onUpdateSt, 
       memos: load(KEYS.memos, []), points: load(KEYS.points, []),
       seating: load(KEYS.seating, {}), cleaning: load(KEYS.cleaning, {}),
       diary: load(KEYS.diary, {}),
+      formHistory: load(KEYS.formHistory, []),
       formApproveImg: load(KEYS.formApprove, null),
       formAbsenceImg: load(KEYS.formAbsence, null),
       formApprovePos: afPosRaw ? JSON.parse(afPosRaw) : null,
@@ -2081,6 +2235,7 @@ function Settings({ classInfo, students, memos, points, onUpdateCI, onUpdateSt, 
         if (d.seating) save(KEYS.seating, d.seating);
         if (d.cleaning) save(KEYS.cleaning, d.cleaning);
         if (d.diary) save(KEYS.diary, d.diary);
+        if (d.formHistory) save(KEYS.formHistory, d.formHistory);
         if (d.formApproveImg) save(KEYS.formApprove, d.formApproveImg);
         if (d.formAbsenceImg) save(KEYS.formAbsence, d.formAbsenceImg);
         if (d.formApprovePos) localStorage.setItem(AF_POS_KEY, JSON.stringify(d.formApprovePos));
