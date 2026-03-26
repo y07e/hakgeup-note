@@ -599,7 +599,7 @@ function StudentGrid({ students, selectedId, onSelect, memos, today }) {
 }
 
 // ===== InputTab =====
-function InputTab({ students, memos, points, date, onSaveMemo, onSavePoint, onToast }) {
+function InputTab({ students, memos, points, date, onSaveMemo, onSavePoint, onToast, onReprint }) {
   const [mode, setMode] = useState('memo');
   const [selSt, setSelSt] = useState(null);
   const [selCats, setSelCats] = useState([]);
@@ -685,7 +685,7 @@ function InputTab({ students, memos, points, date, onSaveMemo, onSavePoint, onTo
         <button className="btn-secondary" onClick=${function(){setQaStatus({});}}>초기화</button>
       </div>
     ` : mode === 'history' ? html`
-    <${FormHistoryView} students=${students} />
+    <${FormHistoryView} students=${students} onReprint=${onReprint} />
   ` : html`<div>
     <div style=${{padding:'8px 16px 0'}}>
       <div className="section-title">학생 선택 ${selName ? html` <span style=${{color:'var(--primary)'}}>— ${selName}</span>` : null}</div>
@@ -739,7 +739,7 @@ function InputTab({ students, memos, points, date, onSaveMemo, onSavePoint, onTo
 }
 
 // ===== 발급 이력 조회/통계 =====
-function FormHistoryView({ students }) {
+function FormHistoryView({ students, onReprint }) {
   const [history, setHistory] = useState(function(){ return load(KEYS.formHistory, []); });
   useEffect(function(){
     var refresh = function(){ setHistory(load(KEYS.formHistory, [])); };
@@ -838,6 +838,7 @@ function FormHistoryView({ students }) {
                 ${h.absReason ? html`<div>의견: ${h.absReason}</div>` : null}
               `}
               <div style=${{marginTop:6,display:'flex',gap:6}}>
+                <button onClick=${function(e){e.stopPropagation();if(onReprint) onReprint(h);}} style=${{padding:'4px 10px',borderRadius:6,border:'1px solid var(--primary)',background:'#f0f4ff',color:'var(--primary)',fontSize:11,cursor:'pointer',fontFamily:'inherit'}}>🖨️ 재인쇄</button>
                 <button onClick=${function(e){e.stopPropagation();deleteItem(h.id);}} style=${{padding:'4px 10px',borderRadius:6,border:'1px solid #e74c3c',background:'#fff5f5',color:'#e74c3c',fontSize:11,cursor:'pointer',fontFamily:'inherit'}}>삭제</button>
               </div>
             </div>
@@ -1523,14 +1524,14 @@ function LookupTab({ students, memos, points, date, onDeleteMemo, onDeletePoint,
 }
 
 // ===== LeavePassModal =====
-function LeavePassModal({ students, classInfo, date, onClose, onToast }) {
-  const [selSt, setSelSt] = useState(null);
-  const [passType, setPassType] = useState('조퇴');
-  const [reason, setReason] = useState('');
-  const [fromH, setFromH] = useState('');
-  const [fromM, setFromM] = useState('');
-  const [toH, setToH] = useState('');
-  const [toM, setToM] = useState('');
+function LeavePassModal({ students, classInfo, date, onClose, onToast, prefill }) {
+  const [selSt, setSelSt] = useState(prefill ? prefill.studentId : null);
+  const [passType, setPassType] = useState(prefill ? prefill.formType : '조퇴');
+  const [reason, setReason] = useState(prefill ? prefill.reason : '');
+  const [fromH, setFromH] = useState(prefill ? prefill.fromH : '');
+  const [fromM, setFromM] = useState(prefill ? prefill.fromM : '');
+  const [toH, setToH] = useState(prefill ? prefill.toH : '');
+  const [toM, setToM] = useState(prefill ? prefill.toM : '');
 
   var selStudent = students.find(function(s){ return s.id === selSt; });
   var dp = date.split('-');
@@ -1657,16 +1658,17 @@ function loadAfPos(){ try{ var s=localStorage.getItem(AF_POS_KEY); if(!s) return
 function saveAfPos(p){ localStorage.setItem(AF_POS_KEY, JSON.stringify(p)); }
 
 // ===== ApproveFormModal (인정 조퇴/결과/지각 사유서) =====
-function ApproveFormModal({ students, classInfo, date, onClose, onToast }) {
-  const [selSt, setSelSt] = useState(null);
-  const [formType, setFormType] = useState('조퇴');
-  const [reason, setReason] = useState('');
-  const [jDate, setJDate] = useState(date);
-  const [jFromP, setJFromP] = useState('');
-  const [jiDate, setJiDate] = useState(date);
-  const [jiToP, setJiToP] = useState('');
-  const [gDate, setGDate] = useState(date);
-  const [gP, setGP] = useState('');
+function ApproveFormModal({ students, classInfo, date, onClose, onToast, prefill }) {
+  var pdi = prefill ? prefill.dateInfo : null;
+  const [selSt, setSelSt] = useState(prefill ? prefill.studentId : null);
+  const [formType, setFormType] = useState(prefill ? prefill.formType : '조퇴');
+  const [reason, setReason] = useState(prefill ? prefill.reason : '');
+  const [jDate, setJDate] = useState(pdi && pdi.date && prefill.formType==='조퇴' ? pdi.date : date);
+  const [jFromP, setJFromP] = useState(pdi && pdi.fromP ? pdi.fromP : '');
+  const [jiDate, setJiDate] = useState(pdi && pdi.date && prefill.formType==='지각' ? pdi.date : date);
+  const [jiToP, setJiToP] = useState(pdi && pdi.toP ? pdi.toP : '');
+  const [gDate, setGDate] = useState(pdi && pdi.date && prefill.formType==='결과' ? pdi.date : date);
+  const [gP, setGP] = useState(pdi && pdi.period ? pdi.period : '');
   const [editMode, setEditMode] = useState(false);
   const [pos, setPos] = useState(loadAfPos);
   const [dragging, setDragging] = useState(null);
@@ -1927,13 +1929,13 @@ function loadAbsPos(){ try{ var s=localStorage.getItem(ABS_POS_KEY); if(!s) retu
 function saveAbsPos(p){ localStorage.setItem(ABS_POS_KEY, JSON.stringify(p)); }
 
 // ===== AbsenceFormModal (결석사유서) =====
-function AbsenceFormModal({ students, classInfo, date, onClose, onToast }) {
-  const [selSt, setSelSt] = useState(null);
-  const [absFrom, setAbsFrom] = useState(date);
-  const [absTo, setAbsTo] = useState(date);
-  const [absDays, setAbsDays] = useState('1');
-  const [absType, setAbsType] = useState('');
-  const [absReason, setAbsReason] = useState('');
+function AbsenceFormModal({ students, classInfo, date, onClose, onToast, prefill }) {
+  const [selSt, setSelSt] = useState(prefill ? prefill.studentId : null);
+  const [absFrom, setAbsFrom] = useState(prefill ? prefill.absFrom : date);
+  const [absTo, setAbsTo] = useState(prefill ? prefill.absTo : date);
+  const [absDays, setAbsDays] = useState(prefill ? prefill.absDays : '1');
+  const [absType, setAbsType] = useState(prefill ? prefill.absType : '');
+  const [absReason, setAbsReason] = useState(prefill ? prefill.absReason : '');
   const [editMode, setEditMode] = useState(false);
   const [pos, setPos] = useState(loadAbsPos);
   const previewRef = useRef(null);
@@ -2508,6 +2510,14 @@ function App() {
   const [showLeavePass, setShowLeavePass] = useState(false);
   const [showApprove, setShowApprove] = useState(false);
   const [showAbsence, setShowAbsence] = useState(false);
+  const [reprintData, setReprintData] = useState(null);
+
+  var handleReprint = function(h) {
+    setReprintData(h);
+    if (h.type === 'leavepass') setShowLeavePass(true);
+    else if (h.type === 'approve') setShowApprove(true);
+    else if (h.type === 'absence') setShowAbsence(true);
+  };
 
   useEffect(function(){ save(KEYS.classInfo, ci); }, [ci]);
   useEffect(function(){ save(KEYS.students, students); }, [students]);
@@ -2584,7 +2594,7 @@ function App() {
           students=${students} memos=${memos} points=${points} date=${date}
           onSaveMemo=${function(m){setMemos(function(p){return p.concat([m]);});}}
           onSavePoint=${function(p){setPoints(function(pp){return pp.concat([p]);});}}
-          onToast=${toast} />` : null}
+          onToast=${toast} onReprint=${handleReprint} />` : null}
         ${tab === 'diary' ? html`<${DiaryTab}
           diary=${diary} date=${date} classInfo=${ci}
           onUpdate=${setDiary} onToast=${toast} />` : null}
@@ -2621,16 +2631,16 @@ function App() {
       <div className="footer-bar">© 2026 쫑아빠의 학급노트. All rights reserved.</div>
 
       ${showLeavePass ? html`<${LeavePassModal}
-        students=${students} classInfo=${ci} date=${date}
-        onClose=${function(){setShowLeavePass(false);}} onToast=${toast} />` : null}
+        students=${students} classInfo=${ci} date=${date} prefill=${reprintData && reprintData.type==='leavepass' ? reprintData : null}
+        onClose=${function(){setShowLeavePass(false);setReprintData(null);}} onToast=${toast} />` : null}
 
       ${showApprove ? html`<${ApproveFormModal}
-        students=${students} classInfo=${ci} date=${date}
-        onClose=${function(){setShowApprove(false);}} onToast=${toast} />` : null}
+        students=${students} classInfo=${ci} date=${date} prefill=${reprintData && reprintData.type==='approve' ? reprintData : null}
+        onClose=${function(){setShowApprove(false);setReprintData(null);}} onToast=${toast} />` : null}
 
       ${showAbsence ? html`<${AbsenceFormModal}
-        students=${students} classInfo=${ci} date=${date}
-        onClose=${function(){setShowAbsence(false);}} onToast=${toast} />` : null}
+        students=${students} classInfo=${ci} date=${date} prefill=${reprintData && reprintData.type==='absence' ? reprintData : null}
+        onClose=${function(){setShowAbsence(false);setReprintData(null);}} onToast=${toast} />` : null}
 
       ${showSettings ? html`<${Settings}
         classInfo=${ci} students=${students} memos=${memos} points=${points}
