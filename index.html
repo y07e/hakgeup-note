@@ -2351,18 +2351,34 @@ function Settings({ classInfo, students, memos, points, onUpdateCI, onUpdateSt, 
       var hasHeader = headerLine.includes('이름') || headerLine.includes('name') || headerLine.includes('번호');
       var startIdx = hasHeader ? 1 : 0;
       var maxN = students.length > 0 ? Math.max.apply(null,students.map(function(s){return s.number;})) : 0;
-      var newStudents = [];
+      var updated = students.slice();
+      var addCount = 0; var updateCount = 0;
       for(var i=startIdx;i<lines.length;i++){
         var cols = lines[i].split(',').map(function(c){return c.trim().replace(/"/g,'');});
         var name = ''; var num = 0;
         var studentPhone = ''; var phone = '';
         if(cols.length>=2 && !isNaN(Number(cols[0]))){num=Number(cols[0]);name=cols[1];studentPhone=cols[2]||'';phone=cols[3]||'';}
-        else{name=cols[0];num=maxN+1+newStudents.length;}
-        if(name) newStudents.push({id:uid(),number:num,name:name,studentPhone:studentPhone,phone:phone});
+        else{name=cols[0];num=maxN+1+addCount;}
+        if(!name) continue;
+        var existing = updated.findIndex(function(s){return s.number===num;});
+        if(existing>=0){
+          var st = Object.assign({},updated[existing]);
+          if(name) st.name=name;
+          if(studentPhone) st.studentPhone=studentPhone;
+          if(phone) st.phone=phone;
+          updated[existing]=st;
+          updateCount++;
+        } else {
+          updated.push({id:uid(),number:num,name:name,studentPhone:studentPhone,phone:phone});
+          addCount++;
+        }
       }
-      if(newStudents.length===0){onToast('학생을 찾을 수 없습니다','error');return;}
-      onUpdateSt(students.concat(newStudents));
-      onToast(newStudents.length+'명 학생 CSV 등록 완료');
+      if(addCount===0&&updateCount===0){onToast('학생을 찾을 수 없습니다','error');return;}
+      onUpdateSt(updated.sort(function(a,b){return a.number-b.number;}));
+      var msg = [];
+      if(updateCount>0) msg.push(updateCount+'명 정보 업데이트');
+      if(addCount>0) msg.push(addCount+'명 신규 등록');
+      onToast(msg.join(', ')+' 완료');
     };
     reader.readAsText(file);
     e.target.value='';
