@@ -1672,6 +1672,7 @@ function ApproveFormModal({ students, classInfo, date, onClose, onToast, prefill
   const [jiToP, setJiToP] = useState(pdi && pdi.toP ? pdi.toP : '');
   const [gDate, setGDate] = useState(pdi && pdi.date && prefill.formType==='결과' ? pdi.date : date);
   const [gP, setGP] = useState(pdi && pdi.period ? pdi.period : '');
+  const [issueDate, setIssueDate] = useState(prefill ? prefill.issueDate : date);
   const [editMode, setEditMode] = useState(false);
   const [pos, setPos] = useState(loadAfPos);
   const [dragging, setDragging] = useState(null);
@@ -1720,7 +1721,7 @@ function ApproveFormModal({ students, classInfo, date, onClose, onToast, prefill
       id: Date.now().toString(36)+Math.random().toString(36).slice(2,6),
       type: 'approve', formType: formType, studentId: selSt,
       studentName: selStudent.name, studentNum: selStudent.number,
-      reason: reason, dateInfo: dateInfo, issueDate: date,
+      reason: reason, dateInfo: dateInfo, issueDate: issueDate,
       createdAt: new Date().toISOString()
     };
     var onAfter = function() {
@@ -1839,6 +1840,10 @@ function ApproveFormModal({ students, classInfo, date, onClose, onToast, prefill
               <span style=${{fontSize:13}}>교시</span>
             </div>
           </div>` : null}
+          <div style=${{marginBottom:12}}>
+            <div style=${{fontSize:12,fontWeight:700,color:'var(--text-sec)',marginBottom:6}}>발급 날짜</div>
+            <input type="date" className="input-field" style=${{padding:'6px 4px'}} value=${issueDate} onInput=${function(e){setIssueDate(e.target.value);}} />
+          </div>
           <div style=${{display:'flex',gap:8}}>
             <button className="btn-primary" style=${{flex:1}} onClick=${doPrint}>🖨️ 인쇄하기</button>
             <button className="btn-primary" style=${{flex:1,background:'var(--text-sec)'}} onClick=${function(){setEditMode(!editMode);}}>${editMode ? '조정 닫기' : '📐 위치 조정'}</button>
@@ -1906,9 +1911,9 @@ function ApproveFormModal({ students, classInfo, date, onClose, onToast, prefill
             <span style=${{top:pos.gD.top+'mm',left:pos.gD.left+'mm',fontSize:'13pt'}}>${parseInt(gDate.split('-')[2])}</span>
             <span style=${{top:pos.gP.top+'mm',left:pos.gP.left+'mm',fontSize:'13pt'}}>${gP}</span>
           ` : null}
-          <span style=${{top:pos.dY.top+'mm',left:pos.dY.left+'mm',fontSize:'13pt'}}>${date.split('-')[0].slice(3)}</span>
-          <span style=${{top:pos.dM.top+'mm',left:pos.dM.left+'mm',fontSize:'13pt'}}>${parseInt(date.split('-')[1])}</span>
-          <span style=${{top:pos.dD.top+'mm',left:pos.dD.left+'mm',fontSize:'13pt'}}>${parseInt(date.split('-')[2])}</span>
+          <span style=${{top:pos.dY.top+'mm',left:pos.dY.left+'mm',fontSize:'13pt'}}>${issueDate.split('-')[0].slice(3)}</span>
+          <span style=${{top:pos.dM.top+'mm',left:pos.dM.left+'mm',fontSize:'13pt'}}>${parseInt(issueDate.split('-')[1])}</span>
+          <span style=${{top:pos.dD.top+'mm',left:pos.dD.left+'mm',fontSize:'13pt'}}>${parseInt(issueDate.split('-')[2])}</span>
           <span style=${{top:pos.teacher.top+'mm',left:pos.teacher.left+'mm',fontSize:'13pt',letterSpacing:'3mm'}}>${teacherName}</span>
         </div>
       </div>
