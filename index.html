@@ -2507,9 +2507,11 @@ function Settings({ classInfo, students, memos, points, onUpdateCI, onUpdateSt, 
                         setEditId(null); onToast('학생 정보 수정 완료');
                       }}} />
                     </div>
-                    <input className="settings-input" style=${{padding:'6px 10px',fontSize:13,marginBottom:0}} placeholder="📱 학생 연락처" value=${editStuPhone}
+                    <div style=${{fontSize:11,color:'var(--text-light)',marginTop:4,marginBottom:2}}>📱 학생 연락처</div>
+                    <input className="settings-input" style=${{padding:'6px 10px',fontSize:13,marginBottom:0}} placeholder="010-0000-0000" value=${editStuPhone}
                       onInput=${function(e){setEditStuPhone(e.target.value);}} type="tel" />
-                    <input className="settings-input" style=${{padding:'6px 10px',fontSize:13,marginBottom:0,marginTop:4}} placeholder="📞 학부모 연락처" value=${editPhone}
+                    <div style=${{fontSize:11,color:'var(--text-light)',marginTop:4,marginBottom:2}}>📞 학부모 연락처</div>
+                    <input className="settings-input" style=${{padding:'6px 10px',fontSize:13,marginBottom:0}} placeholder="010-0000-0000" value=${editPhone}
                       onInput=${function(e){setEditPhone(e.target.value);}} type="tel" />
                     <div style=${{display:'flex',gap:6,marginTop:6}}>
                       <button className="btn-primary" style=${{flex:2,fontSize:11,padding:'5px 0'}} onClick=${function(){
