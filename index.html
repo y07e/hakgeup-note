@@ -1340,7 +1340,8 @@ function StudentDetail({ student, memos, points, onBack, onDeleteMemo, onDeleteP
       <div>
         <div className="detail-name">${student.name}</div>
         <div style=${{fontSize:13,color:'var(--text-sec)'}}>${student.number}번</div>
-        ${student.phone ? html`<a href=${'tel:'+student.phone} style=${{fontSize:12,color:'var(--primary)',textDecoration:'none',marginTop:2,display:'inline-block'}}>📞 ${student.phone}</a>` : null}
+        ${student.studentPhone ? html`<a href=${'tel:'+student.studentPhone} style=${{fontSize:12,color:'var(--text-sec)',textDecoration:'none',marginTop:2,display:'inline-block'}}>📱 학생 ${student.studentPhone}</a>` : null}
+        ${student.phone ? html`<a href=${'tel:'+student.phone} style=${{fontSize:12,color:'var(--primary)',textDecoration:'none',marginTop:1,display:'inline-block'}}>📞 학부모 ${student.phone}</a>` : null}
       </div>
     </div>
 
@@ -2265,6 +2266,7 @@ function Settings({ classInfo, students, memos, points, onUpdateCI, onUpdateSt, 
   const [editName, setEditName] = useState('');
   const [editNum, setEditNum] = useState('');
   const [editPhone, setEditPhone] = useState('');
+  const [editStuPhone, setEditStuPhone] = useState('');
   const [pinInput, setPinInput] = useState('');
   const [hasPin, setHasPin] = useState(!!load(KEYS.pin,''));
   const [resetConfirm, setResetConfirm] = useState(false);
@@ -2299,8 +2301,9 @@ function Settings({ classInfo, students, memos, points, onUpdateCI, onUpdateSt, 
     var news = lines.map(function(line, i) {
       var parts = line.split(',').map(function(p){return p.trim();});
       var name = parts[0] || '';
-      var phone = parts[1] || '';
-      return { id: uid(), number: maxN+1+i, name: name, phone: phone };
+      var studentPhone = parts[1] || '';
+      var phone = parts[2] || '';
+      return { id: uid(), number: maxN+1+i, name: name, studentPhone: studentPhone, phone: phone };
     }).filter(function(s){return s.name.length>0;});
     onUpdateSt(students.concat(news));
     setBulk(''); setShowBulk(false);
@@ -2352,10 +2355,10 @@ function Settings({ classInfo, students, memos, points, onUpdateCI, onUpdateSt, 
       for(var i=startIdx;i<lines.length;i++){
         var cols = lines[i].split(',').map(function(c){return c.trim().replace(/"/g,'');});
         var name = ''; var num = 0;
-        var phone = '';
-        if(cols.length>=2 && !isNaN(Number(cols[0]))){num=Number(cols[0]);name=cols[1];phone=cols[2]||'';}
-        else{name=cols[0];num=maxN+1+newStudents.length;phone=cols[1]&&isNaN(Number(cols[1]))?'':'';}
-        if(name) newStudents.push({id:uid(),number:num,name:name,phone:phone});
+        var studentPhone = ''; var phone = '';
+        if(cols.length>=2 && !isNaN(Number(cols[0]))){num=Number(cols[0]);name=cols[1];studentPhone=cols[2]||'';phone=cols[3]||'';}
+        else{name=cols[0];num=maxN+1+newStudents.length;}
+        if(name) newStudents.push({id:uid(),number:num,name:name,studentPhone:studentPhone,phone:phone});
       }
       if(newStudents.length===0){onToast('학생을 찾을 수 없습니다','error');return;}
       onUpdateSt(students.concat(newStudents));
@@ -2484,16 +2487,18 @@ function Settings({ classInfo, students, memos, points, onUpdateCI, onUpdateSt, 
                         onInput=${function(e){setEditName(e.target.value);}}
                       onKeyDown=${function(e){if(e.key==='Enter'&&!e.nativeEvent.isComposing){
                         var newNum = parseInt(editNum) || s.number;
-                        onUpdateSt(students.map(function(st){return st.id===s.id?Object.assign({},st,{number:newNum,name:editName.trim()||'공번',phone:editPhone.trim()}):st;}).sort(function(a,b){return a.number-b.number;}));
+                        onUpdateSt(students.map(function(st){return st.id===s.id?Object.assign({},st,{number:newNum,name:editName.trim()||'공번',phone:editPhone.trim(),studentPhone:editStuPhone.trim()}):st;}).sort(function(a,b){return a.number-b.number;}));
                         setEditId(null); onToast('학생 정보 수정 완료');
                       }}} />
                     </div>
-                    <input className="settings-input" style=${{padding:'6px 10px',fontSize:13,marginBottom:0}} placeholder="📞 학부모 연락처" value=${editPhone}
+                    <input className="settings-input" style=${{padding:'6px 10px',fontSize:13,marginBottom:0}} placeholder="📱 학생 연락처" value=${editStuPhone}
+                      onInput=${function(e){setEditStuPhone(e.target.value);}} type="tel" />
+                    <input className="settings-input" style=${{padding:'6px 10px',fontSize:13,marginBottom:0,marginTop:4}} placeholder="📞 학부모 연락처" value=${editPhone}
                       onInput=${function(e){setEditPhone(e.target.value);}} type="tel" />
                     <div style=${{display:'flex',gap:6,marginTop:6}}>
                       <button className="btn-primary" style=${{flex:2,fontSize:11,padding:'5px 0'}} onClick=${function(){
                         var newNum = parseInt(editNum) || s.number;
-                        onUpdateSt(students.map(function(st){return st.id===s.id?Object.assign({},st,{number:newNum,name:editName.trim()||'공번',phone:editPhone.trim()}):st;}).sort(function(a,b){return a.number-b.number;}));
+                        onUpdateSt(students.map(function(st){return st.id===s.id?Object.assign({},st,{number:newNum,name:editName.trim()||'공번',phone:editPhone.trim(),studentPhone:editStuPhone.trim()}):st;}).sort(function(a,b){return a.number-b.number;}));
                         setEditId(null); onToast('학생 정보 수정 완료');
                       }}>저장</button>
                       <button className="btn-secondary" style=${{flex:2,fontSize:11,padding:'5px 0',color:'var(--danger)',borderColor:'var(--danger)'}} onClick=${function(){
@@ -2505,7 +2510,7 @@ function Settings({ classInfo, students, memos, points, onUpdateCI, onUpdateSt, 
                   </div>
                 ` : html`
                   <span className="sm-num">${s.number}</span>
-                  <span className="sm-name" style=${{cursor:'pointer',flex:1}} onClick=${function(){setEditId(s.id);setEditName(s.name);setEditNum(String(s.number));setEditPhone(s.phone||'');setDelConfirm(null);}}>${s.name}</span>
+                  <span className="sm-name" style=${{cursor:'pointer',flex:1}} onClick=${function(){setEditId(s.id);setEditName(s.name);setEditNum(String(s.number));setEditPhone(s.phone||'');setEditStuPhone(s.studentPhone||'');setDelConfirm(null);}}>${s.name}</span>
                   ${delConfirm===s.id
                     ? html`<div className="confirm-bar">
                         <button className="confirm-yes" onClick=${function(){delStudent(s.id);}}>삭제</button>
@@ -2528,7 +2533,7 @@ function Settings({ classInfo, students, memos, points, onUpdateCI, onUpdateSt, 
             </button>
             ${showBulk ? html`
               <div style=${{marginTop:8}}>
-                <textarea className="bulk-textarea" placeholder=${'이름, 연락처를 한 줄에 하나씩 입력하세요.\n(연락처는 생략 가능)\n\n예시:\n홍길동, 010-1234-5678\n김철수, 010-2345-6789\n이영희'}
+                <textarea className="bulk-textarea" placeholder=${'이름, 학생연락처, 학부모연락처\n(연락처는 생략 가능)\n\n예시:\n홍길동, 010-1111-1111, 010-1234-5678\n김철수, , 010-2345-6789\n이영희'}
                   value=${bulk} onInput=${function(e){setBulk(e.target.value);}} />
                 <button className="btn-primary" onClick=${addBulkFn}>일괄 추가</button>
               </div>
@@ -2536,7 +2541,7 @@ function Settings({ classInfo, students, memos, points, onUpdateCI, onUpdateSt, 
             <div style=${{display:'flex',gap:6,marginTop:8}}>
               <button className="btn-secondary" style=${{flex:1}} onClick=${function(){csvRef.current&&csvRef.current.click();}}>📄 CSV 파일로 학생 등록</button>
               <button className="btn-secondary" style=${{flex:1}} onClick=${function(){
-                var csv = '\uFEFF번호,이름,연락처\n1,홍길동,010-1234-5678\n2,김철수,010-2345-6789\n3,이영희,010-3456-7890\n4,박지민,\n5,최수현,';
+                var csv = '\uFEFF번호,이름,학생연락처,학부모연락처\n1,홍길동,010-1111-1111,010-1234-5678\n2,김철수,,010-2345-6789\n3,이영희,010-3333-3333,010-3456-7890\n4,박지민,,\n5,최수현,,';
                 var blob = new Blob([csv], {type:'text/csv;charset=utf-8'});
                 var a = document.createElement('a'); a.href = URL.createObjectURL(blob);
                 a.download = '학생등록_양식.csv'; a.click(); URL.revokeObjectURL(a.href);
