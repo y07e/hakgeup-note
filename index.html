@@ -1939,6 +1939,7 @@ function AbsenceFormModal({ students, classInfo, date, onClose, onToast, prefill
   const [absDays, setAbsDays] = useState(prefill ? prefill.absDays : '1');
   const [absType, setAbsType] = useState(prefill ? prefill.absType : '');
   const [absReason, setAbsReason] = useState(prefill ? prefill.absReason : '');
+  const [issueDate, setIssueDate] = useState(prefill ? prefill.issueDate : date);
   const [editMode, setEditMode] = useState(false);
   const [pos, setPos] = useState(loadAbsPos);
   const previewRef = useRef(null);
@@ -1983,7 +1984,7 @@ function AbsenceFormModal({ students, classInfo, date, onClose, onToast, prefill
       studentName: selStudent.name, studentNum: selStudent.number,
       absFrom: absFrom, absTo: absTo, absDays: absDays,
       absType: absType, absReason: absReason,
-      issueDate: new Date().toISOString().slice(0,10),
+      issueDate: issueDate,
       createdAt: new Date().toISOString()
     };
     var onAfter = function() {
@@ -2087,6 +2088,10 @@ function AbsenceFormModal({ students, classInfo, date, onClose, onToast, prefill
             <div style=${{fontSize:12,fontWeight:700,color:'var(--text-sec)',marginBottom:6}}>결석사유 (학부모 의견)</div>
             <textarea className="input-field" rows="3" placeholder="결석 사유를 작성하세요" value=${absReason} onInput=${function(e){setAbsReason(e.target.value);}} style=${{resize:'vertical',fontFamily:'inherit'}}></textarea>
           </div>
+          <div style=${{marginBottom:12}}>
+            <div style=${{fontSize:12,fontWeight:700,color:'var(--text-sec)',marginBottom:6}}>발급 날짜</div>
+            <input type="date" className="input-field" style=${{padding:'6px 4px'}} value=${issueDate} onInput=${function(e){setIssueDate(e.target.value);}} />
+          </div>
           <div style=${{display:'flex',gap:8}}>
             <button className="btn-primary" style=${{flex:1}} onClick=${doPrint}>🖨️ 인쇄하기</button>
             <button className="btn-primary" style=${{flex:1,background:'var(--text-sec)'}} onClick=${function(){setEditMode(!editMode);}}>${editMode ? '조정 닫기' : '📐 위치 조정'}</button>
@@ -2128,12 +2133,12 @@ function AbsenceFormModal({ students, classInfo, date, onClose, onToast, prefill
           <span style=${{top:pos.days.top+'mm',left:pos.days.left+'mm',fontSize:'11pt'}}>${absDays}</span>
           ${absTypes.map(function(t){ return absType===t.key ? html`<span style=${{top:pos[t.pk].top+'mm',left:pos[t.pk].left+'mm',fontSize:'13pt'}}>✓</span>` : null; })}
           <span style=${{top:pos.opinion.top+'mm',left:pos.opinion.left+'mm',fontSize:'11pt',maxWidth:'170mm',whiteSpace:'pre-wrap'}}>${absReason || ''}</span>
-          <span style=${{top:pos.pY.top+'mm',left:pos.pY.left+'mm',fontSize:'11pt'}}>${date.split('-')[0].slice(3)}</span>
-          <span style=${{top:pos.pM.top+'mm',left:pos.pM.left+'mm',fontSize:'11pt'}}>${parseInt(date.split('-')[1])}</span>
-          <span style=${{top:pos.pD.top+'mm',left:pos.pD.left+'mm',fontSize:'11pt'}}>${parseInt(date.split('-')[2])}</span>
-          <span style=${{top:pos.dY.top+'mm',left:pos.dY.left+'mm',fontSize:'11pt'}}>${date.split('-')[0].slice(3)}</span>
-          <span style=${{top:pos.dM.top+'mm',left:pos.dM.left+'mm',fontSize:'11pt'}}>${parseInt(date.split('-')[1])}</span>
-          <span style=${{top:pos.dD.top+'mm',left:pos.dD.left+'mm',fontSize:'11pt'}}>${parseInt(date.split('-')[2])}</span>
+          <span style=${{top:pos.pY.top+'mm',left:pos.pY.left+'mm',fontSize:'11pt'}}>${issueDate.split('-')[0].slice(3)}</span>
+          <span style=${{top:pos.pM.top+'mm',left:pos.pM.left+'mm',fontSize:'11pt'}}>${parseInt(issueDate.split('-')[1])}</span>
+          <span style=${{top:pos.pD.top+'mm',left:pos.pD.left+'mm',fontSize:'11pt'}}>${parseInt(issueDate.split('-')[2])}</span>
+          <span style=${{top:pos.dY.top+'mm',left:pos.dY.left+'mm',fontSize:'11pt'}}>${issueDate.split('-')[0].slice(3)}</span>
+          <span style=${{top:pos.dM.top+'mm',left:pos.dM.left+'mm',fontSize:'11pt'}}>${parseInt(issueDate.split('-')[1])}</span>
+          <span style=${{top:pos.dD.top+'mm',left:pos.dD.left+'mm',fontSize:'11pt'}}>${parseInt(issueDate.split('-')[2])}</span>
           <span style=${{top:pos.teacher.top+'mm',left:pos.teacher.left+'mm',fontSize:'11pt',letterSpacing:'3mm'}}>${teacherName}</span>
         </div>
       </div>
