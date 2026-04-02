@@ -1576,7 +1576,7 @@ function LookupTab({ students, memos, points, date, classInfo, onDeleteMemo, onD
             if(m.categories) m.categories.forEach(function(c){ if(row[c]!==undefined){row[c]++;row.total++;} });
           });
           return row;
-        });
+        }).filter(function(r){return r.total>0;});
         return html`<table className="attend-print-table">
           <thead><tr>
             <th>번호</th><th>이름</th>
