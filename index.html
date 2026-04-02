@@ -2293,13 +2293,18 @@ function Settings({ classInfo, students, memos, points, onUpdateCI, onUpdateSt, 
   };
 
   var addBulkFn = function() {
-    var names = bulk.split('\n').map(function(n){return n.trim();}).filter(function(n){return n.length>0;});
-    if (!names.length) return;
+    var lines = bulk.split('\n').map(function(n){return n.trim();}).filter(function(n){return n.length>0;});
+    if (!lines.length) return;
     var maxN = students.length > 0 ? Math.max.apply(null, students.map(function(s){return s.number;})) : 0;
-    var news = names.map(function(name, i) { return { id: uid(), number: maxN+1+i, name: name }; });
+    var news = lines.map(function(line, i) {
+      var parts = line.split(',').map(function(p){return p.trim();});
+      var name = parts[0] || '';
+      var phone = parts[1] || '';
+      return { id: uid(), number: maxN+1+i, name: name, phone: phone };
+    }).filter(function(s){return s.name.length>0;});
     onUpdateSt(students.concat(news));
     setBulk(''); setShowBulk(false);
-    onToast(names.length + '명 학생 일괄 추가 완료');
+    onToast(news.length + '명 학생 일괄 추가 완료');
   };
 
   var delStudent = function(id) {
@@ -2523,7 +2528,7 @@ function Settings({ classInfo, students, memos, points, onUpdateCI, onUpdateSt, 
             </button>
             ${showBulk ? html`
               <div style=${{marginTop:8}}>
-                <textarea className="bulk-textarea" placeholder=${'이름을 한 줄에 하나씩 입력하세요.\n\n예시:\n홍길동\n김철수\n이영희'}
+                <textarea className="bulk-textarea" placeholder=${'이름, 연락처를 한 줄에 하나씩 입력하세요.\n(연락처는 생략 가능)\n\n예시:\n홍길동, 010-1234-5678\n김철수, 010-2345-6789\n이영희'}
                   value=${bulk} onInput=${function(e){setBulk(e.target.value);}} />
                 <button className="btn-primary" onClick=${addBulkFn}>일괄 추가</button>
               </div>
