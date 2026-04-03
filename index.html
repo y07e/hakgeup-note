@@ -432,6 +432,8 @@ html,body{height:100%;background:#e2e8f0;
   /* 조퇴/외출증 인쇄 */
   [data-print="leave-pass"] .main-content{display:none!important}
   [data-print="leave-pass"] .lp-print-area{display:block!important;padding:0}
+  [data-print="leave-pass-custom"] .main-content{display:none!important}
+  [data-print="leave-pass-custom"] .lp-custom-print-area{display:block!important;padding:0}
   .lp-card{border:2.5px solid #333;padding:12px 24px;margin:3mm 0;page-break-inside:avoid}
   .lp-title{text-align:center;font-size:18pt;font-weight:900;font-family:'A2GBold',sans-serif;border-bottom:2.5px solid #000;padding-bottom:6px;margin-bottom:10px;letter-spacing:2px;text-decoration:underline}
   .lp-body{font-size:12pt;line-height:2}
@@ -467,6 +469,7 @@ html,body{height:100%;background:#e2e8f0;
 }
 .print-area{display:none}
 .lp-print-area{display:none}
+.lp-custom-print-area{display:none}
 .af-print-area{display:none}
 .abs-print-area{display:none}
   </style>
@@ -554,7 +557,11 @@ var UPDATES = [
 ];
 
 // ===== Store =====
-const KEYS = { classInfo:'hn_ci', students:'hn_st', memos:'hn_me', points:'hn_pt', seating:'hn_se', cleaning:'hn_cl', diary:'hn_di', pin:'hn_pin', lastVer:'hn_ver', formApprove:'hn_form_approve', formAbsence:'hn_form_absence', formHistory:'hn_form_history' };
+const KEYS = { classInfo:'hn_ci', students:'hn_st', memos:'hn_me', points:'hn_pt', seating:'hn_se', cleaning:'hn_cl', diary:'hn_di', pin:'hn_pin', lastVer:'hn_ver', formApprove:'hn_form_approve', formAbsence:'hn_form_absence', formLeave:'hn_form_leave', formHistory:'hn_form_history' };
+var LP_POS_KEY = 'lp_positions';
+var LP_FIELD_OPTS = ['학년','반','번호','이름','구분(조퇴/외출)','사유','시작시','시작분','종료시','종료분','년도','월','일','학교명','담임'];
+function loadLpPos(){ try{var r=localStorage.getItem(LP_POS_KEY);return r?JSON.parse(r):[];} catch(e){return [];} }
+function saveLpPos(p){ localStorage.setItem(LP_POS_KEY, JSON.stringify(p)); }
 const load = (k, fb) => { try { const r = localStorage.getItem(k); return r ? JSON.parse(r) : fb; } catch(e) { return fb; } };
 const save = (k, v) => localStorage.setItem(k, JSON.stringify(v));
 
@@ -1629,6 +1636,50 @@ function LeavePassModal({ students, classInfo, date, onClose, onToast, prefill }
   const [fromM, setFromM] = useState(prefill ? prefill.fromM : '');
   const [toH, setToH] = useState(prefill ? prefill.toH : '');
   const [toM, setToM] = useState(prefill ? prefill.toM : '');
+  const [customImg, setCustomImg] = useState(function(){ return load(KEYS.formLeave, null); });
+  const [fields, setFields] = useState(loadLpPos);
+  const [editMode, setEditMode] = useState(false);
+  const previewRef = useRef(null);
+  const lpImgRef = useRef(null);
+
+  var handleImgUpload = function(e) {
+    var file = e.target.files[0]; if(!file) return;
+    var reader = new FileReader();
+    reader.onload = function(ev){ var d=ev.target.result; setCustomImg(d); try{localStorage.setItem(KEYS.formLeave,JSON.stringify(d));}catch(err){onToast('이미지 용량이 너무 큽니다','error');} };
+    reader.readAsDataURL(file);
+  };
+  var resetImg = function(){ setCustomImg(null); localStorage.removeItem(KEYS.formLeave); setFields([]); saveLpPos([]); };
+  var addField = function(){ var nf=fields.concat([{id:Date.now().toString(36),label:'이름',top:50,left:50,fontSize:13}]); setFields(nf); saveLpPos(nf); };
+  var removeField = function(fid){ var nf=fields.filter(function(f){return f.id!==fid;}); setFields(nf); saveLpPos(nf); };
+  var changeLabel = function(fid,lab){ var nf=fields.map(function(f){return f.id===fid?Object.assign({},f,{label:lab}):f;}); setFields(nf); saveLpPos(nf); };
+  var changeFontSize = function(fid,size){ var nf=fields.map(function(f){return f.id===fid?Object.assign({},f,{fontSize:size}):f;}); setFields(nf); saveLpPos(nf); };
+  var onPointerDown = function(fid, e) {
+    e.preventDefault();
+    var rect=previewRef.current.getBoundingClientRect();
+    var scaleX=210/rect.width; var scaleY=297/rect.height;
+    var startX=e.clientX; var startY=e.clientY;
+    var f=fields.find(function(x){return x.id===fid;});
+    var startTop=f.top; var startLeft=f.left;
+    var onMove=function(ev){ var dx=(ev.clientX-startX)*scaleX; var dy=(ev.clientY-startY)*scaleY;
+      var nf=fields.map(function(x){return x.id===fid?Object.assign({},x,{top:Math.round(startTop+dy),left:Math.round(startLeft+dx)}):x;});
+      setFields(nf);
+    };
+    var onUp=function(){ document.removeEventListener('pointermove',onMove); document.removeEventListener('pointerup',onUp); setFields(function(p){saveLpPos(p);return p;}); };
+    document.addEventListener('pointermove',onMove); document.addEventListener('pointerup',onUp);
+  };
+
+  var getFieldValue = function(label) {
+    var dp=date.split('-'); var cnMatch=(classInfo.className||'').match(/(\d+)\s*학년\s*(\d+)\s*반/);
+    var g=cnMatch?cnMatch[1]:'__'; var c=cnMatch?cnMatch[2]:'__';
+    var st=students.find(function(s){return s.id===selSt;});
+    var m={
+      '학년':g, '반':c, '번호':st?String(st.number):'__', '이름':st?st.name:'____',
+      '구분(조퇴/외출)':passType, '사유':reason||'', '시작시':fromH||'__', '시작분':fromM||'__',
+      '종료시':toH||'__', '종료분':toM||'__', '년도':dp[0].slice(3), '월':String(parseInt(dp[1])),
+      '일':String(parseInt(dp[2])), '학교명':classInfo.schoolName||'________', '담임':classInfo.teacherName||'________'
+    };
+    return m[label]||'';
+  };
 
   var selStudent = students.find(function(s){ return s.id === selSt; });
   var dp = date.split('-');
@@ -1642,10 +1693,11 @@ function LeavePassModal({ students, classInfo, date, onClose, onToast, prefill }
     if (!selSt) { onToast('학생을 선택하세요', 'error'); return; }
     if (!reason.trim()) { onToast('사유를 입력하세요', 'error'); return; }
     var app = document.querySelector('.app');
-    app.setAttribute('data-print', 'leave-pass');
+    var printMode = customImg ? 'leave-pass-custom' : 'leave-pass';
+    app.setAttribute('data-print', printMode);
     var s = document.getElementById('print-orient');
     if (!s) { s = document.createElement('style'); s.id = 'print-orient'; document.head.appendChild(s); }
-    s.textContent = '@media print{@page{size:A4 portrait;margin:30mm 15mm 8mm 15mm}}';
+    s.textContent = customImg ? '@media print{@page{size:A4 portrait;margin:0}}' : '@media print{@page{size:A4 portrait;margin:30mm 15mm 8mm 15mm}}';
     var recordData = {
       id: Date.now().toString(36)+Math.random().toString(36).slice(2,6),
       type: 'leavepass', formType: passType, studentId: selSt,
@@ -1727,16 +1779,78 @@ function LeavePassModal({ students, classInfo, date, onClose, onToast, prefill }
               <span style=${{fontSize:13}}>분까지</span>
             </div>
           </div>
-          <button className="btn-primary" onClick=${doPrint}>🖨️ 인쇄하기 (보관용 + 학생용)</button>
+          <div style=${{display:'flex',gap:8}}>
+            <button className="btn-primary" style=${{flex:1}} onClick=${doPrint}>${customImg ? '🖨️ 인쇄하기' : '🖨️ 인쇄 (보관용+학생용)'}</button>
+          </div>
+
+          <div style=${{marginTop:12,padding:'8px',background:'var(--bg)',borderRadius:8,border:'1px solid var(--border-light)'}}>
+            <div style=${{display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+              <div style=${{fontSize:12,fontWeight:700,color:'var(--text-sec)'}}>📝 다른 학교 양식</div>
+              <div style=${{display:'flex',gap:6}}>
+                <button style=${{fontSize:11,padding:'4px 10px',border:'1px solid var(--border)',borderRadius:6,background:'var(--card)',cursor:'pointer',fontFamily:'inherit'}} onClick=${function(){lpImgRef.current&&lpImgRef.current.click();}}>업로드</button>
+                ${customImg ? html`<button style=${{fontSize:11,padding:'4px 10px',border:'1px solid #e74c3c',borderRadius:6,background:'#fff5f5',color:'#e74c3c',cursor:'pointer',fontFamily:'inherit'}} onClick=${resetImg}>초기화</button>` : null}
+              </div>
+            </div>
+            <div style=${{fontSize:11,color:'var(--text-light)',marginTop:4}}>${customImg ? '✅ 사용자 양식 적용 중' : '기본 양식 사용 중 (다른 학교 양식을 업로드하세요)'}</div>
+            <input ref=${lpImgRef} type="file" accept="image/*" style=${{display:'none'}} onChange=${handleImgUpload} />
+          </div>
+
+          ${customImg ? html`
+            <div style=${{marginTop:8,display:'flex',gap:6}}>
+              <button style=${{flex:1,fontSize:11,padding:'6px',border:'1px solid var(--border)',borderRadius:6,background:'var(--card)',cursor:'pointer',fontFamily:'inherit'}} onClick=${function(){setEditMode(!editMode);}}>${editMode?'조정 닫기':'📐 위치 조정'}</button>
+              ${editMode ? html`<button style=${{fontSize:11,padding:'6px 10px',border:'1px solid var(--primary)',borderRadius:6,background:'var(--primary)',color:'#fff',cursor:'pointer',fontFamily:'inherit'}} onClick=${addField}>+ 입력칸 추가</button>` : null}
+            </div>
+            ${editMode ? html`
+              <div style=${{marginTop:8}}>
+                ${fields.length===0 ? html`<div style=${{fontSize:12,color:'var(--text-light)',textAlign:'center',padding:'8px'}}>입력칸이 없습니다. "+ 입력칸 추가" 버튼을 눌러주세요.</div>` : null}
+                ${fields.map(function(f){
+                  return html`<div key=${f.id} style=${{display:'flex',alignItems:'center',gap:4,marginBottom:4}}>
+                    <select style=${{flex:1,padding:'4px',fontSize:11,border:'1px solid var(--border)',borderRadius:4,fontFamily:'inherit'}} value=${f.label} onChange=${function(e){changeLabel(f.id,e.target.value);}}>
+                      ${LP_FIELD_OPTS.map(function(o){return html`<option key=${o} value=${o}>${o}</option>`;})}
+                    </select>
+                    <select style=${{width:50,padding:'4px',fontSize:11,border:'1px solid var(--border)',borderRadius:4,fontFamily:'inherit'}} value=${f.fontSize||13} onChange=${function(e){changeFontSize(f.id,Number(e.target.value));}}>
+                      ${[9,10,11,12,13,14,16,18,20,24].map(function(s){return html`<option key=${s} value=${s}>${s}pt</option>`;})}
+                    </select>
+                    <button style=${{fontSize:12,border:'none',background:'none',color:'#e74c3c',cursor:'pointer',padding:'2px 4px'}} onClick=${function(){removeField(f.id);}}>✕</button>
+                  </div>`;
+                })}
+              </div>
+              <div style=${{marginTop:8,border:'1px solid var(--border)',borderRadius:8,overflow:'hidden'}}>
+                <div style=${{fontSize:11,padding:'6px 8px',background:'var(--bg-sec)',color:'var(--text-sec)'}}>드래그로 텍스트 위치를 조정하세요.</div>
+                <div ref=${previewRef} style=${{position:'relative',width:'100%',paddingBottom:'141.4%',overflow:'hidden',background:'#fff'}}>
+                  <img src=${customImg} style=${{position:'absolute',top:0,left:0,width:'100%',height:'100%'}} />
+                  ${fields.map(function(f){
+                    var topPct=(f.top/297*100).toFixed(2)+'%'; var leftPct=(f.left/210*100).toFixed(2)+'%';
+                    return html`<span key=${f.id} style=${{position:'absolute',top:topPct,left:leftPct,fontSize:'8px',cursor:'grab',background:'rgba(255,255,0,0.5)',padding:'1px 3px',border:'1px dashed #f00',zIndex:10,userSelect:'none',touchAction:'none',lineHeight:1.2}}
+                      onPointerDown=${function(e){onPointerDown(f.id,e);}}
+                      title=${f.label+': top='+f.top+'mm, left='+f.left+'mm'}>${getFieldValue(f.label)||f.label}</span>`;
+                  })}
+                </div>
+              </div>
+            ` : null}
+          ` : null}
         </div>
       </div>
     </div>
 
-    <div className="lp-print-area">
-      ${passCard('보관용')}
-      <div className="lp-cut-line">✂ - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -</div>
-      ${passCard('학생용')}
-    </div>
+    ${customImg ? html`
+      <div className="lp-custom-print-area">
+        <div className="af-page">
+          <img src=${customImg} />
+          <div className="af-overlay">
+            ${fields.map(function(f){
+              return html`<span key=${f.id} style=${{top:f.top+'mm',left:f.left+'mm',fontSize:(f.fontSize||13)+'pt'}}>${getFieldValue(f.label)}</span>`;
+            })}
+          </div>
+        </div>
+      </div>
+    ` : html`
+      <div className="lp-print-area">
+        ${passCard('보관용')}
+        <div className="lp-cut-line">✂ - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -</div>
+        ${passCard('학생용')}
+      </div>
+    `}
   `;
 }
 
@@ -2396,8 +2510,10 @@ function Settings({ classInfo, students, memos, points, onUpdateCI, onUpdateSt, 
       formHistory: load(KEYS.formHistory, []),
       formApproveImg: load(KEYS.formApprove, null),
       formAbsenceImg: load(KEYS.formAbsence, null),
+      formLeaveImg: load(KEYS.formLeave, null),
       formApprovePos: afPosRaw ? JSON.parse(afPosRaw) : null,
       formAbsencePos: absPosRaw ? JSON.parse(absPosRaw) : null,
+      formLeavePos: loadLpPos(),
     }, null, 2);
     var blob = new Blob([data], { type: 'application/json' });
     var url = URL.createObjectURL(blob);
@@ -2424,8 +2540,10 @@ function Settings({ classInfo, students, memos, points, onUpdateCI, onUpdateSt, 
         if (d.formHistory) save(KEYS.formHistory, d.formHistory);
         if (d.formApproveImg) save(KEYS.formApprove, d.formApproveImg);
         if (d.formAbsenceImg) save(KEYS.formAbsence, d.formAbsenceImg);
+        if (d.formLeaveImg) save(KEYS.formLeave, d.formLeaveImg);
         if (d.formApprovePos) localStorage.setItem(AF_POS_KEY, JSON.stringify(d.formApprovePos));
         if (d.formAbsencePos) localStorage.setItem(ABS_POS_KEY, JSON.stringify(d.formAbsencePos));
+        if (d.formLeavePos) saveLpPos(d.formLeavePos);
         onToast('데이터 복원 완료'); onReload(); onClose();
       } catch(err) { onToast('파일 형식이 올바르지 않습니다', 'error'); }
     };
