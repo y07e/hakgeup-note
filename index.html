@@ -2411,17 +2411,34 @@ function Settings({ classInfo, students, memos, points, onUpdateCI, onUpdateSt, 
   var addBulkFn = function() {
     var lines = bulk.split('\n').map(function(n){return n.trim();}).filter(function(n){return n.length>0;});
     if (!lines.length) return;
-    var maxN = students.length > 0 ? Math.max.apply(null, students.map(function(s){return s.number;})) : 0;
-    var news = lines.map(function(line, i) {
+    var updated = students.slice();
+    var addCount = 0; var updateCount = 0;
+    lines.forEach(function(line, i) {
       var parts = line.split(',').map(function(p){return p.trim();});
       var name = parts[0] || '';
       var studentPhone = parts[1] || '';
       var phone = parts[2] || '';
-      return { id: uid(), number: maxN+1+i, name: name, studentPhone: studentPhone, phone: phone };
-    }).filter(function(s){return s.name.length>0;});
-    onUpdateSt(students.concat(news));
+      if (!name) return;
+      var num = i + 1;
+      var existing = updated.findIndex(function(s){return s.number===num;});
+      if (existing >= 0) {
+        var st = Object.assign({}, updated[existing]);
+        st.name = name;
+        if (studentPhone) st.studentPhone = studentPhone;
+        if (phone) st.phone = phone;
+        updated[existing] = st;
+        updateCount++;
+      } else {
+        updated.push({id:uid(), number:num, name:name, studentPhone:studentPhone, phone:phone});
+        addCount++;
+      }
+    });
+    onUpdateSt(updated.sort(function(a,b){return a.number-b.number;}));
     setBulk(''); setShowBulk(false);
-    onToast(news.length + '명 학생 일괄 추가 완료');
+    var msg = [];
+    if (updateCount > 0) msg.push(updateCount + '명 업데이트');
+    if (addCount > 0) msg.push(addCount + '명 신규 추가');
+    onToast(msg.join(', ') + ' 완료');
   };
 
   var delStudent = function(id) {
