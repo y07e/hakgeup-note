@@ -1698,6 +1698,7 @@ function LeavePassModal({ students, classInfo, date, onClose, onToast, prefill }
   const [fromM, setFromM] = useState(prefill ? prefill.fromM : '');
   const [toH, setToH] = useState(prefill ? prefill.toH : '');
   const [toM, setToM] = useState(prefill ? prefill.toM : '');
+  const [issueDate, setIssueDate] = useState(prefill ? prefill.issueDate : date);
   const [customImg, setCustomImg] = useState(function(){ return load(KEYS.formLeave, null); });
   const [fields, setFields] = useState(loadLpPos);
   const [editMode, setEditMode] = useState(false);
@@ -1744,7 +1745,7 @@ function LeavePassModal({ students, classInfo, date, onClose, onToast, prefill }
   };
 
   var selStudent = students.find(function(s){ return s.id === selSt; });
-  var dp = date.split('-');
+  var dp = issueDate.split('-');
   var yearStr = dp[0]; var monthStr = String(parseInt(dp[1])); var dayStr = String(parseInt(dp[2]));
   var cnMatch = (classInfo.className || '').match(/(\d+)\s*학년\s*(\d+)\s*반/);
   var gradeStr = cnMatch ? cnMatch[1] : '__'; var classStr = cnMatch ? cnMatch[2] : '__';
@@ -1765,7 +1766,7 @@ function LeavePassModal({ students, classInfo, date, onClose, onToast, prefill }
       type: 'leavepass', formType: passType, studentId: selSt,
       studentName: selStudent.name, studentNum: selStudent.number,
       reason: reason, fromH: fromH, fromM: fromM, toH: toH, toM: toM,
-      issueDate: date, createdAt: new Date().toISOString()
+      issueDate: issueDate, createdAt: new Date().toISOString()
     };
     var onAfter = function() {
       window.removeEventListener('afterprint', onAfter);
@@ -1840,6 +1841,10 @@ function LeavePassModal({ students, classInfo, date, onClose, onToast, prefill }
               <input type="number" className="input-field" style=${{width:50,textAlign:'center',padding:'6px 4px'}} placeholder="분" min="0" max="59" value=${toM} onInput=${function(e){setToM(e.target.value);}} />
               <span style=${{fontSize:13}}>분까지</span>
             </div>
+          </div>
+          <div style=${{marginBottom:12}}>
+            <div style=${{fontSize:12,fontWeight:700,color:'var(--text-sec)',marginBottom:6}}>발급 날짜</div>
+            <input type="date" className="input-field" style=${{padding:'6px 4px'}} value=${issueDate} onInput=${function(e){setIssueDate(e.target.value);}} />
           </div>
           <div style=${{display:'flex',gap:8}}>
             <button className="btn-primary" style=${{flex:1}} onClick=${doPrint}>${customImg ? '🖨️ 인쇄하기' : '🖨️ 인쇄 (보관용+학생용)'}</button>
@@ -2465,7 +2470,7 @@ function Settings({ classInfo, students, memos, points, onUpdateCI, onUpdateSt, 
     var name = newName.trim();
     if (!name) return;
     var maxN = students.length > 0 ? Math.max.apply(null, students.map(function(s){return s.number;})) : 0;
-    onUpdateSt(students.concat([{ id: uid(), number: maxN+1, name: name }]));
+    onUpdateSt(students.concat([{ id: uid(), number: maxN+1, name: name, phone: '', studentPhone: '' }]));
     setNewName('');
     onToast(name + ' 학생 추가 완료');
   };
