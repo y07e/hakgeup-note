@@ -557,7 +557,7 @@ var UPDATES = [
 ];
 
 // ===== Store =====
-const KEYS = { classInfo:'hn_ci', students:'hn_st', memos:'hn_me', points:'hn_pt', seating:'hn_se', cleaning:'hn_cl', diary:'hn_di', pin:'hn_pin', lastVer:'hn_ver', formApprove:'hn_form_approve', formAbsence:'hn_form_absence', formLeave:'hn_form_leave', formHistory:'hn_form_history' };
+const KEYS = { classInfo:'hn_ci', students:'hn_st', memos:'hn_me', points:'hn_pt', seating:'hn_se', cleaning:'hn_cl', cleaningHistory:'hn_cl_hist', diary:'hn_di', pin:'hn_pin', lastVer:'hn_ver', formApprove:'hn_form_approve', formAbsence:'hn_form_absence', formLeave:'hn_form_leave', formHistory:'hn_form_history' };
 var LP_POS_KEY = 'lp_positions';
 var LP_FIELD_OPTS = ['학년','반','번호','이름','구분(조퇴/외출)','사유','시작시','시작분','종료시','종료분','년도','월','일','학교명','담임'];
 function loadLpPos(){ try{var r=localStorage.getItem(LP_POS_KEY);return r?JSON.parse(r):[];} catch(e){return [];} }
@@ -1058,6 +1058,27 @@ function CleaningTab({ students, cleaning, classInfo, onUpdate, onToast }) {
   const [editZoneId, setEditZoneId] = useState(null);
   const [editZoneName, setEditZoneName] = useState('');
   const [printDate, setPrintDate] = useState(function(){ return new Date().toISOString().slice(0,10); });
+  const [history, setHistory] = useState(function(){ return load(KEYS.cleaningHistory, []); });
+  const [showHistory, setShowHistory] = useState(false);
+
+  var saveHistory = function() {
+    var entry = { id: Date.now().toString(36), date: printDate, zones: cleaning.zones||[], assignments: cleaning.assignments||{}, notes: cleaning.notes||'', savedAt: new Date().toISOString() };
+    var nh = [entry].concat(history);
+    setHistory(nh); save(KEYS.cleaningHistory, nh);
+    onToast(printDate + ' 배정 저장 완료');
+  };
+
+  var loadHistory = function(entry) {
+    onUpdate({ zones: entry.zones, assignments: entry.assignments, notes: entry.notes });
+    setShowHistory(false);
+    onToast(entry.date + ' 배정을 불러왔습니다');
+  };
+
+  var deleteHistory = function(id) {
+    var nh = history.filter(function(h){ return h.id !== id; });
+    setHistory(nh); save(KEYS.cleaningHistory, nh);
+    onToast('이력 삭제 완료');
+  };
 
   var zones = cleaning.zones || [];
   var assignments = cleaning.assignments || {};
@@ -1131,6 +1152,8 @@ function CleaningTab({ students, cleaning, classInfo, onUpdate, onToast }) {
         <button className=${'cleaning-btn-sm' + (editMode?' active':'')} onClick=${function(){setEditMode(!editMode);setSelZone(null);}}>
           ${editMode ? '완료' : '구역 편집'}
         </button>
+        <button className="cleaning-btn-sm" onClick=${saveHistory}>💾 저장</button>
+        <button className="cleaning-btn-sm" onClick=${function(){setShowHistory(!showHistory);}}>📋 이전</button>
         <input type="date" style=${{padding:'4px',fontSize:11,border:'1px solid var(--border)',borderRadius:4,fontFamily:'inherit'}} value=${printDate} onInput=${function(e){setPrintDate(e.target.value);}} />
         <button className="cleaning-btn-sm" onClick=${doPrint}>🖨️ 인쇄</button>
       </div>
@@ -1142,6 +1165,24 @@ function CleaningTab({ students, cleaning, classInfo, onUpdate, onToast }) {
           onKeyDown=${function(e){if(e.key==='Enter'&&!e.nativeEvent.isComposing)addZone();}} />
         <button onClick=${addZone}>추가</button>
       </div>` : null}
+
+    ${showHistory ? html`
+      <div style=${{margin:'0 16px 12px',padding:'12px',background:'var(--card)',borderRadius:'var(--radius)',boxShadow:'var(--shadow)'}}>
+        <div style=${{fontSize:14,fontWeight:700,marginBottom:8}}>📋 이전 배정 목록</div>
+        ${history.length === 0 ? html`<div style=${{fontSize:13,color:'var(--text-light)',textAlign:'center',padding:'8px 0'}}>저장된 이력이 없습니다</div>` : null}
+        ${history.map(function(h) {
+          var zoneNames = (h.zones||[]).map(function(z){return z.name;}).join(', ');
+          return html`<div key=${h.id} style=${{display:'flex',alignItems:'center',gap:8,padding:'8px 0',borderBottom:'1px solid var(--border-light)'}}>
+            <div style=${{flex:1}}>
+              <div style=${{fontSize:13,fontWeight:600}}>${h.date}</div>
+              <div style=${{fontSize:11,color:'var(--text-light)',marginTop:2}}>${zoneNames || '구역 없음'}</div>
+            </div>
+            <button style=${{fontSize:11,padding:'4px 10px',border:'1px solid var(--primary)',borderRadius:4,background:'var(--primary)',color:'#fff',cursor:'pointer',fontFamily:'inherit'}} onClick=${function(){loadHistory(h);}}>불러오기</button>
+            <button style=${{fontSize:11,padding:'4px 8px',border:'1px solid var(--border)',borderRadius:4,background:'var(--card)',color:'var(--danger)',cursor:'pointer',fontFamily:'inherit'}} onClick=${function(){deleteHistory(h.id);}}>✕</button>
+          </div>`;
+        })}
+      </div>
+    ` : null}
 
     ${zones.map(function(z, zi) {
       var members = (assignments[z.id]||[]);
@@ -2552,6 +2593,7 @@ function Settings({ classInfo, students, memos, points, onUpdateCI, onUpdateSt, 
       formApprovePos: afPosRaw ? JSON.parse(afPosRaw) : null,
       formAbsencePos: absPosRaw ? JSON.parse(absPosRaw) : null,
       formLeavePos: loadLpPos(),
+      cleaningHistory: load(KEYS.cleaningHistory, []),
     }, null, 2);
     var blob = new Blob([data], { type: 'application/json' });
     var url = URL.createObjectURL(blob);
@@ -2582,6 +2624,7 @@ function Settings({ classInfo, students, memos, points, onUpdateCI, onUpdateSt, 
         if (d.formApprovePos) localStorage.setItem(AF_POS_KEY, JSON.stringify(d.formApprovePos));
         if (d.formAbsencePos) localStorage.setItem(ABS_POS_KEY, JSON.stringify(d.formAbsencePos));
         if (d.formLeavePos) saveLpPos(d.formLeavePos);
+        if (d.cleaningHistory) save(KEYS.cleaningHistory, d.cleaningHistory);
         onToast('데이터 복원 완료'); onReload(); onClose();
       } catch(err) { onToast('파일 형식이 올바르지 않습니다', 'error'); }
     };
