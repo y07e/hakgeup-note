@@ -1156,7 +1156,7 @@ function CleaningTab({ students, cleaning, classInfo, onUpdate, onToast }) {
                 <button style=${{padding:'4px 8px',fontSize:11,border:'none',borderRadius:4,background:'var(--primary)',color:'#fff',cursor:'pointer',fontFamily:'inherit'}} onClick=${function(){renameZone(z.id);}}>저장</button>
               </div>
             ` : html`
-              <span onClick=${editMode ? function(e){e.stopPropagation();setEditZoneId(z.id);setEditZoneName(z.name);} : undefined} style=${editMode?{cursor:'pointer',textDecoration:'underline dashed',textUnderlineOffset:'3px'}:{}}>${z.name} (${members.length}명)</span>
+              <span onClick=${editMode ? function(e){e.stopPropagation();setEditZoneId(z.id);setEditZoneName(z.name);} : undefined} style=${editMode?{cursor:'pointer',color:'var(--primary)'}:{}}>${z.name} (${members.length}명)</span>
             `}
             ${editMode ? html`<div className="cleaning-edit-actions">
               <button className="cleaning-move-btn" disabled=${zi===0} onClick=${function(e){e.stopPropagation();moveZone(z.id,-1);}}>▲</button>
