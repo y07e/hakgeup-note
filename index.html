@@ -1055,6 +1055,8 @@ function CleaningTab({ students, cleaning, classInfo, onUpdate, onToast }) {
   const [selZone, setSelZone] = useState(null);
   const [editMode, setEditMode] = useState(false);
   const [newZoneName, setNewZoneName] = useState('');
+  const [editZoneId, setEditZoneId] = useState(null);
+  const [editZoneName, setEditZoneName] = useState('');
 
   var zones = cleaning.zones || [];
   var assignments = cleaning.assignments || {};
@@ -1069,6 +1071,14 @@ function CleaningTab({ students, cleaning, classInfo, onUpdate, onToast }) {
     var nz = zones.concat([{id:uid(),name:n}]);
     onUpdate({zones:nz,assignments:assignments,notes:notes});
     setNewZoneName(''); onToast(n+' 구역 추가');
+  };
+
+  var renameZone = function(zid) {
+    var n = editZoneName.trim();
+    if (!n) return;
+    var nz = zones.map(function(z){return z.id===zid?Object.assign({},z,{name:n}):z;});
+    onUpdate({zones:nz,assignments:assignments,notes:notes});
+    setEditZoneId(null); onToast('구역 이름 수정 완료');
   };
 
   var delZone = function(zid) {
@@ -1138,7 +1148,16 @@ function CleaningTab({ students, cleaning, classInfo, onUpdate, onToast }) {
         <div key=${z.id} className=${'cleaning-zone-card' + (isSel?' selected':'')}
           onClick=${function(){ if(!editMode) setSelZone(selZone===z.id?null:z.id); }}>
           <div className="cleaning-zone-name">
-            <span>${z.name} (${members.length}명)</span>
+            ${editMode && editZoneId===z.id ? html`
+              <div style=${{display:'flex',gap:4,flex:1}} onClick=${function(e){e.stopPropagation();}}>
+                <input style=${{flex:1,padding:'4px 8px',fontSize:13,border:'1.5px solid var(--primary)',borderRadius:4,fontFamily:'inherit'}} value=${editZoneName}
+                  onInput=${function(e){setEditZoneName(e.target.value);}}
+                  onKeyDown=${function(e){if(e.key==='Enter'&&!e.nativeEvent.isComposing)renameZone(z.id);else if(e.key==='Escape')setEditZoneId(null);}} />
+                <button style=${{padding:'4px 8px',fontSize:11,border:'none',borderRadius:4,background:'var(--primary)',color:'#fff',cursor:'pointer',fontFamily:'inherit'}} onClick=${function(){renameZone(z.id);}}>저장</button>
+              </div>
+            ` : html`
+              <span onClick=${editMode ? function(e){e.stopPropagation();setEditZoneId(z.id);setEditZoneName(z.name);} : undefined} style=${editMode?{cursor:'pointer',textDecoration:'underline dashed',textUnderlineOffset:'3px'}:{}}>${z.name} (${members.length}명)</span>
+            `}
             ${editMode ? html`<div className="cleaning-edit-actions">
               <button className="cleaning-move-btn" disabled=${zi===0} onClick=${function(e){e.stopPropagation();moveZone(z.id,-1);}}>▲</button>
               <button className="cleaning-move-btn" disabled=${zi===zones.length-1} onClick=${function(e){e.stopPropagation();moveZone(z.id,1);}}>▼</button>
