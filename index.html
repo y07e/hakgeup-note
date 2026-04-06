@@ -393,18 +393,18 @@ html,body{height:100%;background:#e2e8f0;
   .main-content{display:block!important;overflow:visible!important;padding:0!important;margin:0!important;width:100%!important;height:auto!important}
   /* 청소 인쇄 (A4 세로) */
   .print-area{display:block!important;padding:2mm 0;page-break-inside:avoid}
-  .print-area h2{text-align:center;font-size:24pt;font-weight:900;margin-bottom:1mm;letter-spacing:2px;border-bottom:2.5px solid #000;padding-bottom:3mm;font-family:'A2GBold',sans-serif;-webkit-text-stroke:0.3px #000}
-  .print-area .print-sub{text-align:center;font-size:14pt;color:#444;margin-bottom:5mm}
-  .print-clean-table{width:100%;border-collapse:collapse;font-size:13pt;border:2px solid #333}
-  .print-clean-table thead th{background:#4a7c59;color:#fff;font-weight:700;font-size:14pt;padding:10px 12px;text-align:center;border:1.5px solid #333}
+  .print-area h2{text-align:center;font-size:22pt;font-weight:900;margin-bottom:0;letter-spacing:2px;border-bottom:2.5px solid #000;padding-bottom:2mm;font-family:'A2GBold',sans-serif;-webkit-text-stroke:0.3px #000}
+  .print-area .print-sub{text-align:center;font-size:12pt;color:#444;margin-bottom:3mm}
+  .print-clean-table{width:100%;border-collapse:collapse;font-size:12pt;border:2px solid #333}
+  .print-clean-table thead th{background:#4a7c59;color:#fff;font-weight:700;font-size:12pt;padding:5px 8px;text-align:center;border:1.5px solid #333}
   .print-clean-table thead th:first-child{width:24%}
-  .print-clean-table tbody td{border:1.5px solid #999;padding:10px 12px;vertical-align:middle}
-  .print-zone-name{background:#e8f5e9;font-weight:700;font-size:13pt;text-align:center;color:#2e5c3a}
-  .print-zone-members{font-size:13pt;line-height:1.7;color:#222}
-  .print-notes-box{margin-top:5mm;border:2px solid #c9a84c;border-radius:4px;overflow:hidden}
-  .print-notes-title{background:#f9e88f;padding:8px 12px;font-weight:700;font-size:13pt;color:#6b5300;text-align:center;border-bottom:1.5px solid #c9a84c}
-  .print-notes-content{background:#fdf8e1;padding:12px 16px;font-size:12pt;line-height:1.8;color:#5a4500}
-  .print-deco{display:flex;justify-content:center;gap:12px;margin-top:6mm;font-size:22pt;opacity:.7}
+  .print-clean-table tbody td{border:1.5px solid #999;padding:5px 8px;vertical-align:middle}
+  .print-zone-name{background:#e8f5e9;font-weight:700;font-size:12pt;text-align:center;color:#2e5c3a}
+  .print-zone-members{font-size:12pt;line-height:1.5;color:#222}
+  .print-notes-box{margin-top:3mm;border:2px solid #c9a84c;border-radius:4px;overflow:hidden}
+  .print-notes-title{background:#f9e88f;padding:4px 8px;font-weight:700;font-size:11pt;color:#6b5300;text-align:center;border-bottom:1.5px solid #c9a84c}
+  .print-notes-content{background:#fdf8e1;padding:6px 10px;font-size:10pt;line-height:1.5;color:#5a4500}
+  .print-deco{display:flex;justify-content:center;gap:12px;margin-top:3mm;font-size:18pt;opacity:.7}
   /* 자리배치 인쇄 (A4 가로) */
   .seating-print-area{display:flex!important;flex-direction:column;align-items:center;justify-content:center;width:100%;height:190mm;overflow:hidden;page-break-inside:avoid;break-inside:avoid}
   .seating-print-area h2{text-align:center;font-size:22pt;font-weight:700;margin:0 0 1mm 0;text-decoration:underline;line-height:1.2}
@@ -1057,6 +1057,7 @@ function CleaningTab({ students, cleaning, classInfo, onUpdate, onToast }) {
   const [newZoneName, setNewZoneName] = useState('');
   const [editZoneId, setEditZoneId] = useState(null);
   const [editZoneName, setEditZoneName] = useState('');
+  const [printDate, setPrintDate] = useState(function(){ return new Date().toISOString().slice(0,10); });
 
   var zones = cleaning.zones || [];
   var assignments = cleaning.assignments || {};
@@ -1119,7 +1120,7 @@ function CleaningTab({ students, cleaning, classInfo, onUpdate, onToast }) {
   var getName = function(sid) { var s = students.find(function(x){return x.id===sid;}); return s ? s.name : '?'; };
   var getNum = function(sid) { var s = students.find(function(x){return x.id===sid;}); return s ? s.number : 0; };
 
-  var doPrint = function() { var s=document.getElementById('print-orient');if(!s){s=document.createElement('style');s.id='print-orient';document.head.appendChild(s);}s.textContent='@media print{@page{size:A4 portrait;margin:15mm}}';window.print(); };
+  var doPrint = function() { var s=document.getElementById('print-orient');if(!s){s=document.createElement('style');s.id='print-orient';document.head.appendChild(s);}s.textContent='@media print{@page{size:A4 portrait;margin:8mm 12mm}}';window.print(); };
 
   if (!students.length) return html`<div className="empty-state"><div className="empty-icon">🧹</div><div className="empty-text">학생 명단을 먼저 등록해주세요.</div></div>`;
 
@@ -1130,6 +1131,7 @@ function CleaningTab({ students, cleaning, classInfo, onUpdate, onToast }) {
         <button className=${'cleaning-btn-sm' + (editMode?' active':'')} onClick=${function(){setEditMode(!editMode);setSelZone(null);}}>
           ${editMode ? '완료' : '구역 편집'}
         </button>
+        <input type="date" style=${{padding:'4px',fontSize:11,border:'1px solid var(--border)',borderRadius:4,fontFamily:'inherit'}} value=${printDate} onInput=${function(e){setPrintDate(e.target.value);}} />
         <button className="cleaning-btn-sm" onClick=${doPrint}>🖨️ 인쇄</button>
       </div>
     </div>
@@ -1196,7 +1198,7 @@ function CleaningTab({ students, cleaning, classInfo, onUpdate, onToast }) {
 
     <div className="print-area">
       <h2>${classInfo.className || ''} 청소구역표</h2>
-      <div className="print-sub">${new Date().toLocaleDateString('ko-KR',{year:'numeric',month:'2-digit',day:'2-digit'}).replace(/\./g,'.').replace(/\s/g,'')}~</div>
+      <div className="print-sub">${printDate.replace(/-/g,'.')}~</div>
       <table className="print-clean-table">
         <thead><tr><th>청소구역</th><th>담당 학생</th></tr></thead>
         <tbody>
