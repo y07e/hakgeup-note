@@ -773,11 +773,12 @@ function FormHistoryView({ students, onReprint }) {
   const [filterType, setFilterType] = useState('all');
   const [detailItem, setDetailItem] = useState(null);
 
+  var getEventDate = function(h) { return h.eventDate || (h.type==='approve' && h.dateInfo ? h.dateInfo.date : null) || h.absFrom || h.issueDate || h.createdAt || ''; };
   var filtered = history.filter(function(h) {
-    var matchMonth = (h.issueDate || h.createdAt || '').slice(0,7) === filterMonth;
+    var matchMonth = getEventDate(h).slice(0,7) === filterMonth;
     var matchType = filterType === 'all' || (filterType === 'approve' && h.type === 'approve') || (filterType === 'absence' && h.type === 'absence') || (filterType === 'leavepass' && h.type === 'leavepass') || h.formType === filterType;
     return matchMonth && matchType;
-  }).sort(function(a,b){ return (b.createdAt||'').localeCompare(a.createdAt||''); });
+  }).sort(function(a,b){ return (getEventDate(b)).localeCompare(getEventDate(a)); });
 
   var deleteItem = function(id) {
     var updated = history.filter(function(h){ return h.id !== id; });
@@ -787,7 +788,7 @@ function FormHistoryView({ students, onReprint }) {
   };
 
   // 월별 통계
-  var monthData = history.filter(function(h){ return (h.issueDate || h.createdAt || '').slice(0,7) === filterMonth; });
+  var monthData = history.filter(function(h){ return getEventDate(h).slice(0,7) === filterMonth; });
   var statsByType = {};
   monthData.forEach(function(h){
     var label = h.type==='approve' ? '인정('+h.formType+')' : h.type==='leavepass' ? '외출('+h.formType+')' : '결석';
@@ -843,7 +844,7 @@ function FormHistoryView({ students, onReprint }) {
           <div style=${{display:'flex',alignItems:'center',gap:8}}>
             <span style=${{display:'inline-block',padding:'2px 8px',borderRadius:10,fontSize:11,fontWeight:600,color:'#fff',background:typeBadgeColor(h)}}>${typeLabel(h)}</span>
             <span style=${{fontSize:13,fontWeight:600}}>${h.studentNum}번 ${h.studentName}</span>
-            <span style=${{marginLeft:'auto',fontSize:11,color:'var(--text-light)'}}>${(h.issueDate||'').replace(/-/g,'.')}</span>
+            <span style=${{marginLeft:'auto',fontSize:11,color:'var(--text-light)'}}>${getEventDate(h).replace(/-/g,'.')}</span>
           </div>
           ${detailItem && detailItem.id===h.id ? html`
             <div style=${{marginTop:8,paddingTop:8,borderTop:'1px solid var(--border)',fontSize:12,color:'var(--text-light)'}}>
@@ -1769,7 +1770,8 @@ function LeavePassModal({ students, classInfo, date, onClose, onToast, prefill }
       type: 'leavepass', formType: passType, studentId: selSt,
       studentName: selStudent.name, studentNum: selStudent.number,
       reason: reason, fromH: fromH, fromM: fromM, toH: toH, toM: toM,
-      issueDate: issueDate, createdAt: new Date().toISOString()
+      issueDate: issueDate, eventDate: issueDate,
+      createdAt: new Date().toISOString()
     };
     var onAfter = function() {
       window.removeEventListener('afterprint', onAfter);
@@ -2000,6 +2002,7 @@ function ApproveFormModal({ students, classInfo, date, onClose, onToast, prefill
       type: 'approve', formType: formType, studentId: selSt,
       studentName: selStudent.name, studentNum: selStudent.number,
       reason: reason, dateInfo: dateInfo, issueDate: issueDate,
+      eventDate: dateInfo.date,
       createdAt: new Date().toISOString()
     };
     var onAfter = function() {
@@ -2268,6 +2271,7 @@ function AbsenceFormModal({ students, classInfo, date, onClose, onToast, prefill
       absFrom: absFrom, absTo: absTo, absDays: absDays,
       absType: absType, absReason: absReason,
       issueDate: issueDate,
+      eventDate: absFrom,
       createdAt: new Date().toISOString()
     };
     var onAfter = function() {
