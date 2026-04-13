@@ -2463,6 +2463,87 @@ function Settings({ classInfo, students, memos, points, onUpdateCI, onUpdateSt, 
   const csvRef = useRef(null);
   const logoRef = useRef(null);
 
+  // 자동 백업 설정
+  const [autoBackup, setAutoBackup] = useState(function(){ return load('hn_auto_backup_on', false); });
+  const [backupTime, setBackupTime] = useState(function(){ return load('hn_auto_backup_time', '16:30'); });
+  const [backupFolderName, setBackupFolderName] = useState(function(){ return load('hn_auto_backup_folder_name', ''); });
+  const [lastBackupDate, setLastBackupDate] = useState(function(){ return localStorage.getItem('hn_auto_backup_date')||''; });
+
+  var openDB = function() {
+    return new Promise(function(resolve, reject) {
+      var req = indexedDB.open('hn_backup_db', 1);
+      req.onupgradeneeded = function(e){ e.target.result.createObjectStore('handles'); };
+      req.onsuccess = function(e){ resolve(e.target.result); };
+      req.onerror = function(e){ reject(e); };
+    });
+  };
+  var saveDirHandle = function(handle) {
+    return openDB().then(function(db) {
+      return new Promise(function(resolve) {
+        var tx = db.transaction('handles','readwrite');
+        tx.objectStore('handles').put(handle, 'backupDir');
+        tx.oncomplete = function(){ resolve(); };
+      });
+    });
+  };
+  var getDirHandle = function() {
+    return openDB().then(function(db) {
+      return new Promise(function(resolve) {
+        var tx = db.transaction('handles','readonly');
+        var req = tx.objectStore('handles').get('backupDir');
+        req.onsuccess = function(){ resolve(req.result || null); };
+        req.onerror = function(){ resolve(null); };
+      });
+    });
+  };
+
+  var pickBackupFolder = function() {
+    if (!window.showDirectoryPicker) { onToast('이 브라우저는 폴더 선택을 지원하지 않습니다', 'error'); return; }
+    window.showDirectoryPicker({mode:'readwrite'}).then(function(handle) {
+      saveDirHandle(handle);
+      setBackupFolderName(handle.name);
+      save('hn_auto_backup_folder_name', handle.name);
+      onToast('백업 폴더 설정: ' + handle.name);
+    }).catch(function(){});
+  };
+
+  var doAutoBackupNow = function() {
+    getDirHandle().then(function(handle) {
+      if (!handle) { onToast('백업 폴더를 먼저 선택하세요', 'error'); return; }
+      handle.requestPermission({mode:'readwrite'}).then(function(perm) {
+        if (perm !== 'granted') { onToast('폴더 접근 권한이 필요합니다', 'error'); return; }
+        var afPosRaw = localStorage.getItem(AF_POS_KEY);
+        var absPosRaw = localStorage.getItem(ABS_POS_KEY);
+        var data = JSON.stringify({
+          version: 3, exportedAt: new Date().toISOString(),
+          classInfo: load(KEYS.classInfo, {}), students: load(KEYS.students, []),
+          memos: load(KEYS.memos, []), points: load(KEYS.points, []),
+          seating: load(KEYS.seating, {}), cleaning: load(KEYS.cleaning, {}),
+          diary: load(KEYS.diary, {}),
+          formHistory: load(KEYS.formHistory, []),
+          formApproveImg: load(KEYS.formApprove, null),
+          formAbsenceImg: load(KEYS.formAbsence, null),
+          formLeaveImg: load(KEYS.formLeave, null),
+          formApprovePos: afPosRaw ? JSON.parse(afPosRaw) : null,
+          formAbsencePos: absPosRaw ? JSON.parse(absPosRaw) : null,
+          formLeavePos: loadLpPos(),
+          cleaningHistory: load(KEYS.cleaningHistory, []),
+        }, null, 2);
+        var today = new Date().toISOString().slice(0,10);
+        var fileName = '학급노트_자동백업_' + today + '.json';
+        handle.getFileHandle(fileName, {create:true}).then(function(fh) {
+          return fh.createWritable();
+        }).then(function(writable) {
+          return writable.write(data).then(function(){ return writable.close(); });
+        }).then(function() {
+          localStorage.setItem('hn_auto_backup_date', today);
+          setLastBackupDate(today);
+          onToast('자동 백업 완료: ' + fileName);
+        });
+      });
+    });
+  };
+
   var saveCI = function() {
     var cnVal = '';
     if (grade && cls) cnVal = grade + '학년 ' + cls + '반';
@@ -2782,6 +2863,30 @@ function Settings({ classInfo, students, memos, points, onUpdateCI, onUpdateSt, 
           <div className="divider" />
 
           <div className="settings-section">
+            <div className="settings-label">📦 자동 백업</div>
+            <div style=${{fontSize:12,color:'var(--text-light)',marginBottom:10}}>매일 지정된 시간에 백업 폴더로 자동 저장합니다.</div>
+            <div style=${{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:8}}>
+              <span style=${{fontSize:13,fontWeight:600}}>자동 백업</span>
+              <button style=${{padding:'4px 16px',borderRadius:20,border:'2px solid '+(autoBackup?'var(--primary)':'var(--border)'),background:autoBackup?'var(--primary)':'var(--card)',color:autoBackup?'#fff':'var(--text-light)',fontSize:12,fontWeight:700,cursor:'pointer',fontFamily:'inherit'}} onClick=${function(){var nv=!autoBackup;setAutoBackup(nv);save('hn_auto_backup_on',nv);onToast(nv?'자동 백업 켜짐':'자동 백업 꺼짐');}}>${autoBackup?'ON':'OFF'}</button>
+            </div>
+            <div style=${{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:8}}>
+              <span style=${{fontSize:13}}>백업 시간</span>
+              <input type="time" value=${backupTime} onChange=${function(e){setBackupTime(e.target.value);save('hn_auto_backup_time',e.target.value);}} style=${{padding:'4px 8px',border:'1px solid var(--border)',borderRadius:6,fontSize:13,fontFamily:'inherit'}} />
+            </div>
+            <div style=${{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:8}}>
+              <span style=${{fontSize:13}}>백업 폴더</span>
+              <button style=${{padding:'4px 12px',border:'1px solid var(--border)',borderRadius:6,background:'var(--card)',fontSize:12,cursor:'pointer',fontFamily:'inherit'}} onClick=${pickBackupFolder}>📁 ${backupFolderName || '폴더 선택'}</button>
+            </div>
+            <div style=${{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:10}}>
+              <span style=${{fontSize:13}}>마지막 백업</span>
+              <span style=${{fontSize:13,color:'var(--primary)',fontWeight:600}}>${lastBackupDate || '없음'}</span>
+            </div>
+            <button className="btn-primary" style=${{width:'100%'}} onClick=${doAutoBackupNow}>▶ 지금 백업 실행</button>
+          </div>
+
+          <div className="divider" />
+
+          <div className="settings-section">
             <div className="settings-label">데이터 관리</div>
             <button className="btn-secondary" style=${{marginBottom:8}} onClick=${doCSVExport}>📊 통계 내보내기 (CSV)</button>
             <button className="btn-secondary" style=${{marginBottom:8}} onClick=${doExport}>💾 데이터 백업 (JSON 다운로드)</button>
@@ -2891,44 +2996,58 @@ function App() {
   useEffect(function(){ save(KEYS.cleaning, cleaning); }, [cleaning]);
   useEffect(function(){ save(KEYS.diary, diary); }, [diary]);
 
-  // 자동 백업 (매일 16:30 정각)
+  // 자동 백업 (설정에서 지정한 시간)
   useEffect(function(){
     var AUTO_BACKUP_KEY = 'hn_auto_backup_date';
     var timerId = null;
+    var openDB = function(){ return new Promise(function(res,rej){ var r=indexedDB.open('hn_backup_db',1); r.onupgradeneeded=function(e){e.target.result.createObjectStore('handles');}; r.onsuccess=function(e){res(e.target.result);}; r.onerror=rej; }); };
+    var getDirHandle = function(){ return openDB().then(function(db){ return new Promise(function(res){ var tx=db.transaction('handles','readonly'); var r=tx.objectStore('handles').get('backupDir'); r.onsuccess=function(){res(r.result||null);}; r.onerror=function(){res(null);}; }); }); };
     var scheduleBackup = function() {
+      var isOn = load('hn_auto_backup_on', false);
+      if (!isOn) { timerId = setTimeout(scheduleBackup, 60000); return; }
+      var timeStr = load('hn_auto_backup_time', '16:30');
+      var parts = timeStr.split(':');
+      var hour = parseInt(parts[0])||16; var min = parseInt(parts[1])||30;
       var now = new Date();
-      var target = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 16, 30, 0);
+      var target = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hour, min, 0);
       if (now >= target) target.setDate(target.getDate() + 1);
       var ms = target - now;
       timerId = setTimeout(function() {
         var today = new Date().toISOString().slice(0,10);
         var lastBackup = localStorage.getItem(AUTO_BACKUP_KEY);
-        if (lastBackup !== today) {
-          localStorage.setItem(AUTO_BACKUP_KEY, today);
-          var afPosRaw = localStorage.getItem(AF_POS_KEY);
-          var absPosRaw = localStorage.getItem(ABS_POS_KEY);
-          var data = JSON.stringify({
-            version: 3, exportedAt: new Date().toISOString(),
-            classInfo: load(KEYS.classInfo, {}), students: load(KEYS.students, []),
-            memos: load(KEYS.memos, []), points: load(KEYS.points, []),
-            seating: load(KEYS.seating, {}), cleaning: load(KEYS.cleaning, {}),
-            diary: load(KEYS.diary, {}),
-            formHistory: load(KEYS.formHistory, []),
-            formApproveImg: load(KEYS.formApprove, null),
-            formAbsenceImg: load(KEYS.formAbsence, null),
-            formLeaveImg: load(KEYS.formLeave, null),
-            formApprovePos: afPosRaw ? JSON.parse(afPosRaw) : null,
-            formAbsencePos: absPosRaw ? JSON.parse(absPosRaw) : null,
-            formLeavePos: loadLpPos(),
-            cleaningHistory: load(KEYS.cleaningHistory, []),
-          }, null, 2);
-          var blob = new Blob([data], {type:'application/json'});
-          var url = URL.createObjectURL(blob);
-          var a = document.createElement('a');
-          a.href = url; a.download = '학급노트_자동백업_' + today + '.json'; a.click();
-          URL.revokeObjectURL(url);
-        }
-        scheduleBackup();
+        if (lastBackup === today) { scheduleBackup(); return; }
+        getDirHandle().then(function(handle) {
+          if (!handle) { scheduleBackup(); return; }
+          handle.requestPermission({mode:'readwrite'}).then(function(perm) {
+            if (perm !== 'granted') { scheduleBackup(); return; }
+            var afPosRaw = localStorage.getItem(AF_POS_KEY);
+            var absPosRaw = localStorage.getItem(ABS_POS_KEY);
+            var data = JSON.stringify({
+              version: 3, exportedAt: new Date().toISOString(),
+              classInfo: load(KEYS.classInfo, {}), students: load(KEYS.students, []),
+              memos: load(KEYS.memos, []), points: load(KEYS.points, []),
+              seating: load(KEYS.seating, {}), cleaning: load(KEYS.cleaning, {}),
+              diary: load(KEYS.diary, {}),
+              formHistory: load(KEYS.formHistory, []),
+              formApproveImg: load(KEYS.formApprove, null),
+              formAbsenceImg: load(KEYS.formAbsence, null),
+              formLeaveImg: load(KEYS.formLeave, null),
+              formApprovePos: afPosRaw ? JSON.parse(afPosRaw) : null,
+              formAbsencePos: absPosRaw ? JSON.parse(absPosRaw) : null,
+              formLeavePos: loadLpPos(),
+              cleaningHistory: load(KEYS.cleaningHistory, []),
+            }, null, 2);
+            var fileName = '학급노트_자동백업_' + today + '.json';
+            handle.getFileHandle(fileName, {create:true}).then(function(fh){
+              return fh.createWritable();
+            }).then(function(w){
+              return w.write(data).then(function(){ return w.close(); });
+            }).then(function(){
+              localStorage.setItem(AUTO_BACKUP_KEY, today);
+            });
+            scheduleBackup();
+          });
+        }).catch(function(){ scheduleBackup(); });
       }, ms);
     };
     scheduleBackup();
