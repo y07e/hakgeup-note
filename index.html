@@ -2891,6 +2891,50 @@ function App() {
   useEffect(function(){ save(KEYS.cleaning, cleaning); }, [cleaning]);
   useEffect(function(){ save(KEYS.diary, diary); }, [diary]);
 
+  // 자동 백업 (매일 16:30 정각)
+  useEffect(function(){
+    var AUTO_BACKUP_KEY = 'hn_auto_backup_date';
+    var timerId = null;
+    var scheduleBackup = function() {
+      var now = new Date();
+      var target = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 16, 30, 0);
+      if (now >= target) target.setDate(target.getDate() + 1);
+      var ms = target - now;
+      timerId = setTimeout(function() {
+        var today = new Date().toISOString().slice(0,10);
+        var lastBackup = localStorage.getItem(AUTO_BACKUP_KEY);
+        if (lastBackup !== today) {
+          localStorage.setItem(AUTO_BACKUP_KEY, today);
+          var afPosRaw = localStorage.getItem(AF_POS_KEY);
+          var absPosRaw = localStorage.getItem(ABS_POS_KEY);
+          var data = JSON.stringify({
+            version: 3, exportedAt: new Date().toISOString(),
+            classInfo: load(KEYS.classInfo, {}), students: load(KEYS.students, []),
+            memos: load(KEYS.memos, []), points: load(KEYS.points, []),
+            seating: load(KEYS.seating, {}), cleaning: load(KEYS.cleaning, {}),
+            diary: load(KEYS.diary, {}),
+            formHistory: load(KEYS.formHistory, []),
+            formApproveImg: load(KEYS.formApprove, null),
+            formAbsenceImg: load(KEYS.formAbsence, null),
+            formLeaveImg: load(KEYS.formLeave, null),
+            formApprovePos: afPosRaw ? JSON.parse(afPosRaw) : null,
+            formAbsencePos: absPosRaw ? JSON.parse(absPosRaw) : null,
+            formLeavePos: loadLpPos(),
+            cleaningHistory: load(KEYS.cleaningHistory, []),
+          }, null, 2);
+          var blob = new Blob([data], {type:'application/json'});
+          var url = URL.createObjectURL(blob);
+          var a = document.createElement('a');
+          a.href = url; a.download = '학급노트_자동백업_' + today + '.json'; a.click();
+          URL.revokeObjectURL(url);
+        }
+        scheduleBackup();
+      }, ms);
+    };
+    scheduleBackup();
+    return function(){ if(timerId) clearTimeout(timerId); };
+  }, []);
+
   var toast = useCallback(function(msg, type) {
     var id = Date.now();
     setToasts(function(p){ return p.concat([{ id: id, msg: msg, type: type || 'success' }]); });
