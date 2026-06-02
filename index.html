@@ -1481,6 +1481,9 @@ function LookupTab({ students, memos, points, date, classInfo, onDeleteMemo, onD
     onBack=${function(){setSelStudent(null);}} onDeleteMemo=${onDeleteMemo} onDeletePoint=${onDeletePoint} onToast=${onToast} />`;
 
   // 기간 프리셋
+  var fmtLocal = function(dt) {
+    return dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0')+'-'+String(dt.getDate()).padStart(2,'0');
+  };
   var setPreset = function(label) {
     setRangeLabel(label);
     var d = new Date(today);
@@ -1488,13 +1491,13 @@ function LookupTab({ students, memos, points, date, classInfo, onDeleteMemo, onD
     else if (label==='이번 주') {
       var day = d.getDay(); var diff = day === 0 ? 6 : day - 1;
       var mon = new Date(d); mon.setDate(d.getDate() - diff);
-      setDateFrom(mon.toISOString().slice(0,10)); setDateTo(today);
+      setDateFrom(fmtLocal(mon)); setDateTo(today);
     }
     else if (label==='이번 달') { setDateFrom(today.slice(0,7)+'-01'); setDateTo(today); }
     else if (label==='지난 달') {
       var pm = new Date(d.getFullYear(), d.getMonth()-1, 1);
       var pmEnd = new Date(d.getFullYear(), d.getMonth(), 0);
-      setDateFrom(pm.toISOString().slice(0,10)); setDateTo(pmEnd.toISOString().slice(0,10));
+      setDateFrom(fmtLocal(pm)); setDateTo(fmtLocal(pmEnd));
     }
     else if (label==='전체') { setDateFrom('2000-01-01'); setDateTo('2099-12-31'); }
   };
