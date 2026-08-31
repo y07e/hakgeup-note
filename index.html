@@ -523,8 +523,11 @@ function getCalDays(y, m) {
 }
 
 // ===== Version =====
-const APP_VERSION = '2026.04.13';
+const APP_VERSION = '2026.08.31';
 var UPDATES = [
+  { ver: '2026.08.31', items: [
+    '🧹 청소구역별 정원 설정 — 구역 편집에서 인원 입력, 배정 시 현재/정원 표시 (채우면 ✓, 초과 시 경고)'
+  ]},
   { ver: '2026.04.13', items: [
     '📦 자동 백업 — 설정에서 시간/폴더 지정, 매일 자동으로 백업 파일 저장',
     '🧹 청소구역 이름 수정 + 배정 이력 저장/불러오기',
@@ -1111,6 +1114,12 @@ function CleaningTab({ students, cleaning, classInfo, onUpdate, onToast }) {
     setEditZoneId(null); onToast('구역 이름 수정 완료');
   };
 
+  var setCapacity = function(zid, val) {
+    var n = parseInt(val, 10);
+    var nz = zones.map(function(z){return z.id===zid?Object.assign({},z,{capacity:(isNaN(n)||n<=0)?null:n}):z;});
+    onUpdate({zones:nz,assignments:assignments,notes:notes});
+  };
+
   var delZone = function(zid) {
     var nz = zones.filter(function(z){return z.id!==zid;});
     var na = Object.assign({},assignments); delete na[zid];
@@ -1210,9 +1219,17 @@ function CleaningTab({ students, cleaning, classInfo, onUpdate, onToast }) {
                 <button style=${{padding:'4px 8px',fontSize:11,border:'none',borderRadius:4,background:'var(--primary)',color:'#fff',cursor:'pointer',fontFamily:'inherit'}} onClick=${function(){renameZone(z.id);}}>저장</button>
               </div>
             ` : html`
-              <span onClick=${editMode ? function(e){e.stopPropagation();setEditZoneId(z.id);setEditZoneName(z.name);} : undefined} style=${editMode?{cursor:'pointer',color:'var(--primary)'}:{}}>${z.name} (${members.length}명)</span>
+              <span onClick=${editMode ? function(e){e.stopPropagation();setEditZoneId(z.id);setEditZoneName(z.name);} : undefined} style=${editMode?{cursor:'pointer',color:'var(--primary)'}:{}}>${z.name}${' '}
+                <span style=${z.capacity?{fontWeight:700,color:members.length>z.capacity?'var(--danger)':(members.length===z.capacity?'var(--success)':'var(--text-light)')}:{}}>(${members.length}${z.capacity?'/'+z.capacity:''}명)</span>
+              </span>
             `}
             ${editMode ? html`<div className="cleaning-edit-actions">
+              <span style=${{fontSize:11,color:'var(--text-light)'}} onClick=${function(e){e.stopPropagation();}}>인원
+                <input type="number" min="1" style=${{width:40,marginLeft:2,padding:'3px 4px',fontSize:12,border:'1px solid var(--border)',borderRadius:4,fontFamily:'inherit',textAlign:'center'}}
+                  value=${z.capacity||''} placeholder="-"
+                  onClick=${function(e){e.stopPropagation();}}
+                  onInput=${function(e){setCapacity(z.id, e.target.value);}} />
+              </span>
               <button className="cleaning-move-btn" disabled=${zi===0} onClick=${function(e){e.stopPropagation();moveZone(z.id,-1);}}>▲</button>
               <button className="cleaning-move-btn" disabled=${zi===zones.length-1} onClick=${function(e){e.stopPropagation();moveZone(z.id,1);}}>▼</button>
               <button className="cleaning-del-btn" onClick=${function(e){e.stopPropagation();delZone(z.id);}}>✕</button>
@@ -1227,10 +1244,20 @@ function CleaningTab({ students, cleaning, classInfo, onUpdate, onToast }) {
         </div>`;
     })}
 
+    ${selZone && !editMode ? (function(){
+      var sz = zones.find(function(z){return z.id===selZone;}) || {};
+      var szCount = (assignments[selZone]||[]).length;
+      var szCap = sz.capacity;
+      var capColor = szCap ? (szCount>szCap?'var(--danger)':(szCount===szCap?'var(--success)':'var(--primary)')) : 'var(--text-light)';
+      return html`
+      <div style=${{padding:'8px 16px 4px',display:'flex',alignItems:'center',justifyContent:'space-between',gap:8}}>
+        <div className="section-title" style=${{padding:0}}>학생을 탭하여 배정 / 해제</div>
+        <div style=${{fontSize:13,fontWeight:700,color:capColor,whiteSpace:'nowrap'}}>
+          ${sz.name}: ${szCount}${szCap?'/'+szCap:''}명${szCap&&szCount===szCap?' ✓':''}${szCap&&szCount>szCap?' 초과!':''}
+        </div>
+      </div>`;
+    })() : null}
     ${selZone && !editMode ? html`
-      <div style=${{padding:'8px 16px 4px'}}>
-        <div className="section-title">학생을 탭하여 배정 / 해제</div>
-      </div>
       <div className="cleaning-assign-grid">
         ${students.map(function(s){
           var inThisZone = (assignments[selZone]||[]).indexOf(s.id)>=0;
