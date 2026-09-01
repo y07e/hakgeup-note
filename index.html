@@ -293,6 +293,7 @@ html,body{height:100%;background:#e2e8f0;
 .diary-print-btns button:active{transform:scale(.97)}
 .diary-print-area,.diary-print-month{display:none}
 .attend-print-area{display:none}
+.fh-print-area{display:none}
 
 /* Dashboard */
 .dash-range{padding:10px 16px 4px}
@@ -466,6 +467,14 @@ html,body{height:100%;background:#e2e8f0;
   .attend-print-table{width:100%;border-collapse:collapse;font-size:11pt;border:2px solid #333}
   .attend-print-table thead th{background:#3b6ea5;color:#fff;font-weight:700;font-size:11pt;padding:6px 8px;text-align:center;border:1.5px solid #333}
   .attend-print-table tbody td{border:1.5px solid #999;padding:5px 8px;vertical-align:middle;font-size:11pt}
+  /* 발급 이력 인쇄 */
+  [data-print="form-history"] .fh-screen{display:none!important}
+  [data-print="form-history"] .fh-print-area{display:block!important;padding:2mm 0}
+  .fh-print-area h2{text-align:center;font-size:20pt;font-weight:900;margin-bottom:1mm;border-bottom:2.5px solid #000;padding-bottom:3mm}
+  .fh-print-area .print-sub{text-align:center;font-size:13pt;color:#444;margin:2mm 0 4mm}
+  .fh-print-area .fh-sec{font-size:13pt;font-weight:700;margin:5mm 0 2mm}
+  .fh-print-area table{page-break-inside:auto}
+  .fh-print-area tr{page-break-inside:avoid}
 }
 .print-area{display:none}
 .lp-print-area{display:none}
@@ -526,6 +535,7 @@ function getCalDays(y, m) {
 const APP_VERSION = '2026.09.01';
 var UPDATES = [
   { ver: '2026.09.01', items: [
+    '🖨️ 발급 이력 인쇄 — 월·유형 필터별로 학생별 발급 현황 + 상세 내역 인쇄',
     '📊 통계 학생 상세 — 검색 기간 내 메모·상벌점만 표시 (기간 표시 추가)'
   ]},
   { ver: '2026.08.31', items: [
@@ -633,7 +643,7 @@ function StudentGrid({ students, selectedId, onSelect, memos, today }) {
 }
 
 // ===== InputTab =====
-function InputTab({ students, memos, points, date, onSaveMemo, onSavePoint, onToast, onReprint }) {
+function InputTab({ students, memos, points, date, classInfo, onSaveMemo, onSavePoint, onToast, onReprint }) {
   const [mode, setMode] = useState('memo');
   const [selSt, setSelSt] = useState(null);
   const [selCats, setSelCats] = useState([]);
@@ -719,7 +729,7 @@ function InputTab({ students, memos, points, date, onSaveMemo, onSavePoint, onTo
         <button className="btn-secondary" onClick=${function(){setQaStatus({});}}>초기화</button>
       </div>
     ` : mode === 'history' ? html`
-    <${FormHistoryView} students=${students} onReprint=${onReprint} />
+    <${FormHistoryView} students=${students} classInfo=${classInfo} onReprint=${onReprint} />
   ` : html`<div>
     <div style=${{padding:'8px 16px 0'}}>
       <div className="section-title">학생 선택 ${selName ? html` <span style=${{color:'var(--primary)'}}>— ${selName}</span>` : null}</div>
@@ -773,7 +783,7 @@ function InputTab({ students, memos, points, date, onSaveMemo, onSavePoint, onTo
 }
 
 // ===== 발급 이력 조회/통계 =====
-function FormHistoryView({ students, onReprint }) {
+function FormHistoryView({ students, classInfo, onReprint }) {
   const [history, setHistory] = useState(function(){ return load(KEYS.formHistory, []); });
   useEffect(function(){
     var refresh = function(){ setHistory(load(KEYS.formHistory, [])); };
@@ -829,7 +839,42 @@ function FormHistoryView({ students, onReprint }) {
     return '#9b59b6';
   };
 
+  // 인쇄용 데이터 (월 + 유형 필터 반영)
+  var typeOptLabels = {all:'전체', approve:'인정사유서', absence:'결석계', leavepass:'외출(조퇴)증'};
+  var printTypeLabel = typeOptLabels[filterType] || filterType;
+  var printLabels = [];
+  filtered.forEach(function(h){ var l=typeLabel(h); if(printLabels.indexOf(l)<0) printLabels.push(l); });
+  printLabels.sort();
+  var printByStudent = {};
+  filtered.forEach(function(h){
+    var k = h.studentNum;
+    if(!printByStudent[k]) printByStudent[k] = {num:h.studentNum, name:h.studentName, total:0, counts:{}};
+    printByStudent[k].total++;
+    var l = typeLabel(h);
+    printByStudent[k].counts[l] = (printByStudent[k].counts[l]||0) + 1;
+  });
+  var printSumRows = Object.values(printByStudent).sort(function(a,b){ return a.num-b.num; });
+  var printRows = filtered.slice().sort(function(a,b){
+    if(a.studentNum !== b.studentNum) return a.studentNum-b.studentNum;
+    return getEventDate(a).localeCompare(getEventDate(b));
+  });
+  var contentOf = function(h) {
+    if(h.type==='approve'){ var d=h.dateInfo||{}; return [h.reason, d.fromP?d.fromP+'교시부터':'', d.toP?d.toP+'교시까지':'', d.period?d.period+'교시':''].filter(Boolean).join(' '); }
+    if(h.type==='leavepass') return [h.reason, (h.fromH?h.fromH+'시 '+(h.fromM||'00')+'분':'')+(h.toH?' ~ '+h.toH+'시 '+(h.toM||'00')+'분':'')].filter(Boolean).join(' · ');
+    return [h.absFrom+' ~ '+h.absTo+' ('+h.absDays+'일)', h.absType, h.absReason].filter(Boolean).join(' · ');
+  };
+  var doPrint = function() {
+    var app=document.querySelector('.app');
+    app.setAttribute('data-print','form-history');
+    var s=document.getElementById('print-orient');if(!s){s=document.createElement('style');s.id='print-orient';document.head.appendChild(s);}
+    s.textContent='@media print{@page{size:A4 portrait;margin:12mm 15mm}}';
+    var onAfter=function(){window.removeEventListener('afterprint',onAfter);app.removeAttribute('data-print');};
+    window.addEventListener('afterprint',onAfter);
+    setTimeout(function(){window.print();},100);
+  };
+
   return html`<div style=${{padding:'0 16px 16px'}}>
+    <div className="fh-screen">
     <div style=${{display:'flex',gap:6,marginBottom:10,alignItems:'center',flexWrap:'wrap'}}>
       <input type="month" value=${filterMonth} onChange=${function(e){setFilterMonth(e.target.value);}}
         style=${{padding:'6px 10px',borderRadius:8,border:'1px solid var(--border)',fontSize:13,fontFamily:'inherit'}} />
@@ -846,6 +891,7 @@ function FormHistoryView({ students, onReprint }) {
       <div style=${{marginLeft:'auto',display:'flex',gap:4}}>
         <button onClick=${function(){setViewMode('list');}} style=${{padding:'5px 12px',borderRadius:6,border:'1px solid var(--border)',background:viewMode==='list'?'var(--primary)':'#fff',color:viewMode==='list'?'#fff':'var(--text)',fontSize:12,cursor:'pointer',fontFamily:'inherit'}}>목록</button>
         <button onClick=${function(){setViewMode('stats');}} style=${{padding:'5px 12px',borderRadius:6,border:'1px solid var(--border)',background:viewMode==='stats'?'var(--primary)':'#fff',color:viewMode==='stats'?'#fff':'var(--text)',fontSize:12,cursor:'pointer',fontFamily:'inherit'}}>통계</button>
+        <button onClick=${doPrint} disabled=${filtered.length===0} style=${{padding:'5px 12px',borderRadius:6,border:'1px solid var(--border)',background:'#fff',color:filtered.length===0?'var(--text-light)':'var(--text)',fontSize:12,cursor:filtered.length===0?'default':'pointer',fontFamily:'inherit'}}>🖨️ 인쇄</button>
       </div>
     </div>
 
@@ -909,6 +955,36 @@ function FormHistoryView({ students, onReprint }) {
         })}
       </div>
     `}
+    </div>
+
+    <div className="fh-print-area">
+      <h2>${(classInfo||{}).className||''} 발급 이력</h2>
+      <div className="print-sub">${filterMonth.replace('-','년 ')}월 · ${printTypeLabel} (총 ${filtered.length}건)</div>
+      <div className="fh-sec">학생별 발급 현황</div>
+      <table className="attend-print-table">
+        <thead><tr>
+          <th>번호</th><th>이름</th>
+          ${printLabels.map(function(l){return html`<th key=${l}>${l}</th>`;})}
+          <th>합계</th>
+        </tr></thead>
+        <tbody>${printSumRows.map(function(r){return html`<tr key=${r.num}>
+          <td style=${{textAlign:'center'}}>${r.num}</td>
+          <td style=${{textAlign:'center'}}>${r.name}</td>
+          ${printLabels.map(function(l){return html`<td key=${l} style=${{textAlign:'center'}}>${r.counts[l]||''}</td>`;})}
+          <td style=${{textAlign:'center',fontWeight:700}}>${r.total}</td>
+        </tr>`;})}</tbody>
+      </table>
+      <div className="fh-sec">상세 내역</div>
+      <table className="attend-print-table">
+        <thead><tr><th style=${{width:'16%'}}>학생</th><th style=${{width:'15%'}}>날짜</th><th style=${{width:'15%'}}>종류</th><th>내용</th></tr></thead>
+        <tbody>${printRows.map(function(h){return html`<tr key=${h.id}>
+          <td style=${{textAlign:'center'}}>${h.studentNum}. ${h.studentName}</td>
+          <td style=${{textAlign:'center'}}>${getEventDate(h).slice(0,10).replace(/-/g,'.')}</td>
+          <td style=${{textAlign:'center'}}>${typeLabel(h)}</td>
+          <td>${contentOf(h)}</td>
+        </tr>`;})}</tbody>
+      </table>
+    </div>
   </div>`;
 }
 
@@ -3101,7 +3177,7 @@ function App() {
 
       <main className="main-content">
         ${tab === 'input' ? html`<${InputTab}
-          students=${students} memos=${memos} points=${points} date=${date}
+          students=${students} memos=${memos} points=${points} date=${date} classInfo=${ci}
           onSaveMemo=${function(m){setMemos(function(p){return p.concat([m]);});}}
           onSavePoint=${function(p){setPoints(function(pp){return pp.concat([p]);});}}
           onToast=${toast} onReprint=${handleReprint} />` : null}
