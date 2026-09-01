@@ -523,8 +523,11 @@ function getCalDays(y, m) {
 }
 
 // ===== Version =====
-const APP_VERSION = '2026.08.31';
+const APP_VERSION = '2026.09.01';
 var UPDATES = [
+  { ver: '2026.09.01', items: [
+    '📊 통계 학생 상세 — 검색 기간 내 메모·상벌점만 표시 (기간 표시 추가)'
+  ]},
   { ver: '2026.08.31', items: [
     '🧹 청소구역별 정원 설정 — 구역 편집에서 인원 입력, 배정 시 현재/정원 표시 (채우면 ✓, 초과 시 경고)'
   ]},
@@ -1425,7 +1428,7 @@ function DiaryTab({ diary, date, classInfo, onUpdate, onToast }) {
 }
 
 // ===== StudentDetail =====
-function StudentDetail({ student, memos, points, onBack, onDeleteMemo, onDeletePoint, onToast }) {
+function StudentDetail({ student, memos, points, rangeText, onBack, onDeleteMemo, onDeletePoint, onToast }) {
   const [delId, setDelId] = useState(null);
   var sMemos = memos.filter(function(m){ return m.studentId === student.id; });
   var sPoints = points.filter(function(p){ return p.studentId === student.id; });
@@ -1458,10 +1461,10 @@ function StudentDetail({ student, memos, points, onBack, onDeleteMemo, onDeleteP
       <div className="stat-card"><div className="stat-value" style=${{color:'var(--danger)'}}>${totalP}</div><div className="stat-label">벌점</div></div>
     </div>
 
-    <div className="section-title" style=${{padding:'0 16px 8px'}}>전체 기록 (${timeline.length}건)</div>
+    <div className="section-title" style=${{padding:'0 16px 8px'}}>${rangeText ? '기간 내 기록' : '전체 기록'} (${timeline.length}건)${rangeText ? html` <span style=${{fontWeight:400,color:'var(--text-light)'}}>· ${rangeText}</span>` : null}</div>
 
     ${timeline.length === 0
-      ? html`<div className="empty-state" style=${{padding:24}}><div className="empty-text">기록이 없습니다</div></div>`
+      ? html`<div className="empty-state" style=${{padding:24}}><div className="empty-text">${rangeText ? '해당 기간 기록이 없습니다' : '기록이 없습니다'}</div></div>`
       : timeline.map(function(e) { return html`
         <div className="timeline-item" key=${e.id}>
           <div className="timeline-item-header">
@@ -1503,8 +1506,17 @@ function LookupTab({ students, memos, points, date, classInfo, onDeleteMemo, onD
   const [dateTo, setDateTo] = useState(today);
   const [rangeLabel, setRangeLabel] = useState('이번 달');
 
+  // 기간 필터링된 데이터 (현재 존재하는 학생만)
+  var studentIds = new Set(students.map(function(s){return s.id;}));
+  var fMemos = memos.filter(function(m){ return m.date && m.date >= dateFrom && m.date <= dateTo && studentIds.has(m.studentId); });
+  var fPoints = points.filter(function(p){ return p.date && p.date >= dateFrom && p.date <= dateTo && studentIds.has(p.studentId); });
+
+  // 기간 표시 텍스트
+  var rangeText = dateFrom === dateTo ? dateFrom.replace(/-/g,'.') : dateFrom.replace(/-/g,'.') + ' ~ ' + dateTo.replace(/-/g,'.');
+
   if (selStudent) return html`<${StudentDetail}
-    student=${selStudent} memos=${memos} points=${points}
+    student=${selStudent} memos=${fMemos} points=${fPoints}
+    rangeText=${rangeLabel==='전체' ? '' : rangeText}
     onBack=${function(){setSelStudent(null);}} onDeleteMemo=${onDeleteMemo} onDeletePoint=${onDeletePoint} onToast=${onToast} />`;
 
   // 기간 프리셋
@@ -1530,11 +1542,6 @@ function LookupTab({ students, memos, points, date, classInfo, onDeleteMemo, onD
   };
   var onFromChange = function(e){ setDateFrom(e.target.value); setRangeLabel('직접설정'); };
   var onToChange = function(e){ setDateTo(e.target.value); setRangeLabel('직접설정'); };
-
-  // 기간 필터링된 데이터 (현재 존재하는 학생만)
-  var studentIds = new Set(students.map(function(s){return s.id;}));
-  var fMemos = memos.filter(function(m){ return m.date && m.date >= dateFrom && m.date <= dateTo && studentIds.has(m.studentId); });
-  var fPoints = points.filter(function(p){ return p.date && p.date >= dateFrom && p.date <= dateTo && studentIds.has(p.studentId); });
 
   // 이벤트 학생 목록
   var eventStudentIds = new Set();
@@ -1584,9 +1591,6 @@ function LookupTab({ students, memos, points, date, classInfo, onDeleteMemo, onD
   Object.keys(catCounts).forEach(function(c){ if(catCounts[c]>maxCatCount) maxCatCount=catCounts[c]; });
 
   var barColors = {'출결':'#0891b2','상담관련':'#8b5cf6','생활지도 및 학습관련':'#f59e0b','기타':'#64748b'};
-
-  // 기간 표시 텍스트
-  var rangeText = dateFrom === dateTo ? dateFrom.replace(/-/g,'.') : dateFrom.replace(/-/g,'.') + ' ~ ' + dateTo.replace(/-/g,'.');
 
   if (!students.length) return html`<div className="empty-state"><div className="empty-icon">📋</div><div className="empty-text">등록된 학생이 없습니다</div></div>`;
 
