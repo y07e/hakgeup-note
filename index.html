@@ -1002,8 +1002,9 @@ function SeatingTab({ students, seating, classInfo, onUpdate, onToast }) {
   var cols = seating.cols || 5;
   var layout = seating.layout || {};
 
-  // 시험 대형: 번호순으로 왼쪽 줄부터 최대 6명씩 5줄 (교탁 쪽이 앞번호), 기존 배치는 유지
-  // 30명 미만이면 줄별 인원을 고르게 나누고, 남는 인원은 바깥 줄부터 좌우 대칭으로 1명씩 더 배정
+  // 시험 대형: 번호순으로 교탁에서 봤을 때 오른쪽 줄(화면 오른쪽, c=0)부터 최대 6명씩 5줄 (교탁 쪽이 앞번호), 기존 배치는 유지
+  // 30명 미만이면 줄별 인원을 고르게 나누고, 남는 인원은 가운데 양옆 줄(2·4번째)부터 1명씩 더 배정
+  // (양 끝 줄은 쓰레기통·출입문 쪽이라 마지막에 채움)
   var EXAM_ROWS = 6, EXAM_COLS = 5;
   if (examMode) {
     var examLayout = {};
@@ -1011,11 +1012,11 @@ function SeatingTab({ students, seating, classInfo, onUpdate, onToast }) {
     var n = Math.min(sorted.length, EXAM_ROWS * EXAM_COLS);
     var colSizes = [];
     for (var ci = 0; ci < EXAM_COLS; ci++) colSizes.push(Math.floor(n / EXAM_COLS));
-    [0,4,1,3,2].slice(0, n % EXAM_COLS).forEach(function(ci){ colSizes[ci]++; });
+    [1,3,2,0,4].slice(0, n % EXAM_COLS).forEach(function(ci){ colSizes[ci]++; });
     var k = 0;
     colSizes.forEach(function(size, colIdx){
       for (var rowIdx = 0; rowIdx < size; rowIdx++) {
-        examLayout[rowIdx + '-' + (EXAM_COLS - 1 - colIdx)] = sorted[k++].id;
+        examLayout[rowIdx + '-' + colIdx] = sorted[k++].id;
       }
     });
     rows = EXAM_ROWS; cols = EXAM_COLS; layout = examLayout;
@@ -1130,7 +1131,7 @@ function SeatingTab({ students, seating, classInfo, onUpdate, onToast }) {
     </div>
     <div className="seating-podium">교 탁</div>
     ${examMode ? html`<div className="seating-unassigned" style=${{fontSize:12,color:'var(--text-light)'}}>
-      📝 시험 대형 — 번호순으로 왼쪽 줄부터 자동 배치됩니다. 인원이 30명보다 적으면 줄별로 고르게 나눕니다. (평상시 자리는 그대로 유지)
+      📝 시험 대형 — 번호순으로 교탁에서 봤을 때 오른쪽 줄부터 자동 배치됩니다. 인원이 30명보다 적으면 줄별로 고르게 나눕니다. (평상시 자리는 그대로 유지)
       ${students.length > EXAM_ROWS*EXAM_COLS ? html`<div style=${{color:'var(--danger)',marginTop:4}}>⚠️ 학생이 ${EXAM_ROWS*EXAM_COLS}명을 넘어 ${students.length-EXAM_ROWS*EXAM_COLS}명이 배치되지 않았습니다.</div>` : null}
     </div>` : null}
     ${!examMode && unassigned.length > 0 ? html`
