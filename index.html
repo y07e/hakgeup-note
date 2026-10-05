@@ -532,8 +532,11 @@ function getCalDays(y, m) {
 }
 
 // ===== Version =====
-const APP_VERSION = '2026.09.01';
+const APP_VERSION = '2026.10.06';
 var UPDATES = [
+  { ver: '2026.10.06', items: [
+    '📝 자리배치 시험 대형 — 버튼 하나로 번호순 6명×5줄 자동 배치 + 인쇄 (평상시 자리 유지)'
+  ]},
   { ver: '2026.09.01', items: [
     '🖨️ 발급 이력 인쇄 — 월·유형 필터별로 학생별 발급 현황 + 상세 내역 인쇄',
     '📊 통계 학생 상세 — 검색 기간 내 메모·상벌점만 표시 (기간 표시 추가)'
@@ -993,10 +996,24 @@ function SeatingTab({ students, seating, classInfo, onUpdate, onToast }) {
   const [popup, setPopup] = useState(null);
   const [moveFrom, setMoveFrom] = useState(null);
   const [seatDate, setSeatDate] = useState(new Date().toISOString().slice(0,10));
+  const [examMode, setExamMode] = useState(false);
 
   var rows = seating.rows || 6;
   var cols = seating.cols || 5;
   var layout = seating.layout || {};
+
+  // 시험 대형: 번호순으로 왼쪽 줄부터 6명씩 5줄 (교탁 쪽이 앞번호), 기존 배치는 유지
+  var EXAM_ROWS = 6, EXAM_COLS = 5;
+  if (examMode) {
+    var examLayout = {};
+    students.slice().sort(function(a,b){ return a.number - b.number; }).forEach(function(s, k){
+      var colIdx = Math.floor(k / EXAM_ROWS);
+      var rowIdx = k % EXAM_ROWS;
+      if (colIdx >= EXAM_COLS) return;
+      examLayout[rowIdx + '-' + (EXAM_COLS - 1 - colIdx)] = s.id;
+    });
+    rows = EXAM_ROWS; cols = EXAM_COLS; layout = examLayout;
+  }
 
   var getName = function(sid) { var s = students.find(function(x){return x.id===sid;}); return s ? s.name : null; };
   var getNum = function(sid) { var s = students.find(function(x){return x.id===sid;}); return s ? s.number : ''; };
@@ -1023,6 +1040,7 @@ function SeatingTab({ students, seating, classInfo, onUpdate, onToast }) {
   };
 
   var handleSeatClick = function(key) {
+    if (examMode) return;
     if (moveFrom) {
       var newLayout = Object.assign({}, layout);
       var fromVal = newLayout[moveFrom] || null;
@@ -1062,7 +1080,8 @@ function SeatingTab({ students, seating, classInfo, onUpdate, onToast }) {
       <div style=${{fontSize:16,fontWeight:700,color:'var(--text)'}}>💺 자리 배치</div>
     </div>
     <div className="seating-controls">
-      <div className="seating-rc">
+      <button className=${'cleaning-btn-sm' + (examMode?' active':'')} onClick=${function(){setExamMode(!examMode);setPopup(null);setMoveFrom(null);}}>${examMode ? '평상시 대형' : '📝 시험 대형'}</button>
+      ${examMode ? null : html`<div className="seating-rc">
         <span>행</span>
         <select value=${String(rows)} onChange=${function(e){setRC(Number(e.target.value),cols);}}>
           ${[4,5,6,7,8].map(function(n){return html`<option key=${n} value=${String(n)}>${n}</option>`;})}
@@ -1071,7 +1090,7 @@ function SeatingTab({ students, seating, classInfo, onUpdate, onToast }) {
         <select value=${String(cols)} onChange=${function(e){setRC(rows,Number(e.target.value));}}>
           ${[3,4,5,6,7,8].map(function(n){return html`<option key=${n} value=${String(n)}>${n}</option>`;})}
         </select>
-      </div>
+      </div>`}
       ${moveFrom ? html`<button className="cleaning-btn-sm" onClick=${cancelMove}>이동 취소</button>` : null}
       <input type="date" value=${seatDate} onChange=${function(e){setSeatDate(e.target.value);}} style=${{padding:'4px 6px',border:'1.5px solid var(--border)',borderRadius:6,fontSize:13,fontFamily:'inherit',background:'var(--card)',color:'var(--text)'}} />
       <button className="cleaning-btn-sm" onClick=${function(){var s=document.getElementById('print-orient');if(!s){s=document.createElement('style');s.id='print-orient';document.head.appendChild(s);}s.textContent='@media print{@page{size:A4 landscape;margin:10mm 15mm}}';window.print();}}>🖨️ 인쇄</button>
@@ -1104,7 +1123,11 @@ function SeatingTab({ students, seating, classInfo, onUpdate, onToast }) {
       })}
     </div>
     <div className="seating-podium">교 탁</div>
-    ${unassigned.length > 0 ? html`
+    ${examMode ? html`<div className="seating-unassigned" style=${{fontSize:12,color:'var(--text-light)'}}>
+      📝 시험 대형 — 번호순으로 왼쪽 줄부터 6명씩 자동 배치됩니다. (평상시 자리는 그대로 유지)
+      ${students.length > EXAM_ROWS*EXAM_COLS ? html`<div style=${{color:'var(--danger)',marginTop:4}}>⚠️ 학생이 ${EXAM_ROWS*EXAM_COLS}명을 넘어 ${students.length-EXAM_ROWS*EXAM_COLS}명이 배치되지 않았습니다.</div>` : null}
+    </div>` : null}
+    ${!examMode && unassigned.length > 0 ? html`
       <div className="seating-unassigned">
         <div className="seating-unassigned-title">미배치 학생 (${unassigned.length}명)</div>
         <div className="seating-chip-row">
@@ -1114,7 +1137,7 @@ function SeatingTab({ students, seating, classInfo, onUpdate, onToast }) {
     ${moveFrom ? html`<div style=${{padding:'8px 16px',fontSize:13,color:'var(--warning)',fontWeight:600}}>💡 이동할 자리를 선택하세요 (빈자리 또는 다른 학생과 교환)</div>` : null}
 
     <div className="seating-print-area">
-      <h2>${classInfo.className || ''} 자리배치도</h2>
+      <h2>${classInfo.className || ''} ${examMode ? '시험 대형 자리배치도' : '자리배치도'}</h2>
       <div className="print-sub">${seatDate.replace(/-/g,'.')}~</div>
       <table>
         <tbody>
