@@ -535,6 +535,7 @@ function getCalDays(y, m) {
 const APP_VERSION = '2026.10.20';
 var UPDATES = [
   { ver: '2026.10.20', items: [
+    '💾 자리배치 저장/불러오기 — 날짜별로 배치를 보관하고 이전 배치로 되돌리기 (백업에도 포함)',
     '🧽 자리배치 전체 비우기 — 배치된 자리를 한 번에 비우기 (확인 후 실행)'
   ]},
   { ver: '2026.10.06', items: [
@@ -586,7 +587,7 @@ var UPDATES = [
 ];
 
 // ===== Store =====
-const KEYS = { classInfo:'hn_ci', students:'hn_st', memos:'hn_me', points:'hn_pt', seating:'hn_se', cleaning:'hn_cl', cleaningHistory:'hn_cl_hist', diary:'hn_di', pin:'hn_pin', lastVer:'hn_ver', formApprove:'hn_form_approve', formAbsence:'hn_form_absence', formLeave:'hn_form_leave', formHistory:'hn_form_history' };
+const KEYS = { classInfo:'hn_ci', students:'hn_st', memos:'hn_me', points:'hn_pt', seating:'hn_se', cleaning:'hn_cl', cleaningHistory:'hn_cl_hist', seatingHistory:'hn_se_hist', diary:'hn_di', pin:'hn_pin', lastVer:'hn_ver', formApprove:'hn_form_approve', formAbsence:'hn_form_absence', formLeave:'hn_form_leave', formHistory:'hn_form_history' };
 var LP_POS_KEY = 'lp_positions';
 var LP_FIELD_OPTS = ['학년','반','번호','이름','구분(조퇴/외출)','사유','시작시','시작분','종료시','종료분','년도','월','일','학교명','담임'];
 function loadLpPos(){ try{var r=localStorage.getItem(LP_POS_KEY);return r?JSON.parse(r):[];} catch(e){return [];} }
@@ -1000,6 +1001,29 @@ function SeatingTab({ students, seating, classInfo, onUpdate, onToast }) {
   const [moveFrom, setMoveFrom] = useState(null);
   const [seatDate, setSeatDate] = useState(new Date().toISOString().slice(0,10));
   const [examMode, setExamMode] = useState(false);
+  const [history, setHistory] = useState(function(){ return load(KEYS.seatingHistory, []); });
+  const [showHistory, setShowHistory] = useState(false);
+
+  var saveHistory = function() {
+    if (!Object.keys(seating.layout || {}).length) { onToast('저장할 배치가 없습니다'); return; }
+    var entry = { id: Date.now().toString(36), date: seatDate, rows: seating.rows || 6, cols: seating.cols || 5, layout: seating.layout || {}, savedAt: new Date().toISOString() };
+    var nh = [entry].concat(history);
+    setHistory(nh); save(KEYS.seatingHistory, nh);
+    onToast(seatDate + ' 자리배치 저장 완료');
+  };
+
+  var loadHistory = function(entry) {
+    if (!confirm(entry.date + ' 자리배치를 불러올까요? (지금 배치는 바뀝니다)')) return;
+    onUpdate({ rows: entry.rows, cols: entry.cols, layout: entry.layout });
+    setShowHistory(false); setPopup(null); setMoveFrom(null);
+    onToast(entry.date + ' 자리배치를 불러왔습니다');
+  };
+
+  var deleteHistory = function(id) {
+    var nh = history.filter(function(h){ return h.id !== id; });
+    setHistory(nh); save(KEYS.seatingHistory, nh);
+    onToast('이력 삭제 완료');
+  };
 
   var rows = seating.rows || 6;
   var cols = seating.cols || 5;
@@ -1110,11 +1134,32 @@ function SeatingTab({ students, seating, classInfo, onUpdate, onToast }) {
         </select>
       </div>`}
       ${examMode ? null : html`<button className="cleaning-btn-sm" onClick=${clearAll}>🧽 전체 비우기</button>`}
+      ${examMode ? null : html`<button className="cleaning-btn-sm" onClick=${saveHistory}>💾 저장</button>`}
+      ${examMode ? null : html`<button className=${'cleaning-btn-sm' + (showHistory?' active':'')} onClick=${function(){setShowHistory(!showHistory);}}>📋 이전</button>`}
       ${moveFrom ? html`<button className="cleaning-btn-sm" onClick=${cancelMove}>이동 취소</button>` : null}
       <input type="date" value=${seatDate} onChange=${function(e){setSeatDate(e.target.value);}} style=${{padding:'4px 6px',border:'1.5px solid var(--border)',borderRadius:6,fontSize:13,fontFamily:'inherit',background:'var(--card)',color:'var(--text)'}} />
       <button className="cleaning-btn-sm" onClick=${function(){var s=document.getElementById('print-orient');if(!s){s=document.createElement('style');s.id='print-orient';document.head.appendChild(s);}s.textContent='@media print{@page{size:A4 landscape;margin:10mm 15mm}}';window.print();}}>🖨️ 인쇄</button>
       <button className="cleaning-btn-sm" onClick=${function(){var s=document.getElementById('print-orient');if(!s){s=document.createElement('style');s.id='print-orient';document.head.appendChild(s);}s.textContent='@media print{@page{size:A4 landscape;margin:10mm 15mm}}';var app=document.querySelector('.app');app.setAttribute('data-print','seat-empty');window.print();setTimeout(function(){app.removeAttribute('data-print');},500);}}>🖨️ 빈자리</button>
     </div>
+    ${showHistory && !examMode ? html`
+      <div className="no-print" style=${{margin:'0 16px 12px',padding:'12px',background:'var(--card)',borderRadius:'var(--radius)',boxShadow:'var(--shadow)'}}>
+        <div style=${{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:8}}>
+          <div style=${{fontSize:14,fontWeight:700}}>📋 이전 자리배치 목록</div>
+          <button style=${{fontSize:14,border:'none',background:'none',cursor:'pointer',color:'var(--text-light)',padding:'2px 6px'}} onClick=${function(){setShowHistory(false);}}>✕</button>
+        </div>
+        ${history.length === 0 ? html`<div style=${{fontSize:13,color:'var(--text-light)',textAlign:'center',padding:'8px 0'}}>저장된 자리배치가 없습니다. 날짜를 정하고 💾 저장을 눌러 보관하세요.</div>` : null}
+        ${history.map(function(h) {
+          var cnt = Object.keys(h.layout||{}).length;
+          return html`<div key=${h.id} style=${{display:'flex',alignItems:'center',gap:8,padding:'8px 0',borderBottom:'1px solid var(--border-light)'}}>
+            <div style=${{flex:1}}>
+              <div style=${{fontSize:13,fontWeight:600}}>${h.date}</div>
+              <div style=${{fontSize:11,color:'var(--text-light)',marginTop:2}}>${h.rows}행 × ${h.cols}열 · ${cnt}명 배치</div>
+            </div>
+            <button style=${{fontSize:11,padding:'4px 10px',border:'1px solid var(--primary)',borderRadius:4,background:'var(--primary)',color:'#fff',cursor:'pointer',fontFamily:'inherit'}} onClick=${function(){loadHistory(h);}}>불러오기</button>
+            <button style=${{fontSize:11,padding:'4px 8px',border:'1px solid var(--border)',borderRadius:4,background:'var(--card)',color:'var(--danger)',cursor:'pointer',fontFamily:'inherit'}} onClick=${function(){deleteHistory(h.id);}}>✕</button>
+          </div>`;
+        })}
+      </div>` : null}
     <div className="seating-grid" style=${{gridTemplateColumns:'repeat('+cols+',1fr)'}}>
       ${Array.from({length:rows}).map(function(_,i){
         var r = rows - 1 - i;
@@ -2645,6 +2690,7 @@ function Settings({ classInfo, students, memos, points, onUpdateCI, onUpdateSt, 
       formAbsencePos: absPosRaw ? JSON.parse(absPosRaw) : null,
       formLeavePos: loadLpPos(),
       cleaningHistory: load(KEYS.cleaningHistory, []),
+      seatingHistory: load(KEYS.seatingHistory, []),
     }, null, 2);
     var blob = new Blob([data], {type:'application/json'});
     var url = URL.createObjectURL(blob);
@@ -2799,6 +2845,7 @@ function Settings({ classInfo, students, memos, points, onUpdateCI, onUpdateSt, 
       formAbsencePos: absPosRaw ? JSON.parse(absPosRaw) : null,
       formLeavePos: loadLpPos(),
       cleaningHistory: load(KEYS.cleaningHistory, []),
+      seatingHistory: load(KEYS.seatingHistory, []),
     }, null, 2);
     var blob = new Blob([data], { type: 'application/json' });
     var url = URL.createObjectURL(blob);
@@ -2830,6 +2877,7 @@ function Settings({ classInfo, students, memos, points, onUpdateCI, onUpdateSt, 
         if (d.formAbsencePos) localStorage.setItem(ABS_POS_KEY, JSON.stringify(d.formAbsencePos));
         if (d.formLeavePos) saveLpPos(d.formLeavePos);
         if (d.cleaningHistory) save(KEYS.cleaningHistory, d.cleaningHistory);
+        if (d.seatingHistory) save(KEYS.seatingHistory, d.seatingHistory);
         onToast('데이터 복원 완료'); onReload(); onClose();
       } catch(err) { onToast('파일 형식이 올바르지 않습니다', 'error'); }
     };
@@ -3126,6 +3174,7 @@ function App() {
         formAbsencePos: absPosRaw ? JSON.parse(absPosRaw) : null,
         formLeavePos: loadLpPos(),
         cleaningHistory: load(KEYS.cleaningHistory, []),
+        seatingHistory: load(KEYS.seatingHistory, []),
       }, null, 2);
       var blob = new Blob([data], {type:'application/json'});
       var url = URL.createObjectURL(blob);
