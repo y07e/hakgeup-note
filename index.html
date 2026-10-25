@@ -535,7 +535,8 @@ function getCalDays(y, m) {
 const APP_VERSION = '2026.10.26';
 var UPDATES = [
   { ver: '2026.10.26', items: [
-    '👥 청소구역 학생 전체 제외 — 구역은 그대로 두고 배정된 학생만 한 번에 비우기'
+    '👥 청소구역 학생 전체 제외 — 구역은 그대로 두고 배정된 학생만 한 번에 비우기',
+    '🧹 청소구역 배정 시 학생 이름이 누른 구역 바로 아래에 표시'
   ]},
   { ver: '2026.10.20', items: [
     '💾 자리배치 저장/불러오기 — 날짜별로 배치를 보관하고 이전 배치로 되돌리기 (백업에도 포함)',
@@ -1324,6 +1325,31 @@ function CleaningTab({ students, cleaning, classInfo, onUpdate, onToast }) {
     onUpdate({zones:zones,assignments:assignments,notes:val});
   };
 
+  var renderAssignPanel = function(sz) {
+    var szCount = (assignments[sz.id]||[]).length;
+    var szCap = sz.capacity;
+    var capColor = szCap ? (szCount>szCap?'var(--danger)':(szCount===szCap?'var(--success)':'var(--primary)')) : 'var(--text-light)';
+    return html`<div className="no-print" style=${{marginBottom:12}}>
+      <div style=${{padding:'4px 16px 4px',display:'flex',alignItems:'center',justifyContent:'space-between',gap:8}}>
+        <div className="section-title" style=${{padding:0}}>학생을 탭하여 배정 / 해제</div>
+        <div style=${{fontSize:13,fontWeight:700,color:capColor,whiteSpace:'nowrap'}}>
+          ${sz.name}: ${szCount}${szCap?'/'+szCap:''}명${szCap&&szCount===szCap?' ✓':''}${szCap&&szCount>szCap?' 초과!':''}
+        </div>
+      </div>
+      <div className="cleaning-assign-grid">
+        ${students.map(function(s){
+          var inThisZone = (assignments[sz.id]||[]).indexOf(s.id)>=0;
+          var inOther = allAssigned[s.id] && allAssigned[s.id]!==sz.id;
+          var cls = 'cleaning-assign-cell' + (inThisZone?' in-zone':'') + (inOther?' assigned':'');
+          return html`<button key=${s.id} className=${cls} onClick=${function(){if(!inOther)toggleAssign(s.id);}}>
+            <span style=${{fontSize:10,color:'var(--text-light)'}}>${s.number}</span>
+            <span>${s.name}</span>
+          </button>`;
+        })}
+      </div>
+    </div>`;
+  };
+
   var clearAllStudents = function() {
     var cnt = Object.keys(allAssigned).length;
     if (!cnt) { onToast('배정된 학생이 없습니다'); return; }
@@ -1383,11 +1409,12 @@ function CleaningTab({ students, cleaning, classInfo, onUpdate, onToast }) {
       </div>
     ` : null}
 
+    ${!editMode && !selZone && zones.length ? html`<div className="no-print" style=${{padding:'0 16px 8px',fontSize:12,color:'var(--text-light)'}}>💡 구역 카드를 누르면 바로 아래에 학생 이름이 나와 배정할 수 있어요.</div>` : null}
     ${zones.map(function(z, zi) {
       var members = (assignments[z.id]||[]);
       var isSel = selZone === z.id && !editMode;
-      return html`
-        <div key=${z.id} className=${'cleaning-zone-card' + (isSel?' selected':'')}
+      return html`<${React.Fragment} key=${z.id}>
+        <div className=${'cleaning-zone-card' + (isSel?' selected':'')}
           onClick=${function(){ if(!editMode) setSelZone(selZone===z.id?null:z.id); }}>
           <div className="cleaning-zone-name">
             ${editMode && editZoneId===z.id ? html`
@@ -1420,34 +1447,10 @@ function CleaningTab({ students, cleaning, classInfo, onUpdate, onToast }) {
               : members.map(function(sid){ return html`<button key=${sid} className="cleaning-student-chip"
                   onClick=${function(e){e.stopPropagation(); if(!editMode){var cur=(assignments[z.id]||[]).filter(function(x){return x!==sid;}); var na=Object.assign({},assignments);na[z.id]=cur;onUpdate({zones:zones,assignments:na,notes:notes});}}}>${getNum(sid)}. ${getName(sid)}</button>`; })}
           </div>
-        </div>`;
-    })}
-
-    ${selZone && !editMode ? (function(){
-      var sz = zones.find(function(z){return z.id===selZone;}) || {};
-      var szCount = (assignments[selZone]||[]).length;
-      var szCap = sz.capacity;
-      var capColor = szCap ? (szCount>szCap?'var(--danger)':(szCount===szCap?'var(--success)':'var(--primary)')) : 'var(--text-light)';
-      return html`
-      <div className="no-print" style=${{padding:'8px 16px 4px',display:'flex',alignItems:'center',justifyContent:'space-between',gap:8}}>
-        <div className="section-title" style=${{padding:0}}>학생을 탭하여 배정 / 해제</div>
-        <div style=${{fontSize:13,fontWeight:700,color:capColor,whiteSpace:'nowrap'}}>
-          ${sz.name}: ${szCount}${szCap?'/'+szCap:''}명${szCap&&szCount===szCap?' ✓':''}${szCap&&szCount>szCap?' 초과!':''}
         </div>
-      </div>`;
-    })() : null}
-    ${selZone && !editMode ? html`
-      <div className="cleaning-assign-grid">
-        ${students.map(function(s){
-          var inThisZone = (assignments[selZone]||[]).indexOf(s.id)>=0;
-          var inOther = allAssigned[s.id] && allAssigned[s.id]!==selZone;
-          var cls = 'cleaning-assign-cell' + (inThisZone?' in-zone':'') + (inOther?' assigned':'');
-          return html`<button key=${s.id} className=${cls} onClick=${function(){if(!inOther)toggleAssign(s.id);}}>
-            <span style=${{fontSize:10,color:'var(--text-light)'}}>${s.number}</span>
-            <span>${s.name}</span>
-          </button>`;
-        })}
-      </div>` : null}
+        ${isSel ? renderAssignPanel(z) : null}
+      </${React.Fragment}>`;
+    })}
 
     <div className="cleaning-notes-section">
       <div className="section-title" style=${{padding:'12px 16px 4px'}}>청소 유의사항</div>
