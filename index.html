@@ -236,8 +236,8 @@ html,body{height:100%;background:#e2e8f0;
 
 /* ===== Cleaning ===== */
 .cleaning-header{display:flex;align-items:center;justify-content:space-between;padding:12px 16px 8px}
-.cleaning-header-actions{display:flex;gap:6px}
-.cleaning-btn-sm{padding:7px 12px;border:1.5px solid var(--border);border-radius:var(--radius-sm);background:var(--card);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;color:var(--text)}
+.cleaning-header-actions{display:flex;gap:6px;flex-wrap:wrap}
+.cleaning-btn-sm{padding:7px 12px;border:1.5px solid var(--border);border-radius:var(--radius-sm);background:var(--card);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;color:var(--text);white-space:nowrap}
 .cleaning-btn-sm:active{transform:scale(.95)}
 .cleaning-btn-sm.active{border-color:var(--primary);background:var(--primary-light);color:var(--primary-dark)}
 .cleaning-zone-card{margin:0 16px 8px;padding:12px 14px;background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);cursor:pointer;transition:all .15s}
@@ -532,8 +532,11 @@ function getCalDays(y, m) {
 }
 
 // ===== Version =====
-const APP_VERSION = '2026.10.20';
+const APP_VERSION = '2026.10.26';
 var UPDATES = [
+  { ver: '2026.10.26', items: [
+    '👥 청소구역 학생 전체 제외 — 구역은 그대로 두고 배정된 학생만 한 번에 비우기'
+  ]},
   { ver: '2026.10.20', items: [
     '💾 자리배치 저장/불러오기 — 날짜별로 배치를 보관하고 이전 배치로 되돌리기 (백업에도 포함)',
     '🧽 자리배치 전체 비우기 — 배치된 자리를 한 번에 비우기 (확인 후 실행)'
@@ -1321,6 +1324,15 @@ function CleaningTab({ students, cleaning, classInfo, onUpdate, onToast }) {
     onUpdate({zones:zones,assignments:assignments,notes:val});
   };
 
+  var clearAllStudents = function() {
+    var cnt = Object.keys(allAssigned).length;
+    if (!cnt) { onToast('배정된 학생이 없습니다'); return; }
+    if (!confirm('배정된 학생 ' + cnt + '명을 모두 제외할까요?\n(구역·인원·유의사항은 그대로 유지)')) return;
+    onUpdate({zones:zones,assignments:{},notes:notes});
+    setSelZone(null);
+    onToast('학생 배정 전체 해제 완료');
+  };
+
   var getName = function(sid) { var s = students.find(function(x){return x.id===sid;}); return s ? s.name : '?'; };
   var getNum = function(sid) { var s = students.find(function(x){return x.id===sid;}); return s ? s.number : 0; };
 
@@ -1335,6 +1347,7 @@ function CleaningTab({ students, cleaning, classInfo, onUpdate, onToast }) {
         <button className=${'cleaning-btn-sm' + (editMode?' active':'')} onClick=${function(){setEditMode(!editMode);setSelZone(null);}}>
           ${editMode ? '완료' : '구역 편집'}
         </button>
+        ${editMode ? null : html`<button className="cleaning-btn-sm" onClick=${clearAllStudents}>👥 학생 전체 제외</button>`}
         <button className="cleaning-btn-sm" onClick=${saveHistory}>💾 저장</button>
         <button className="cleaning-btn-sm" onClick=${function(){setShowHistory(!showHistory);}}>📋 이전</button>
         <input type="date" style=${{padding:'4px',fontSize:11,border:'1px solid var(--border)',borderRadius:4,fontFamily:'inherit'}} value=${printDate} onInput=${function(e){setPrintDate(e.target.value);}} />
